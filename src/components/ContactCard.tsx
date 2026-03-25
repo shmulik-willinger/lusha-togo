@@ -95,7 +95,6 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
     onError: (err: any) => {
       console.log('[reveal-error]', err?.response?.status, JSON.stringify(err?.response?.data).substring(0, 200));
       setRevealError(true);
-      setTimeout(() => setRevealError(false), 3000);
     },
   });
 
@@ -214,6 +213,10 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
             </TouchableOpacity>
           )}
         </View>
+      ) : revealError ? (
+        <Text style={styles.protectedText}>
+          🔒 This Contact's Info is Protected – Upgrade to Unlock Access
+        </Text>
       ) : (
         <View style={styles.actionRow}>
           <TouchableOpacity
@@ -223,7 +226,7 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
             activeOpacity={0.8}
           >
             <Text style={styles.revealBtnText}>
-              {revealMutation.isPending ? 'Revealing…' : revealError ? '⚠️ Reveal failed' : '🔓 Reveal Contact'}
+              {revealMutation.isPending ? 'Revealing…' : '🔓 Reveal Contact'}
             </Text>
           </TouchableOpacity>
           {hasLinkedIn && (
@@ -408,5 +411,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#dc2626',
     fontWeight: '500',
+  },
+  protectedText: {
+    fontSize: 12,
+    color: '#92400e',
+    fontWeight: '500',
+    lineHeight: 17,
+    backgroundColor: '#fef3c7',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderWidth: 1,
+    borderColor: '#fde68a',
   },
 });

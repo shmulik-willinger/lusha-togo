@@ -51,7 +51,7 @@ export default function SearchScreen() {
 
   const isLoading = searchQuery.isLoading || aiSearch.isPending;
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
       <AIThinkingOverlay visible={aiSearch.isPending} />
 
       {/* AI Search bar */}

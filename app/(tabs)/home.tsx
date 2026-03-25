@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  RefreshControl,
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -35,13 +34,6 @@ function RecommendationCard({ group, onPress }: RecommendationCardProps) {
         </View>
         <View style={styles.countBadge}>
           <Text style={styles.countText}>{group.total}</Text>
-        </View>
-      </View>
-
-      <View style={styles.previewRow}>
-        <View style={{ flex: 1 }} />
-        <View style={styles.viewBtn}>
-          <Text style={styles.viewBtnText}>View All →</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -76,34 +68,34 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#6f45ff" />
-        }
-      >
-        {/* AI Search section */}
-        <View style={{ paddingTop: 20, paddingBottom: 20, backgroundColor: '#fff', marginBottom: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}>
-          <View style={{ paddingHorizontal: 16, marginBottom: 14 }}>
-            <Text style={{ fontSize: 22, fontWeight: '800', color: '#1a1a1a', marginBottom: 4 }}>Find Your Next Lead</Text>
-            <Text style={{ fontSize: 13, color: '#9ca3af' }}>Describe who you're looking for</Text>
-          </View>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
+
+      {/* ── Section 1: AI Search ─────────────────────────────────── */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Find Your Next Lead</Text>
+          <Text style={styles.sectionSubtitle}>Describe who you're looking for</Text>
+        </View>
+        <View style={{ paddingTop: 14 }}>
           <AISearchBar
             activeTab="contacts"
             onSubmit={handleAISearch}
             loading={aiSearch.isPending}
+            compact
           />
         </View>
+      </View>
 
-        {/* Section header */}
+      {/* thin separator */}
+      <View style={styles.separator} />
+
+      {/* ── Section 2: Recommended Leads ────────────────────────── */}
+      <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recommended Leads</Text>
+          <Text style={styles.sectionTitle}>Your Recommendations</Text>
           <Text style={styles.sectionSubtitle}>Tailored to your ICP</Text>
         </View>
-
-        {/* Recommendation group cards */}
-        <View style={{ paddingHorizontal: 16 }}>
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4 }}>
           {isLoading ? (
             <>
               <CardSkeleton />
@@ -122,8 +114,36 @@ export default function HomeScreen() {
               />
             ))
           )}
+        </ScrollView>
+      </View>
+
+      {/* thin separator */}
+      <View style={styles.separator} />
+
+      {/* ── Section 3: Enrich ────────────────────────────────────── */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Enrich your phone contacts</Text>
+          <Text style={styles.sectionSubtitle}>Upload & enrich from your device</Text>
         </View>
-      </ScrollView>
+        <View style={{ paddingHorizontal: 16, paddingTop: 14 }}>
+          <TouchableOpacity
+            style={styles.uploadContactsBtn}
+            onPress={() => router.push('/upload-contacts' as never)}
+            activeOpacity={0.82}
+          >
+            <View style={styles.uploadContactsIcon}>
+              <Text style={{ fontSize: 20 }}>📤</Text>
+            </View>
+            <View style={{ flex: 1, marginLeft: 12 }}>
+              <Text style={styles.uploadContactsTitle}>Upload Contacts</Text>
+              <Text style={styles.uploadContactsSub}>Enrich your phone contacts with Lusha</Text>
+            </View>
+            <Text style={{ color: '#6f45ff', fontSize: 18 }}>›</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
     </SafeAreaView>
   );
 }
@@ -161,10 +181,18 @@ function ErrorCard({ onRetry }: { onRetry: () => void }) {
 }
 
 const styles = StyleSheet.create({
+  section: {
+    flex: 1,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+    marginHorizontal: 16,
+  },
   sectionHeader: {
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 10,
+    paddingTop: 12,
+    paddingBottom: 6,
   },
   sectionTitle: {
     fontSize: 18,
@@ -241,5 +269,56 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 13,
     fontWeight: '600',
+  },
+  sectionDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 4,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#e5e7eb',
+  },
+  dividerLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#9ca3af',
+    letterSpacing: 1.5,
+    marginHorizontal: 12,
+  },
+  uploadContactsBtn: {
+    direction: 'ltr',
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  uploadContactsIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#f0ecff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  uploadContactsTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  uploadContactsSub: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginTop: 2,
   },
 });

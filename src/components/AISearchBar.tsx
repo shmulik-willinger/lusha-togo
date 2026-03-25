@@ -19,9 +19,10 @@ interface AISearchBarProps {
   loading?: boolean;
   onClear?: () => void;
   initialText?: string;
+  compact?: boolean;
 }
 
-export function AISearchBar({ activeTab, onSubmit, loading = false, onClear, initialText }: AISearchBarProps) {
+export function AISearchBar({ activeTab, onSubmit, loading = false, onClear, initialText, compact }: AISearchBarProps) {
   const [text, setText] = useState(initialText ?? '');
   const examples = activeTab === 'contacts' ? CONTACT_EXAMPLES : COMPANY_EXAMPLES;
 
@@ -36,9 +37,9 @@ export function AISearchBar({ activeTab, onSubmit, loading = false, onClear, ini
     <View style={{ direction: 'ltr' }}>
       {/* Input row */}
       <View
-        style={{ direction: 'ltr', marginHorizontal: 16, backgroundColor: '#fff', borderRadius: 16, flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 14, paddingVertical: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 }}
+        style={{ direction: 'ltr', marginHorizontal: 16, backgroundColor: '#fff', borderRadius: 16, flexDirection: 'row', alignItems: compact ? 'center' : 'flex-end', minHeight: compact ? 76 : undefined, paddingHorizontal: 14, paddingVertical: compact ? 16 : 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 }}
       >
-        <Text style={{ fontSize: 18, marginRight: 8, marginBottom: 2 }}>✨</Text>
+        <Text style={{ fontSize: 18, marginRight: 8, marginBottom: compact ? 0 : 2 }}>✨</Text>
         <TextInput
           style={{ flex: 1, color: '#1a1a1a', fontSize: 15, maxHeight: 100, minHeight: 24, textAlign: 'left', writingDirection: 'ltr' }}
           placeholder={`Describe the ${activeTab} you're looking for...`}
@@ -78,7 +79,7 @@ export function AISearchBar({ activeTab, onSubmit, loading = false, onClear, ini
       )}
 
       {/* Example prompts */}
-      {text.length === 0 && (
+      {text.length === 0 && !compact && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}

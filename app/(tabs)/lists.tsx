@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
   RefreshControl,
+  TextInput,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -96,9 +98,17 @@ function ListSkeleton() {
 
 export default function ListsScreen() {
   const { data: lists, isLoading, refetch, isRefetching, error } = useContactLists();
+  const [search, setSearch] = useState('');
+
+  const filteredLists = useMemo(() => {
+    if (!lists) return [];
+    if (!search.trim()) return lists;
+    const q = search.toLowerCase();
+    return lists.filter((l) => l.name.toLowerCase().includes(q));
+  }, [lists, search]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
       {isLoading ? (
         <View style={{ paddingTop: 12 }}>
           {[...Array(6)].map((_, i) => <ListSkeleton key={i} />)}
@@ -108,19 +118,44 @@ export default function ListsScreen() {
       ) : !lists?.length ? (
         <EmptyState onRetry={refetch} isRefetching={isRefetching} />
       ) : (
-        <FlatList
-          data={lists}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ListItem list={item} />}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 40 }}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={refetch}
-              tintColor="#6f45ff"
+        <>
+          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, marginBottom: 4, borderRadius: 12, paddingHorizontal: 12, paddingVertical: Platform.OS === 'ios' ? 10 : 6, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}>
+            <Text style={{ fontSize: 15, marginRight: 8 }}>🔍</Text>
+            <TextInput
+              style={{ flex: 1, fontSize: 15, color: '#1a1a1a' }}
+              placeholder="Search lists…"
+              placeholderTextColor="#9ca3af"
+              value={search}
+              onChangeText={setSearch}
+              autoCorrect={false}
             />
-          }
-        />
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => setSearch('')} hitSlop={8}>
+                <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: '#d1d5db', alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700', lineHeight: 13 }}>✕</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          </View>
+          <FlatList
+            data={filteredLists}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <ListItem list={item} />}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 40 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefetching}
+                onRefresh={refetch}
+                tintColor="#6f45ff"
+              />
+            }
+            ListEmptyComponent={
+              <View style={{ alignItems: 'center', paddingTop: 48 }}>
+                <Text style={{ fontSize: 15, color: '#9ca3af' }}>No lists match "{search}"</Text>
+              </View>
+            }
+          />
+        </>
       )}
     </SafeAreaView>
   );

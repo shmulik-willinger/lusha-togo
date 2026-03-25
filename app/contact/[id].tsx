@@ -129,7 +129,6 @@ export default function ContactDetailScreen() {
     onError: (err: any) => {
       console.log('[contact-detail reveal-error]', err?.response?.status, JSON.stringify(err?.response?.data).substring(0, 200));
       setRevealError(true);
-      setTimeout(() => setRevealError(false), 3000);
     },
   });
 
@@ -247,16 +246,24 @@ export default function ContactDetailScreen() {
             </View>
           ) : !isRevealed ? (
             <View style={{ paddingVertical: 14 }}>
-              <TouchableOpacity
-                onPress={() => revealMutation.mutate()}
-                disabled={revealMutation.isPending}
-                style={{ backgroundColor: revealError ? '#dc2626' : '#6f45ff', borderRadius: 12, paddingVertical: 14, alignItems: 'center', opacity: revealMutation.isPending ? 0.7 : 1 }}
-                activeOpacity={0.85}
-              >
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-                  {revealMutation.isPending ? 'Revealing…' : revealError ? '⚠️ Reveal failed — tap to retry' : '🔓 Reveal Contact Info'}
-                </Text>
-              </TouchableOpacity>
+              {revealError ? (
+                <View style={{ backgroundColor: '#fef3c7', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#fde68a' }}>
+                  <Text style={{ color: '#92400e', fontWeight: '600', fontSize: 14, textAlign: 'center', lineHeight: 20 }}>
+                    🔒 This Contact's Info is Protected – Upgrade to Unlock Access
+                  </Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  onPress={() => revealMutation.mutate()}
+                  disabled={revealMutation.isPending}
+                  style={{ backgroundColor: '#6f45ff', borderRadius: 12, paddingVertical: 14, alignItems: 'center', opacity: revealMutation.isPending ? 0.7 : 1 }}
+                  activeOpacity={0.85}
+                >
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
+                    {revealMutation.isPending ? 'Revealing…' : '🔓 Reveal Contact Info'}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           ) : (
             <>

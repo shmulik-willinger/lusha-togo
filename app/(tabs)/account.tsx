@@ -115,7 +115,7 @@ export default function AccountScreen() {
   const creditsTotal = session?.creditsTotal ?? 0;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Profile card */}
         <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 20, marginBottom: 10 }}>
@@ -171,32 +171,6 @@ export default function AccountScreen() {
             <InfoCard label="User ID" value={userQuery.data?.userId || resolvedUserId || ''} />
           )}
           <View style={{ height: 8 }} />
-        </View>
-
-        {/* Actions */}
-        <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, marginBottom: 10 }}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
-            Actions
-          </Text>
-          <TouchableOpacity
-            onPress={() => WebBrowser.openBrowserAsync('https://dashboard.lusha.com/dashboard')}
-            style={{ direction: 'ltr', flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' }}
-            activeOpacity={0.7}
-          >
-            <Text style={{ fontSize: 18, marginRight: 12 }}>🌐</Text>
-            <Text style={{ flex: 1, color: '#1a1a1a', fontSize: 15, fontWeight: '500' }}>Open Full Dashboard</Text>
-            <Text style={{ color: '#d1d5db', fontSize: 18 }}>›</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => WebBrowser.openBrowserAsync('https://support.lusha.com')}
-            style={{ direction: 'ltr', flexDirection: 'row', alignItems: 'center', paddingVertical: 14 }}
-            activeOpacity={0.7}
-          >
-            <Text style={{ fontSize: 18, marginRight: 12 }}>❓</Text>
-            <Text style={{ flex: 1, color: '#1a1a1a', fontSize: 15, fontWeight: '500' }}>Help & Support</Text>
-            <Text style={{ color: '#d1d5db', fontSize: 18 }}>›</Text>
-          </TouchableOpacity>
-          <View style={{ height: 4 }} />
         </View>
 
         {/* Sign out */}

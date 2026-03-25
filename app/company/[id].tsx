@@ -28,14 +28,22 @@ function StatRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function LinkRow({ icon, label, onPress }: { icon: string; label: string; onPress: () => void }) {
+function LinkedInBadge() {
+  return (
+    <View style={{ width: 22, height: 22, borderRadius: 4, backgroundColor: '#0077B5', alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ color: '#fff', fontSize: 11, fontWeight: '800', lineHeight: 14 }}>in</Text>
+    </View>
+  );
+}
+
+function LinkRow({ icon, label, onPress }: { icon: React.ReactNode; label: string; onPress: () => void }) {
   return (
     <TouchableOpacity
       onPress={onPress}
       style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' }}
       activeOpacity={0.7}
     >
-      <Text style={{ fontSize: 18, width: 28 }}>{icon}</Text>
+      <View style={{ width: 28, alignItems: 'center' }}>{typeof icon === 'string' ? <Text style={{ fontSize: 18 }}>{icon}</Text> : icon}</View>
       <Text style={{ flex: 1, marginLeft: 8, color: '#6f45ff', fontWeight: '500', fontSize: 14 }}>{label}</Text>
       <Text style={{ color: '#d1d5db', fontSize: 18 }}>›</Text>
     </TouchableOpacity>
@@ -302,7 +310,7 @@ export default function CompanyDetailScreen() {
             )}
             {company.social?.linkedin && (
               <LinkRow
-                icon="💼"
+                icon={<LinkedInBadge />}
                 label="LinkedIn Company Page"
                 onPress={() => openLinkedInCompany(company.social!.linkedin!)}
               />

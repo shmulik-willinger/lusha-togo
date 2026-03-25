@@ -113,6 +113,10 @@ export default function RootLayout() {
           name="recommendations"
           options={{ headerShown: true, title: 'Recommended Leads', presentation: 'card', ...HEADER_STYLE }}
         />
+        <Stack.Screen
+          name="upload-contacts"
+          options={{ headerShown: false, presentation: 'modal' }}
+        />
       </Stack>
     </QueryClientProvider>
   );

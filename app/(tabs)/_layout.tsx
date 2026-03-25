@@ -1,7 +1,22 @@
 import React from 'react';
+import { View, Text, Image } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+function HomeHeaderTitle() {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <Image
+        source={require('../../assets/icon.png')}
+        style={{ width: 34, height: 34, borderRadius: 9 }}
+      />
+      <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 21, color: '#1a1a1a' }}>
+        Lusha ToGo
+      </Text>
+    </View>
+  );
+}
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
@@ -39,7 +54,7 @@ export default function TabsLayout() {
         name="home"
         options={{
           title: 'Home',
-          headerTitle: 'Lusha ToGo',
+          headerTitle: () => <HomeHeaderTitle />,
           tabBarIcon: ({ focused, color }) => (
             <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
           ),
