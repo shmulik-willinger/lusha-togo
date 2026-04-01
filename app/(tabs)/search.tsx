@@ -4,9 +4,9 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FlashList } from '@shopify/flash-list';
 import { AISearchBar } from '../../src/components/AISearchBar';
 import { AIThinkingOverlay } from '../../src/components/AIThinkingOverlay';
 import { FilterSheet } from '../../src/components/FilterSheet';
@@ -62,6 +62,7 @@ export default function SearchScreen() {
           onSubmit={(text) => aiSearch.mutate({ text, tab: activeTab })}
           loading={aiSearch.isPending}
           initialText={queryText}
+          onClear={() => { clearFilters(); setSearchResetKey((k) => k + 1); }}
         />
       </View>
 
@@ -133,20 +134,19 @@ export default function SearchScreen() {
       ) : activeTab === 'companies' && companies.length === 0 ? (
         <NoResultsState />
       ) : activeTab === 'contacts' ? (
-        <FlashList
+        <FlatList
           data={contacts}
-          estimatedItemSize={120}
           keyExtractor={(item) => item.contactId}
           renderItem={({ item }) => <ContactCard contact={item} />}
           contentContainerStyle={{ paddingTop: 4, paddingBottom: 32 }}
           onEndReached={() => {
-            if (searchQuery.hasNextPage && !searchQuery.isFetchingNextPage) {
+            if (searchQuery.hasNextPage && !searchQuery.isFetchingNextPage && contacts.length >= 10) {
               searchQuery.fetchNextPage();
             }
           }}
-          onEndReachedThreshold={0.4}
+          onEndReachedThreshold={0.3}
           ListFooterComponent={
-            searchQuery.isFetchingNextPage ? (
+            searchQuery.isFetchingNextPage && contacts.length >= 10 ? (
               <View className="py-6"><ContactCardSkeleton /></View>
             ) : null
           }
@@ -154,20 +154,19 @@ export default function SearchScreen() {
           onRefresh={() => searchQuery.refetch()}
         />
       ) : (
-        <FlashList
+        <FlatList
           data={companies}
-          estimatedItemSize={100}
           keyExtractor={(item) => item.company_lid}
           renderItem={({ item }) => <CompanyCard company={item} />}
           contentContainerStyle={{ paddingTop: 4, paddingBottom: 32 }}
           onEndReached={() => {
-            if (searchQuery.hasNextPage && !searchQuery.isFetchingNextPage) {
+            if (searchQuery.hasNextPage && !searchQuery.isFetchingNextPage && companies.length >= 10) {
               searchQuery.fetchNextPage();
             }
           }}
-          onEndReachedThreshold={0.4}
+          onEndReachedThreshold={0.3}
           ListFooterComponent={
-            searchQuery.isFetchingNextPage ? (
+            searchQuery.isFetchingNextPage && companies.length >= 10 ? (
               <View className="py-6"><ContactCardSkeleton /></View>
             ) : null
           }
@@ -189,7 +188,7 @@ export default function SearchScreen() {
 function EmptyState() {
   return (
     <View className="flex-1 items-center justify-center px-8">
-      <Text className="text-5xl mb-4">🔮</Text>
+      <Text style={{ fontSize: 56, lineHeight: 72, marginBottom: 8 }}>🔮</Text>
       <Text className="text-neutral-800 font-sans-semibold text-xl text-center mb-2">
         Find your next prospect
       </Text>

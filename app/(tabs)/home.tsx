@@ -106,13 +106,10 @@ export default function HomeScreen() {
           ) : groups.length === 0 ? (
             <EmptyCard />
           ) : (
-            groups.map((group) => (
-              <RecommendationCard
-                key={group.id}
-                group={group}
-                onPress={() => router.push(`/recommendations?groupId=${group.id}`)}
-              />
-            ))
+            <RecommendationCard
+              group={{ id: 'all', name: 'Your Recommendations', total: recsData?.leads?.length ?? 0, leads: [] }}
+              onPress={() => router.push('/recommendations')}
+            />
           )}
         </ScrollView>
       </View>
@@ -121,7 +118,7 @@ export default function HomeScreen() {
       <View style={styles.separator} />
 
       {/* ── Section 3: Enrich ────────────────────────────────────── */}
-      <View style={styles.section}>
+      <View style={[styles.section, { flex: 0 }]}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Enrich your phone contacts</Text>
           <Text style={styles.sectionSubtitle}>Upload & enrich from your device</Text>
@@ -144,20 +141,24 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      <View style={{ flex: 0.6 }} />
+
     </SafeAreaView>
   );
 }
 
 function EmptyCard() {
   return (
-    <View style={[styles.card, { alignItems: 'center', paddingVertical: 32 }]}>
-      <Text style={{ fontSize: 36, marginBottom: 8 }}>✨</Text>
-      <Text style={{ color: '#1a1a1a', fontWeight: '600', fontSize: 15, textAlign: 'center' }}>
-        No recommendations yet
-      </Text>
-      <Text style={{ color: '#9ca3af', fontSize: 13, textAlign: 'center', marginTop: 4 }}>
-        Your recommendation groups will appear here.
-      </Text>
+    <View style={styles.card}>
+      <View style={styles.cardTop}>
+        <View style={styles.cardIcon}>
+          <Text style={styles.cardIconText}>✨</Text>
+        </View>
+        <View style={{ flex: 1, marginLeft: 12 }}>
+          <Text style={styles.cardTitle}>No recommendations yet</Text>
+          <Text style={styles.cardSubtitle}>Your recommendations will appear here</Text>
+        </View>
+      </View>
     </View>
   );
 }

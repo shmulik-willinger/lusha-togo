@@ -27,11 +27,19 @@ interface DeviceContact {
   email?: string;
 }
 
+function sanitizeName(s?: string | null): string {
+  if (!s) return '';
+  const t = s.trim();
+  // Samsung keeps soft-deleted contacts with literal "null" / "undefined" strings
+  if (t.toLowerCase() === 'null' || t.toLowerCase() === 'undefined') return '';
+  return t;
+}
+
 function buildDisplayName(c: Contacts.Contact): string {
-  const first = c.firstName ?? '';
-  const last = c.lastName ?? '';
+  const first = sanitizeName(c.firstName);
+  const last = sanitizeName(c.lastName);
   const full = [first, last].filter(Boolean).join(' ');
-  return full || c.company || c.name || 'Unknown';
+  return full || sanitizeName(c.company) || sanitizeName(c.name) || '';
 }
 
 function ContactRow({
@@ -113,15 +121,15 @@ export default function UploadContactsScreen() {
         .filter((c) => c.id)
         .map((c) => ({
           id: c.id!,
-          firstName: c.firstName ?? '',
-          lastName: c.lastName ?? '',
-          company: c.company ?? '',
-          title: c.jobTitle ?? '',
+          firstName: sanitizeName(c.firstName),
+          lastName: sanitizeName(c.lastName),
+          company: sanitizeName(c.company),
+          title: sanitizeName(c.jobTitle),
           displayName: buildDisplayName(c),
           phone: c.phoneNumbers?.[0]?.number ?? undefined,
           email: c.emails?.[0]?.email ?? undefined,
         }))
-        .filter((c) => c.displayName !== 'Unknown' || c.company);
+        .filter((c) => c.displayName.length > 0);
 
       // Inject mock contacts in dev mode when device has none (e.g. emulator)
       if (__DEV__ && mapped.length === 0) {
@@ -218,7 +226,7 @@ export default function UploadContactsScreen() {
         <Text style={styles.emptySub}>
           Please allow Lusha ToGo to access your contacts in Settings.
         </Text>
-        <TouchableOpacity style={styles.uploadBtn} onPress={() => router.back()} activeOpacity={0.85}>
+        <TouchableOpacity style={[styles.uploadBtn, styles.doneBtn]} onPress={() => router.back()} activeOpacity={0.85}>
           <Text style={styles.uploadBtnText}>Go Back</Text>
         </TouchableOpacity>
       </SafeAreaView>

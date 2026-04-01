@@ -28,5 +28,10 @@ export function flattenContacts(pages: ReturnType<typeof useSearch>['data']): Se
 
 export function flattenCompanies(pages: ReturnType<typeof useSearch>['data']): SearchCompany[] {
   if (!pages) return [];
-  return pages.pages.flatMap((p) => p.companies ?? []);
+  const seen = new Set<string>();
+  return pages.pages.flatMap((p) => p.companies ?? []).filter((c) => {
+    if (seen.has(c.company_lid)) return false;
+    seen.add(c.company_lid);
+    return true;
+  });
 }

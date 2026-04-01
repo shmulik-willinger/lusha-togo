@@ -1,5 +1,6 @@
 import apiClient from './client';
 import { SearchFilters } from './search';
+import { CompanyNameOption, LocationOption } from './filters';
 
 export interface TextToFiltersResponse {
   request_id: string;
@@ -26,46 +27,35 @@ export async function textToFilters(text: string): Promise<TextToFiltersResponse
 
 /**
  * Simple client-side fallback when the text-to-filters AI service is unavailable.
- * Extracts job title, location, and company name from free text using basic heuristics.
+ * Always returns empty filters — relies on searchText to carry the full natural language
+ * query to the Lusha search engine. Structured filters (job title, seniority, etc.)
+ * over-constrain the query and often return masked/empty results for this account.
  */
-export function clientTextToFilters(text: string): SearchFilters {
-  const filters: SearchFilters = {};
-
-  // Strip company/industry/location clauses to isolate the job title
-  // "HR managers at SMBs in the US" → "HR managers"
-  // "VP of Sales at fintech companies" → "VP of Sales"
-  const jobPart = text
-    .replace(/\s+(?:at|from)\s+.*/i, '')
-    .replace(/\s+in\s+.*/i, '')
-    .trim();
-
-  if (jobPart && jobPart.length <= 60) {
-    filters.contactJobTitle = [jobPart];
-  }
-
-  return filters;
+export function clientTextToFilters(_text: string): SearchFilters {
+  return {};
 }
+
 
 /**
  * Client-side fallback for company searches when AI service is unavailable.
- * Extracts a company name hint from text using simple heuristics.
+ * Extracts industry, size, and location from free text using basic heuristics.
  */
 export function clientTextToCompanyFilters(text: string): SearchFilters {
-  // Match a real company name after "at" — only proper nouns (Title Case, not ALL-CAPS abbreviations)
-  // "people at Google" → "Google"  |  "HR at SMBs" → no match (SMBs is all-caps abbrev)
-  const atMatch = text.match(/\bat\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
-  if (atMatch) return { companyName: [atMatch[1]] };
-
-  // Extract the single word immediately before "company/companies"
-  // "fintech companies" → "fintech"  |  "VP of Sales at fintech companies" → "fintech"
-  const industryMatch = text.match(/\b([A-Za-z]+)\s+compan(?:y|ies)\b/i);
-  if (industryMatch) return { companyIndustryLabels: [industryMatch[1]] };
-
-  // Treat the full text as a company name search as a last resort
   const trimmed = text.trim();
-  if (trimmed.length > 0 && trimmed.length <= 80) {
-    return { companyName: [trimmed] };
-  }
+
+  // Short text (≤ 4 chars) is likely an abbreviation (AWS, IBM, SAP...).
+  if (trimmed.length <= 4) return {};
+
+  // Match a real company name after "at" — only proper nouns (Title Case, not ALL-CAPS abbreviations)
+  const atMatch = text.match(/\bat\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
+  if (atMatch) return { companyName: [{ name: atMatch[1] } as CompanyNameOption] };
+
+  const result: SearchFilters = {};
+
+  // Don't set structured location/size filters here — they often produce empty results
+  // because the API returns total>0 but results:[] for company searches.
+  // Let searchText carry the full natural language query instead.
+
   return {};
 }
 
@@ -86,13 +76,14 @@ export function mapAIFiltersToSearchFilters(
     mapped.contactJobTitle = aiFilters.explicit_job_title;
   }
   if (aiFilters.company_name?.length) {
-    mapped.companyName = aiFilters.company_name;
+    mapped.companyName = aiFilters.company_name.map((n) => ({ name: n } as CompanyNameOption));
   }
   if (aiFilters.location?.length) {
+    const locationObjs: LocationOption[] = aiFilters.location.map((l) => ({ name: l } as LocationOption));
     if (tab === 'companies') {
-      mapped.companyLocation = aiFilters.location;
+      mapped.companyLocation = locationObjs;
     } else {
-      mapped.contactLocation = aiFilters.location;
+      mapped.contactLocation = locationObjs;
     }
   }
   if (aiFilters.must_contain?.length) {

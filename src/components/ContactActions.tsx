@@ -37,6 +37,17 @@ async function sendEmail(address: string) {
   await Linking.openURL(`mailto:${address}`);
 }
 
+async function openWhatsApp(number: string) {
+  const clean = number.replace(/[^\d+]/g, '');
+  const url = `https://wa.me/${clean.replace(/^\+/, '')}`;
+  const canOpen = await Linking.canOpenURL(url);
+  if (canOpen) {
+    await Linking.openURL(url);
+  } else {
+    Alert.alert('WhatsApp not installed', 'Please install WhatsApp to use this feature.');
+  }
+}
+
 export function ContactActions({ phones, emails, linkedinUrl, compact = false }: ContactActionsProps) {
   const primaryPhone = phones?.[0];
   const primaryEmail = emails?.[0];
@@ -79,4 +90,4 @@ export function ContactActions({ phones, emails, linkedinUrl, compact = false }:
   );
 }
 
-export { openLinkedIn, callPhone, sendEmail };
+export { openLinkedIn, callPhone, sendEmail, openWhatsApp };

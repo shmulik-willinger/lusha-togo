@@ -77,14 +77,46 @@ export interface RecommendationsResponse {
   maskId?: string;
 }
 
+export interface RecommendedCompanyItem {
+  companyId: number | string;
+  name: string;
+  logoUrl?: string;
+  primaryIndustry?: string;
+  companySize?: { min?: number; max?: number };
+  headquarter?: { country?: string; city?: string };
+}
+
+export interface CompanyRecommendationsResponse {
+  companies: RecommendedCompanyItem[];
+  recommendationsListId?: string;
+}
+
+export async function getCompanyRecommendedLeads(): Promise<CompanyRecommendationsResponse> {
+  const { data } = await apiClient.get<any>('/api/v1/companies/recommendations');
+  const companies: RecommendedCompanyItem[] =
+    data?.companies ?? data?.data?.companies ?? [];
+  return {
+    companies,
+    recommendationsListId: data?.recommendationsListId ?? data?.data?.recommendationsListId,
+  };
+}
+
 export async function getRecommendedLeads(): Promise<RecommendationsResponse> {
   const { data } = await apiClient.post<any>('/api/v1/contacts/recommendations');
 
   console.log('[recommendations] top-level keys:', Object.keys(data ?? {}).join(','));
   console.log('[recommendations] raw:', JSON.stringify(data).substring(0, 800));
 
-  // Check if the response has multiple recommendation groups
-  const rawGroups: any[] = data?.recommendations ?? data?.groups ?? data?.lists ?? [];
+  // Check if the response has multiple recommendation groups.
+  // Handle both flat { recommendations: [...] } and nested { data: { recommendations: [...] } } shapes.
+  const rawGroups: any[] =
+    data?.recommendations ??
+    data?.groups ??
+    data?.lists ??
+    data?.data?.recommendations ??
+    data?.data?.groups ??
+    data?.data?.lists ??
+    (Array.isArray(data?.data) ? data.data : []);
 
   if (rawGroups.length > 0) {
     // Multiple groups — each group has its own contacts
@@ -113,7 +145,13 @@ export async function getRecommendedLeads(): Promise<RecommendationsResponse> {
 
   // Single flat list of contacts
   const rawContacts: any[] =
-    data?.contacts ?? data?.leads ?? data?.results ?? (Array.isArray(data) ? data : []);
+    data?.contacts ??
+    data?.leads ??
+    data?.results ??
+    data?.data?.contacts ??
+    data?.data?.leads ??
+    data?.data?.results ??
+    (Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : []));
 
   const maskId: string | undefined = data?.maskId;
   const recommendationsListId: string | undefined = data?.recommendationsListId;

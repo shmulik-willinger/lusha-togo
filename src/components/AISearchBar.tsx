@@ -3,7 +3,7 @@ import { View, TextInput, TouchableOpacity, Text, ScrollView } from 'react-nativ
 
 const CONTACT_EXAMPLES = [
   'HR managers at SMBs in the US',
-  'VP of Sales at fintech companies',
+  'VP of Sales at technology companies',
   'Decision makers in finance and tech',
 ];
 
@@ -28,7 +28,7 @@ export function AISearchBar({ activeTab, onSubmit, loading = false, onClear, ini
 
   const handleSubmit = () => {
     const trimmed = text.trim();
-    if (trimmed.length >= 5) {
+    if (trimmed.length >= 2) {
       onSubmit(trimmed);
     }
   };
@@ -63,8 +63,8 @@ export function AISearchBar({ activeTab, onSubmit, loading = false, onClear, ini
         )}
         <TouchableOpacity
           onPress={handleSubmit}
-          disabled={text.trim().length < 5 || loading}
-          style={{ marginLeft: 8, backgroundColor: '#6f45ff', width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', opacity: text.trim().length < 5 || loading ? 0.35 : 1 }}
+          disabled={text.trim().length < 2 || loading}
+          style={{ marginLeft: 8, backgroundColor: '#6f45ff', width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', opacity: text.trim().length < 2 || loading ? 0.35 : 1 }}
           activeOpacity={0.75}
         >
           <Text style={{ color: '#fff', fontSize: 16 }}>→</Text>

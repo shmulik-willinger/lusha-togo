@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 945px;
+      height: 2048px;
+      background: #f2f2f7;
+      font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Status bar */
+    .statusbar {
+      width: 100%;
+      height: 80px;
+      background: #f2f2f7;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+    }
+    .statusbar .left {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 28px; font-weight: 600; color: #1a1a1a;
+    }
+    .statusbar .right {
+      display: flex; align-items: center; gap: 16px;
+      font-size: 28px; font-weight: 600; color: #1a1a1a;
+    }
+    .signal { display: flex; align-items: flex-end; gap: 3px; }
+    .signal-bar { width: 6px; background: #1a1a1a; border-radius: 2px; }
+
+    /* Header */
+    .header {
+      background: #f2f2f7;
+      padding: 20px 36px 24px;
+    }
+    .header h1 {
+      font-size: 52px;
+      font-weight: 800;
+      color: #1a1a1a;
+      letter-spacing: -1px;
+    }
+
+    /* Search bar */
+    .search-wrap {
+      padding: 0 28px 24px;
+    }
+    .search-bar {
+      background: white;
+      border-radius: 22px;
+      height: 88px;
+      display: flex;
+      align-items: center;
+      padding: 0 30px;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .search-bar span {
+      font-size: 28px;
+    }
+    .search-bar p {
+      font-size: 28px;
+      color: #a0a0a8;
+    }
+
+    /* List items */
+    .list-wrap {
+      padding: 0 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .list-item {
+      background: white;
+      border-radius: 22px;
+      padding: 28px 28px;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .avatar {
+      width: 80px; height: 80px;
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .item-info { flex: 1; min-width: 0; }
+    .item-name {
+      font-size: 29px;
+      font-weight: 700;
+      color: #1a1a1a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .item-meta {
+      font-size: 24px;
+      color: #8e8e93;
+      margin-top: 5px;
+    }
+
+    .chevron {
+      color: #c7c7cc;
+      font-size: 30px;
+      flex-shrink: 0;
+    }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      width: 945px;
+      height: 160px;
+      background: white;
+      border-top: 1px solid #e5e5ea;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-around;
+      padding-top: 18px;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      font-size: 22px; color: #8e8e93; font-weight: 500;
+    }
+    .nav-item.active { color: #6f45ff; }
+    .nav-icon { font-size: 44px; }
+
+    /* Bottom gesture bar */
+    .gesture-bar {
+      position: absolute;
+      bottom: 0;
+      width: 945px;
+      height: 160px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      padding-bottom: 22px;
+    }
+    .gesture-bar span { font-size: 36px; color: #555; }
+  </style>
+</head>
+<body>
+
+  <!-- Status bar -->
+  <div class="statusbar">
+    <div class="left">64</div>
+    <div class="right">
+      <svg width="28" height="20" viewBox="0 0 28 20"><rect x="0" y="10" width="5" height="10" rx="1.5" fill="#1a1a1a"/><rect x="8" y="6" width="5" height="14" rx="1.5" fill="#1a1a1a"/><rect x="16" y="2" width="5" height="18" rx="1.5" fill="#1a1a1a"/><rect x="24" y="0" width="5" height="20" rx="1.5" fill="#1a1a1a" opacity="0.3"/></svg>
+      <span style="font-size:26px; font-weight:500;">17:44</span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>My Lists</h1>
+  </div>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <div class="search-bar">
+      <span>🔍</span>
+      <p>Search lists...</p>
+    </div>
+  </div>
+
+  <!-- List items -->
+  <div class="list-wrap">
+
+    <div class="list-item">
+      <div class="avatar" style="background: linear-gradient(135deg, #6f45ff, #9b7aff);">ET</div>
+      <div class="item-info">
+        <div class="item-name">Enterprise Tech Leaders — US</div>
+        <div class="item-meta">1,000 contacts · 2 months ago</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+
+    <div class="list-item">
+      <div class="avatar" style="background: linear-gradient(135deg, #34aadc, #5ec4f0);">VS</div>
+      <div class="item-info">
+        <div class="item-name">VP Sales &amp; Revenue — Europe</div>
+        <div class="item-meta">500 contacts · 2 months ago</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+
+    <div class="list-item">
+      <div class="avatar" style="background: linear-gradient(135deg, #ff6b6b, #ff9a9a);">SC</div>
+      <div class="item-info">
+        <div class="item-name">SaaS Companies — Series B+</div>
+        <div class="item-meta">🏢 1,000 companies · 2 months ago</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+
+    <div class="list-item">
+      <div class="avatar" style="background: linear-gradient(135deg, #43c759, #6fdd83);">HM</div>
+      <div class="item-info">
+        <div class="item-name">Healthcare Decision Makers</div>
+        <div class="item-meta">250 contacts · 2 months ago</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+
+    <div class="list-item">
+      <div class="avatar" style="background: linear-gradient(135deg, #ff9500, #ffb84d);">FC</div>
+      <div class="item-info">
+        <div class="item-name">Fortune 500 Contacts</div>
+        <div class="item-meta">1,000 contacts · 2 months ago</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+
+    <div class="list-item">
+      <div class="avatar" style="background: linear-gradient(135deg, #5856d6, #7b79e8);">LF</div>
+      <div class="item-info">
+        <div class="item-name">London Fintech Founders</div>
+        <div class="item-meta">50 contacts · 2 months ago</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+
+    <div class="list-item">
+      <div class="avatar" style="background: linear-gradient(135deg, #ff2d55, #ff6b84);">CE</div>
+      <div class="item-info">
+        <div class="item-name">CTO &amp; Engineering Leaders</div>
+        <div class="item-meta">800 contacts · 2 months ago</div>
+      </div>
+      <div class="chevron">›</div>
+    </div>
+
+  </div>
+
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <div class="nav-icon">🏠</div>
+      <span>Home</span>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">🔍</div>
+      <span>Search</span>
+    </div>
+    <div class="nav-item active">
+      <div class="nav-icon" style="color:#6f45ff;">☰</div>
+      <span>Lists</span>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">👤</div>
+      <span>Account</span>
+    </div>
+  </div>
+
+</body>
+</html>

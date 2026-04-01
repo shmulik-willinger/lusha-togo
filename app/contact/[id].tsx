@@ -16,7 +16,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { getContactById, revealContact } from '../../src/api/contacts';
 import { useContactStore } from '../../src/store/contactStore';
 import { SearchContact, ContactPhone, ContactEmail } from '../../src/api/search';
-import { openLinkedIn, callPhone, sendEmail } from '../../src/components/ContactActions';
+import { openLinkedIn, callPhone, sendEmail, openWhatsApp } from '../../src/components/ContactActions';
 import { Skeleton } from '../../src/components/ui/Skeleton';
 import { Badge } from '../../src/components/ui/Badge';
 import { colors } from '../../src/theme/tokens';
@@ -25,26 +25,38 @@ function getInitials(name: SearchContact['name']): string {
   return `${name.first?.[0] ?? ''}${name.last?.[0] ?? ''}`.toUpperCase();
 }
 
+function formatPhone(n: string | number | undefined | null): string {
+  if (n == null || n === '') return '';
+  const s = String(n);
+  return s.startsWith('+') ? s : `+${s}`;
+}
+
 function InfoRow({
   icon,
   label,
   value,
   onPress,
   actionLabel,
+  onSecondaryPress,
+  secondaryActionLabel,
   danger,
+  isDataMasked,
 }: {
   icon: string | React.ReactNode;
   label: string;
   value: string;
   onPress?: () => void;
   actionLabel?: string;
+  onSecondaryPress?: () => void;
+  secondaryActionLabel?: string;
   danger?: boolean;
+  isDataMasked?: boolean;
 }) {
   return (
     <View style={{ direction: 'ltr', flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' }}>
       <View style={{ width: 32, alignItems: 'flex-start' }}>
         {typeof icon === 'string'
-          ? <Text style={{ fontSize: 18 }}>{icon}</Text>
+          ? <Text style={{ fontSize: 18, opacity: isDataMasked ? 0.4 : 1 }}>{icon}</Text>
           : icon}
       </View>
       <View style={{ flex: 1, marginLeft: 8 }}>
@@ -52,7 +64,7 @@ function InfoRow({
           {label}
         </Text>
         <Text
-          style={{ fontSize: 15, marginTop: 2, color: danger ? '#dc2626' : '#1a1a1a', fontWeight: '500' }}
+          style={{ fontSize: 15, marginTop: 2, color: isDataMasked ? '#9ca3af' : danger ? '#dc2626' : '#1a1a1a', fontWeight: '500' }}
           numberOfLines={1}
         >
           {value}
@@ -61,10 +73,19 @@ function InfoRow({
       {onPress && actionLabel && (
         <TouchableOpacity
           onPress={onPress}
-          style={{ backgroundColor: '#f0ecff', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, marginLeft: 8 }}
+          style={{ backgroundColor: isDataMasked ? '#6f45ff' : '#f0ecff', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, marginLeft: 8 }}
           activeOpacity={0.75}
         >
-          <Text style={{ color: '#6f45ff', fontSize: 13, fontWeight: '600' }}>{actionLabel}</Text>
+          <Text style={{ color: isDataMasked ? '#fff' : '#6f45ff', fontSize: 13, fontWeight: '600' }}>{actionLabel}</Text>
+        </TouchableOpacity>
+      )}
+      {onSecondaryPress && secondaryActionLabel && (
+        <TouchableOpacity
+          onPress={onSecondaryPress}
+          style={{ backgroundColor: '#e7f9ef', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, marginLeft: 6 }}
+          activeOpacity={0.75}
+        >
+          <Text style={{ color: '#25d366', fontSize: 13, fontWeight: '600' }}>{secondaryActionLabel}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -106,8 +127,8 @@ export default function ContactDetailScreen() {
       if (revealedItem) {
         if (revealedItem.phones?.length) {
           updatedPhones = revealedItem.phones.map((p: any) => ({
-            number: p.value ?? p.number ?? '',
-            normalized_number: p.normalized_number ?? p.value ?? p.number ?? '',
+            number: String(p.value ?? p.number ?? ''),
+            normalized_number: String(p.normalized_number ?? p.value ?? p.number ?? ''),
             type: p.type,
             is_do_not_call: p.doNotCall ?? p.is_do_not_call ?? false,
             datapointId: p.datapointId,
@@ -116,7 +137,7 @@ export default function ContactDetailScreen() {
         }
         if (revealedItem.emails?.length) {
           updatedEmails = revealedItem.emails.map((e: any) => ({
-            address: e.value ?? e.address ?? '',
+            address: String(e.value ?? e.address ?? ''),
             label: e.label ?? e.type,
             datapointId: e.datapointId,
             isMasked: false,
@@ -147,6 +168,12 @@ export default function ContactDetailScreen() {
   const hasEmails = (data.emails?.length ?? 0) > 0;
   const isRevealed = data.isShown;
   const isDNC = data.isContactFullDNC;
+
+  // Show contact info if fully revealed OR if at least one item was partially revealed (e.g. via dashboard)
+  const anyUnmasked =
+    (data.phones ?? []).some(p => p.isMasked === false) ||
+    (data.emails ?? []).some(e => e.isMasked === false);
+  const showContactInfo = isRevealed || anyUnmasked;
 
   const saveToPhoneContacts = async () => {
     const { status } = await Contacts.requestPermissionsAsync();
@@ -244,7 +271,7 @@ export default function ContactDetailScreen() {
                 This contact has opted out of communications.
               </Text>
             </View>
-          ) : !isRevealed ? (
+          ) : !showContactInfo ? (
             <View style={{ paddingVertical: 14 }}>
               {revealError ? (
                 <View style={{ backgroundColor: '#fef3c7', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#fde68a' }}>
@@ -267,27 +294,47 @@ export default function ContactDetailScreen() {
             </View>
           ) : (
             <>
-              {data.phones?.map((phone, i) => (
-                <InfoRow
-                  key={i}
-                  icon="📞"
-                  label={phone.type ?? 'Phone'}
-                  value={phone.normalized_number ?? phone.number}
-                  onPress={phone.is_do_not_call ? undefined : () => callPhone(phone.normalized_number ?? phone.number)}
-                  actionLabel={phone.is_do_not_call ? undefined : 'Call'}
-                  danger={phone.is_do_not_call}
-                />
-              ))}
-              {data.emails?.map((email, i) => (
-                <InfoRow
-                  key={i}
-                  icon="✉️"
-                  label={email.label ?? 'Email'}
-                  value={email.address}
-                  onPress={() => sendEmail(email.address)}
-                  actionLabel="Email"
-                />
-              ))}
+              {data.phones?.map((phone, i) => {
+                const isMasked = isRevealed ? phone.isMasked === true : phone.isMasked !== false;
+                const isMobile = !isMasked && phone.type?.toLowerCase().includes('mobile');
+                const phoneNum = phone.normalized_number ?? phone.number;
+                return (
+                  <InfoRow
+                    key={i}
+                    icon="📞"
+                    label={phone.type ?? 'Phone'}
+                    value={formatPhone(phoneNum)}
+                    onPress={
+                      isMasked ? () => revealMutation.mutate()
+                      : phone.is_do_not_call ? undefined
+                      : () => callPhone(phoneNum)
+                    }
+                    actionLabel={
+                      isMasked ? (revealMutation.isPending ? '...' : '🔓 Reveal')
+                      : phone.is_do_not_call ? undefined
+                      : 'Call'
+                    }
+                    onSecondaryPress={isMobile ? () => openWhatsApp(phoneNum) : undefined}
+                    secondaryActionLabel={isMobile ? '💬 WhatsApp' : undefined}
+                    danger={phone.is_do_not_call}
+                    isDataMasked={isMasked}
+                  />
+                );
+              })}
+              {data.emails?.map((email, i) => {
+                const isMasked = isRevealed ? email.isMasked === true : email.isMasked !== false;
+                return (
+                  <InfoRow
+                    key={i}
+                    icon="✉️"
+                    label={email.label ?? 'Email'}
+                    value={email.address}
+                    onPress={isMasked ? () => revealMutation.mutate() : () => sendEmail(email.address)}
+                    actionLabel={isMasked ? (revealMutation.isPending ? '...' : '🔓 Reveal') : 'Email'}
+                    isDataMasked={isMasked}
+                  />
+                );
+              })}
             </>
           )}
 

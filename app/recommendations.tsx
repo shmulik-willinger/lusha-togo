@@ -1,45 +1,121 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, TextInput, RefreshControl } from 'react-native';
+import { View, Text, TextInput, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { ContactCard } from '../src/components/ContactCard';
+import { CompanyCard } from '../src/components/CompanyCard';
 import { ContactCardSkeleton } from '../src/components/ui/Skeleton';
-import { useRecommendations } from '../src/hooks/useRecommendations';
-import { SearchContact } from '../src/api/search';
+import { useRecommendations, useCompanyRecommendations } from '../src/hooks/useRecommendations';
+import { SearchContact, SearchCompany } from '../src/api/search';
+import { RecommendedCompanyItem } from '../src/api/recommendations';
+
+function toSearchCompany(c: RecommendedCompanyItem): SearchCompany {
+  return {
+    company_lid: String(c.companyId),
+    company_id: String(c.companyId),
+    name: c.name,
+    logo_url: c.logoUrl,
+    industry: c.primaryIndustry ? { primary_industry: c.primaryIndustry } : undefined,
+    company_size: c.companySize
+      ? { min: c.companySize.min ?? 0, max: c.companySize.max ?? 0 }
+      : undefined,
+    location: c.headquarter
+      ? { country: c.headquarter.country, city: c.headquarter.city }
+      : undefined,
+  };
+}
 
 export default function RecommendationsScreen() {
+  const [tab, setTab] = useState<'contacts' | 'companies'>('contacts');
   const [search, setSearch] = useState('');
-  const { groupId } = useLocalSearchParams<{ groupId?: string }>();
-  const { data, isLoading, refetch, isRefetching } = useRecommendations();
 
-  // Show specific group if groupId provided, otherwise all leads
-  const group = groupId ? data?.groups?.find((g) => g.id === groupId) : undefined;
-  const leads = group?.leads ?? data?.leads ?? [];
-  const screenTitle = group?.name ?? 'Recommended Leads';
+  const {
+    data: contactData,
+    isLoading: isLoadingContacts,
+    refetch: refetchContacts,
+    isRefetching: isRefetchingContacts,
+  } = useRecommendations();
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return leads;
+  const {
+    data: companyData,
+    isLoading: isLoadingCompanies,
+    refetch: refetchCompanies,
+    isRefetching: isRefetchingCompanies,
+  } = useCompanyRecommendations();
+
+  const contacts = contactData?.leads ?? [];
+  const companies = (companyData?.companies ?? []).map(toSearchCompany);
+
+  const filteredContacts = useMemo(() => {
+    if (!search.trim()) return contacts;
     const q = search.toLowerCase();
-    return leads.filter(
+    return contacts.filter(
       (c) =>
         c.name.full.toLowerCase().includes(q) ||
         c.job_title?.title?.toLowerCase().includes(q) ||
         c.company?.name?.toLowerCase().includes(q),
     );
-  }, [leads, search]);
+  }, [contacts, search]);
+
+  const filteredCompanies = useMemo(() => {
+    if (!search.trim()) return companies;
+    const q = search.toLowerCase();
+    return companies.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        c.industry?.primary_industry?.toLowerCase().includes(q) ||
+        c.location?.country?.toLowerCase().includes(q) ||
+        c.location?.city?.toLowerCase().includes(q),
+    );
+  }, [companies, search]);
+
+  const isLoading = tab === 'contacts' ? isLoadingContacts : isLoadingCompanies;
+  const isRefetching = tab === 'contacts' ? isRefetchingContacts : isRefetchingCompanies;
+
+  const handleRefresh = () => {
+    refetchContacts();
+    refetchCompanies();
+  };
+
+  const countLabel =
+    tab === 'contacts'
+      ? `${filteredContacts.length} contact${filteredContacts.length !== 1 ? 's' : ''}`
+      : `${filteredCompanies.length} compan${filteredCompanies.length !== 1 ? 'ies' : 'y'}`;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
-      <Stack.Screen options={{ title: screenTitle }} />
+      <Stack.Screen options={{ title: 'Recommended Leads' }} />
 
-      {/* Search within recommendations */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
+      {/* Toggle */}
+      <View style={{ flexDirection: 'row', backgroundColor: '#f0ecff', borderRadius: 10, padding: 3, marginHorizontal: 16, marginTop: 12 }}>
+        <TouchableOpacity
+          style={{ flex: 1, paddingVertical: 8, borderRadius: 8, backgroundColor: tab === 'contacts' ? '#6f45ff' : 'transparent', alignItems: 'center' }}
+          onPress={() => { setTab('contacts'); setSearch(''); }}
+          activeOpacity={0.8}
+        >
+          <Text style={{ color: tab === 'contacts' ? '#fff' : '#6f45ff', fontWeight: '600', fontSize: 14 }}>
+            Contacts {isLoadingContacts ? '' : `(${contacts.length})`}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{ flex: 1, paddingVertical: 8, borderRadius: 8, backgroundColor: tab === 'companies' ? '#6f45ff' : 'transparent', alignItems: 'center' }}
+          onPress={() => { setTab('companies'); setSearch(''); }}
+          activeOpacity={0.8}
+        >
+          <Text style={{ color: tab === 'companies' ? '#fff' : '#6f45ff', fontWeight: '600', fontSize: 14 }}>
+            Companies {isLoadingCompanies ? '' : `(${companies.length})`}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Search */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4 }}>
         <View style={{ direction: 'ltr', backgroundColor: '#fff', borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: '#e5e7eb' }}>
           <Text style={{ color: '#9ca3af', marginRight: 8, fontSize: 15 }}>🔍</Text>
           <TextInput
             style={{ flex: 1, color: '#1a1a1a', fontSize: 14 }}
-            placeholder="Search recommended leads..."
+            placeholder={tab === 'contacts' ? 'Search contacts...' : 'Search companies...'}
             placeholderTextColor="#9ca3af"
             value={search}
             onChangeText={setSearch}
@@ -51,34 +127,57 @@ export default function RecommendationsScreen() {
         </View>
       </View>
 
-      {data && (
-        <Text style={{ color: '#9ca3af', fontSize: 12, paddingHorizontal: 16, marginBottom: 4 }}>
-          {filtered.length} of {group?.total ?? data.total ?? leads.length} leads
-        </Text>
-      )}
+      {/* Count */}
+      <Text style={{ color: '#9ca3af', fontSize: 12, paddingHorizontal: 16, marginBottom: 4 }}>
+        {isLoading ? '' : countLabel}
+      </Text>
 
       {isLoading ? (
         <View style={{ flex: 1 }}>
           {[...Array(5)].map((_, i) => <ContactCardSkeleton key={i} />)}
         </View>
-      ) : filtered.length === 0 ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontSize: 36, marginBottom: 8 }}>🤷</Text>
-          <Text style={{ color: '#1a1a1a', fontWeight: '600', fontSize: 16 }}>
-            {search ? 'No matches' : 'No recommendations yet'}
-          </Text>
-        </View>
+      ) : tab === 'contacts' ? (
+        filteredContacts.length === 0 ? (
+          <NoResults search={search} type="contacts" />
+        ) : (
+          <FlashList
+            data={filteredContacts}
+            keyExtractor={(item: SearchContact) => item.contactId}
+            estimatedItemSize={120}
+            renderItem={({ item }) => <ContactCard contact={item as SearchContact} />}
+            contentContainerStyle={{ paddingTop: 4, paddingBottom: 32 }}
+            refreshControl={
+              <RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} tintColor="#6f45ff" />
+            }
+          />
+        )
       ) : (
-        <FlashList
-          data={filtered}
-          keyExtractor={(item: SearchContact) => item.contactId}
-          renderItem={({ item }) => <ContactCard contact={item as SearchContact} />}
-          contentContainerStyle={{ paddingTop: 4, paddingBottom: 32 }}
-          refreshControl={
-            <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#6f45ff" />
-          }
-        />
+        filteredCompanies.length === 0 ? (
+          <NoResults search={search} type="companies" />
+        ) : (
+          <FlashList
+            data={filteredCompanies}
+            keyExtractor={(item: SearchCompany) => item.company_lid}
+            estimatedItemSize={90}
+            renderItem={({ item }) => <CompanyCard company={item as SearchCompany} />}
+            contentContainerStyle={{ paddingTop: 4, paddingBottom: 32 }}
+            refreshControl={
+              <RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} tintColor="#6f45ff" />
+            }
+          />
+        )
       )}
     </SafeAreaView>
+  );
+}
+
+function NoResults({ search, type }: { search: string; type: 'contacts' | 'companies' }) {
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ fontSize: 36, marginBottom: 8 }}>🤷</Text>
+      <Text style={{ color: '#1a1a1a', fontWeight: '600', fontSize: 16 }}>
+        {search ? 'No matches' : `No ${type} recommendations`}
+      </Text>
+    </View>
   );
 }

@@ -13,6 +13,7 @@ import { Stack, router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useQuery } from '@tanstack/react-query';
 import { SearchCompany, searchProspects, SearchContact } from '../../src/api/search';
+import { CompanyNameOption } from '../../src/api/filters';
 import { Skeleton } from '../../src/components/ui/Skeleton';
 import { useCompanyStore } from '../../src/store/companyStore';
 import { useContactStore } from '../../src/store/contactStore';
@@ -137,20 +138,31 @@ function DecisionMakerCard({ contact }: { contact: SearchContact }) {
 }
 
 export default function CompanyDetailScreen() {
-  const company = useCompanyStore((s) => s.selectedCompany);
+  const storedCompany = useCompanyStore((s) => s.selectedCompany);
 
   const { data: dmData, isLoading: dmLoading } = useQuery({
-    queryKey: ['company-contacts', company?.name],
+    queryKey: ['company-contacts', storedCompany?.name],
     queryFn: () => searchProspects({
-      filters: { companyName: [company!.name] },
+      filters: { companyName: [{ name: storedCompany!.name } as CompanyNameOption] },
       pageSize: 5,
       tab: 'contacts',
     }),
-    enabled: !!company?.name,
+    enabled: !!storedCompany?.name,
     staleTime: 10 * 60 * 1000,
   });
 
-  if (!company) {
+  const { data: enrichSearch } = useQuery({
+    queryKey: ['company-enrich', storedCompany?.name],
+    queryFn: () => searchProspects({
+      filters: { companyName: [{ name: storedCompany!.name } as CompanyNameOption] },
+      pageSize: 1,
+      tab: 'companies',
+    }),
+    enabled: !!storedCompany?.name,
+    staleTime: 30 * 60 * 1000,
+  });
+
+  if (!storedCompany) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7' }}>
         <Stack.Screen options={{ title: 'Company' }} />
@@ -158,6 +170,25 @@ export default function CompanyDetailScreen() {
       </SafeAreaView>
     );
   }
+
+  // Merge enriched search data into stored data — fills in fields missing from recommendations
+  const e = enrichSearch?.companies?.[0];
+  const company: SearchCompany = {
+    ...storedCompany,
+    social: storedCompany.social ?? e?.social,
+    homepage_url: storedCompany.homepage_url ?? e?.homepage_url,
+    description: storedCompany.description ?? e?.description,
+    revenue_range: storedCompany.revenue_range ?? e?.revenue_range,
+    founded: storedCompany.founded ?? e?.founded,
+    secondary_industry: storedCompany.secondary_industry ?? e?.secondary_industry,
+    specialties: storedCompany.specialties ?? e?.specialties,
+    linkedin_followers: storedCompany.linkedin_followers ?? e?.linkedin_followers,
+    sic: storedCompany.sic ?? e?.sic,
+    naics: storedCompany.naics ?? e?.naics,
+    funding_rounds: storedCompany.funding_rounds ?? e?.funding_rounds,
+    funding_summary: storedCompany.funding_summary ?? e?.funding_summary,
+    logo_url: storedCompany.logo_url ?? e?.logo_url,
+  };
 
   const sizeLabel = company.company_size?.min != null && company.company_size?.max != null
     ? `${company.company_size.min.toLocaleString()}–${company.company_size.max.toLocaleString()}`

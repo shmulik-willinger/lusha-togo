@@ -11,8 +11,8 @@ import {
   ActivityIndicator,
   Modal,
   SafeAreaView,
+  Image,
 } from 'react-native';
-import Svg, { Rect, Path } from 'react-native-svg';
 import { router } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import type { WebViewNavigation } from 'react-native-webview';
@@ -34,11 +34,11 @@ const ANDROID_CHROME_UA =
 
 function LushaLogo() {
   return (
-    <Svg width={80} height={80} viewBox="0 0 80 80">
-      <Rect x={0} y={0} width={80} height={80} rx={20} fill="#6f45ff" />
-      {/* Lusha L glyph — geometric sans-serif mark */}
-      <Path d="M22 16 L36 16 L36 50 L58 50 L58 64 L22 64 Z" fill="white" />
-    </Svg>
+    <Image
+      source={require('../../assets/icon.png')}
+      style={{ width: 80, height: 80, borderRadius: 20 }}
+      resizeMode="cover"
+    />
   );
 }
 
@@ -47,25 +47,33 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showWebView, setShowWebView] = useState(false);
+  const [ssoMode, setSsoMode] = useState(false);
+  const [ssoExpanded, setSsoExpanded] = useState(false);
+  const [ssoEmail, setSsoEmail] = useState('');
+  const [ssoError, setSsoError] = useState('');
+  const [captchaRequired, setCaptchaRequired] = useState(false);
   const webViewRef = useRef<WebView>(null);
   const pxCookieRef = useRef<string>('');
   const loginHandledRef = useRef(false); // prevent duplicate execution
   const { setSession } = useAuthStore();
 
-  // Receive pxcookie extracted from WebView localStorage, or fill_done signal
+  // Receive messages from WebView
   const handleWebViewMessage = (event: any) => {
     try {
       const msg = JSON.parse(event.nativeEvent.data);
       if (msg.type === 'px_data') {
-        console.log('[login] WebView localStorage keys:', JSON.stringify(msg.lsKeys));
-        console.log('[login] pxcookie from localStorage:', msg.pxcookie ? msg.pxcookie.substring(0, 60) : 'NONE');
         pxCookieRef.current = msg.pxcookie ?? '';
       } else if (msg.type === 'fill_done' && msg.found) {
-        // Form was submitted — poll silently in background WITHOUT showing the loading overlay.
-        // If a CAPTCHA appears, the user must be able to see and interact with the WebView.
-        // Loading overlay is shown only once we confirm session cookies exist (in finishLogin).
-        console.log('[login] fill_done: form submitted, polling for session cookies silently');
         pollForSessionCookies();
+      } else if (msg.type === 'captcha_required') {
+        // CAPTCHA detected — reveal the WebView so user can solve it
+        setCaptchaRequired(true);
+      } else if (msg.type === 'sso_error') {
+        // SSO not configured — close WebView and show native error
+        setShowWebView(false);
+        setSsoMode(false);
+        setLoading(false);
+        setSsoError(msg.message || 'SSO is not set on this email address');
       }
     } catch { /* ignore */ }
   };
@@ -143,6 +151,17 @@ export default function LoginScreen() {
               btn.removeAttribute('disabled');
               btn.click();
               window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({type:'fill_done',found:true}));
+              // After submitting, poll for CAPTCHA
+              setTimeout(function() {
+                var hasCaptcha = !!(
+                  document.querySelector('iframe[src*="recaptcha"]') ||
+                  document.querySelector('iframe[src*="hcaptcha"]') ||
+                  document.querySelector('[class*="captcha" i]')
+                );
+                if (hasCaptcha) {
+                  window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({type:'captcha_required'}));
+                }
+              }, 2000);
             } else {
               window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({type:'fill_done',found:false}));
             }
@@ -164,15 +183,108 @@ export default function LoginScreen() {
       Alert.alert('Missing fields', 'Please enter your email and password.');
       return;
     }
-    // Clear stale session cookies so the WebView can't auto-redirect to /dashboard
-    // with an expired/invalid token — forces a real login every time.
     await CookieManager.clearAll().catch(() => {});
-    setLoading(false);
+    setSsoMode(false);
+    setCaptchaRequired(false);
+    setLoading(true);
+    setShowWebView(true);
+  };
+
+  const handleSSOPress = () => {
+    setSsoExpanded((v) => !v);
+  };
+
+  const handleSSOContinue = async () => {
+    if (!ssoEmail.trim()) {
+      Alert.alert('Missing email', 'Please enter your work email.');
+      return;
+    }
+    await CookieManager.clearAll().catch(() => {});
+    loginHandledRef.current = false;
+    setSsoMode(true);
+    setSsoError('');
+    setCaptchaRequired(false);
+    setLoading(true);
     setShowWebView(true);
   };
 
   const handleWebViewLoad = () => {
-    if (webViewRef.current && email.trim() && password.trim()) {
+    if (ssoMode) {
+      // SSO mode: fill work email + auto-submit the SSO form so user lands on IdP directly
+      const ssoEmailVal = JSON.stringify(ssoEmail.trim());
+      webViewRef.current?.injectJavaScript(`
+        (function() {
+          var errorReported = false;
+          function reportError() {
+            if (errorReported) return;
+            errorReported = true;
+            window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'sso_error', message: 'SSO is not set on this email address'
+            }));
+          }
+          function checkForSSOError() {
+            var bodyText = document.body ? (document.body.innerText || '') : '';
+            if (/sso is not set|not set on this|not configured|not enabled|invalid.*email|email.*invalid|sso.*not|no.*sso|single sign.?on.*not|sso.*unavail/i.test(bodyText)) {
+              reportError(); return true;
+            }
+            var errorEls = document.querySelectorAll('[class*="error" i],[class*="alert" i],[role="alert"],[class*="Error"],[data-testid*="error" i]');
+            for (var i = 0; i < errorEls.length; i++) {
+              var t = (errorEls[i].textContent || '').trim();
+              if (t.length > 3 && t.length < 300 && !/^(email|password|work email|sign in)$/i.test(t)) { reportError(); return true; }
+            }
+            return false;
+          }
+          function fireEvents(el) {
+            ['focus','input','change','blur'].forEach(function(t) {
+              el.dispatchEvent(new Event(t, { bubbles: true }));
+            });
+            el.dispatchEvent(new InputEvent('input', { bubbles: true, data: el.value }));
+          }
+          var submitted = false;
+          function trySSOFill() {
+            var emailField = document.querySelector('input[type="email"], input[placeholder*="email" i], input[placeholder*="work" i]');
+            if (!emailField) return false;
+            if (submitted) return true;
+            var setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+            setter.call(emailField, ${ssoEmailVal});
+            fireEvents(emailField);
+            setTimeout(function() {
+              var btn = document.querySelector('button[type="submit"]') ||
+                Array.from(document.querySelectorAll('button')).find(function(b) {
+                  return /sign.?in|sso|continue|provider|next/i.test(b.textContent);
+                });
+              if (btn) {
+                submitted = true;
+                btn.disabled = false; btn.removeAttribute('disabled'); btn.click();
+                // MutationObserver for instant detection on DOM change
+                if (window.MutationObserver) {
+                  var obs = new MutationObserver(function() { checkForSSOError(); });
+                  obs.observe(document.body, { childList: true, subtree: true, characterData: true });
+                  setTimeout(function() { obs.disconnect(); }, 15000);
+                }
+                // Polling + timeout-based fallback:
+                // If still on lusha.com after 10s → SSO not configured for this email
+                var errAttempts = 0;
+                var errId = setInterval(function() {
+                  errAttempts++;
+                  if (checkForSSOError() || errorReported) { clearInterval(errId); return; }
+                  if (errAttempts >= 16 && window.location.href.includes('lusha.com')) {
+                    clearInterval(errId); reportError(); return;
+                  }
+                  if (errAttempts >= 30) { clearInterval(errId); reportError(); }
+                }, 500);
+              }
+            }, 600);
+            return true;
+          }
+          var attempts = 0;
+          var id = setInterval(function() {
+            if (trySSOFill() || ++attempts >= 20) clearInterval(id);
+          }, 400);
+        })();
+        true;
+      `);
+    } else if (webViewRef.current && email.trim() && password.trim()) {
       webViewRef.current.injectJavaScript(buildAutoFillScript(email.trim(), password));
     }
   };
@@ -230,16 +342,17 @@ export default function LoginScreen() {
         } catch { /* ignore JWT decode errors */ }
       }
 
-      await setSession({ cookie: cookieStr, email: email.trim(), userId: jwtUserId, name: jwtName, pxCookie: pxCookieRef.current });
-      await SecureStore.setItemAsync(SAVED_EMAIL_KEY, email.trim());
-      await SecureStore.setItemAsync(SAVED_PASSWORD_KEY, password);
+      const resolvedEmail = email.trim() || jwtName || '';
+      await setSession({ cookie: cookieStr, email: resolvedEmail, userId: jwtUserId, name: jwtName, pxCookie: pxCookieRef.current });
+      if (email.trim()) await SecureStore.setItemAsync(SAVED_EMAIL_KEY, email.trim());
+      if (password) await SecureStore.setItemAsync(SAVED_PASSWORD_KEY, password);
       setShowWebView(false);
       router.replace('/(tabs)/home');
     } catch (err) {
       console.error('[login] Cookie extraction failed:', err);
       await setSession({ cookie: '', email: email.trim() }).catch(() => {});
-      await SecureStore.setItemAsync(SAVED_EMAIL_KEY, email.trim()).catch(() => {});
-      await SecureStore.setItemAsync(SAVED_PASSWORD_KEY, password).catch(() => {});
+      if (email.trim()) await SecureStore.setItemAsync(SAVED_EMAIL_KEY, email.trim()).catch(() => {});
+      if (password) await SecureStore.setItemAsync(SAVED_PASSWORD_KEY, password).catch(() => {});
       setShowWebView(false);
       router.replace('/(tabs)/home');
     } finally {
@@ -253,6 +366,11 @@ export default function LoginScreen() {
 
     const isOnLoginPage = LOGIN_PATH_FRAGMENTS.some((f) => url.includes(f));
     console.log('[login] nav:', url.substring(0, 100), 'loading:', navState.loading, 'isLoginPage:', isOnLoginPage);
+
+    // SSO: once we leave lusha.com (e.g. to Okta/Google IdP), reveal the WebView
+    if (ssoMode && !url.includes('lusha.com') && !isOnLoginPage) {
+      setCaptchaRequired(true);
+    }
 
     if (isOnLoginPage) return;
     // Only intercept dashboard.lusha.com pages (not lusha.com marketing site)
@@ -273,6 +391,8 @@ export default function LoginScreen() {
 
   const handleWebViewClose = () => {
     loginHandledRef.current = false;
+    setSsoMode(false);
+    setCaptchaRequired(false);
     setShowWebView(false);
     setLoading(false);
   };
@@ -348,6 +468,53 @@ export default function LoginScreen() {
                 <Text className="text-white text-base font-sans-bold">Sign In</Text>
               )}
             </TouchableOpacity>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, marginBottom: 4 }}>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#e5e7eb' }} />
+              <Text style={{ marginHorizontal: 12, fontSize: 12, color: '#9ca3af', fontWeight: '500' }}>or</Text>
+              <View style={{ flex: 1, height: 1, backgroundColor: '#e5e7eb' }} />
+            </View>
+
+            <TouchableOpacity
+              onPress={handleSSOPress}
+              disabled={loading}
+              style={{ borderWidth: 1.5, borderColor: '#6f45ff', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 4 }}
+              activeOpacity={0.85}
+            >
+              <Text style={{ color: '#6f45ff', fontSize: 15, fontWeight: '700' }}>🔐 Sign in with SSO</Text>
+            </TouchableOpacity>
+
+            {ssoError ? (
+              <View style={{ marginTop: 12, backgroundColor: '#fef2f2', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#fecaca' }}>
+                <Text style={{ color: '#dc2626', fontSize: 14, fontWeight: '500', textAlign: 'center' }}>
+                  🔒 {ssoError}
+                </Text>
+              </View>
+            ) : null}
+
+            {ssoExpanded && (
+              <View style={{ marginTop: 12 }}>
+                <TextInput
+                  style={{ backgroundColor: '#f9fafb', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 13, fontSize: 15, color: '#1a1a1a', marginBottom: 10 }}
+                  placeholder="Enter your work email"
+                  placeholderTextColor="#a3a3a3"
+                  value={ssoEmail}
+                  onChangeText={setSsoEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoFocus
+                />
+                <TouchableOpacity
+                  onPress={handleSSOContinue}
+                  disabled={loading}
+                  style={{ backgroundColor: '#6f45ff', borderRadius: 12, paddingVertical: 14, alignItems: 'center' }}
+                  activeOpacity={0.85}
+                >
+                  <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>Continue with SSO →</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
 
           <Text className="text-neutral-400 text-xs mt-8 text-center px-4">
@@ -363,20 +530,16 @@ export default function LoginScreen() {
         onRequestClose={handleWebViewClose}
       >
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-          {/* Header */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#e5e5e5' }}>
-            <TouchableOpacity onPress={handleWebViewClose} style={{ marginRight: 16 }}>
-              <Text style={{ fontSize: 16, color: '#6f45ff' }}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={{ flex: 1, fontSize: 16, fontWeight: '600', color: '#262626', textAlign: 'center' }}>Sign In</Text>
-            {/* Spacer to center title */}
-            <View style={{ width: 60 }} />
-          </View>
-
-          {loading && (
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.85)', zIndex: 10 }}>
-              <ActivityIndicator size="large" color="#6f45ff" />
-              <Text style={{ marginTop: 12, color: '#666' }}>Signing in…</Text>
+          {/* Header — only shown when WebView is visible to user */}
+          {captchaRequired && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#e5e5e5' }}>
+              <TouchableOpacity onPress={handleWebViewClose} style={{ marginRight: 16 }}>
+                <Text style={{ fontSize: 16, color: '#6f45ff' }}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={{ flex: 1, fontSize: 16, fontWeight: '600', color: '#262626', textAlign: 'center' }}>
+                {ssoMode ? 'Sign in with SSO' : 'Verify'}
+              </Text>
+              <View style={{ width: 60 }} />
             </View>
           )}
 
@@ -394,6 +557,17 @@ export default function LoginScreen() {
             thirdPartyCookiesEnabled
             style={{ flex: 1 }}
           />
+
+          {/* Loading overlay — hides the WebView unless CAPTCHA needed */}
+          {!captchaRequired && (
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', zIndex: 10 }}>
+              <ActivityIndicator size="large" color="#6f45ff" />
+              <Text style={{ marginTop: 14, color: '#1a1a1a', fontSize: 15, fontWeight: '600' }}>Signing in…</Text>
+              <TouchableOpacity onPress={handleWebViewClose} style={{ marginTop: 24 }} activeOpacity={0.7}>
+                <Text style={{ color: '#9ca3af', fontSize: 14 }}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </SafeAreaView>
       </Modal>
     </>

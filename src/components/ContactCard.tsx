@@ -16,6 +16,12 @@ function getInitials(name: SearchContact['name']): string {
   return `${name.first?.[0] ?? ''}${name.last?.[0] ?? ''}`.toUpperCase();
 }
 
+function formatPhone(n: string | number | undefined | null): string {
+  if (n == null || n === '') return '';
+  const s = String(n);
+  return s.startsWith('+') ? s : `+${s}`;
+}
+
 function truncate(str: string, max: number): string {
   return str.length > max ? str.slice(0, max) + '…' : str;
 }
@@ -60,8 +66,8 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
       if (revealedItem) {
         if (revealedItem.phones?.length) {
           updatedPhones = revealedItem.phones.map((p: any) => ({
-            number: p.value ?? p.number ?? '',
-            normalized_number: p.normalized_number ?? p.value ?? p.number ?? '',
+            number: String(p.value ?? p.number ?? ''),
+            normalized_number: String(p.normalized_number ?? p.value ?? p.number ?? ''),
             type: p.type,
             is_do_not_call: p.doNotCall ?? p.is_do_not_call ?? false,
             datapointId: p.datapointId,
@@ -70,7 +76,7 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
         }
         if (revealedItem.emails?.length) {
           updatedEmails = revealedItem.emails.map((e: any) => ({
-            address: e.value ?? e.address ?? '',
+            address: String(e.value ?? e.address ?? ''),
             label: e.label ?? e.type,
             datapointId: e.datapointId,
             isMasked: false,
@@ -169,7 +175,7 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
             >
               <Text style={styles.dataChipIcon}>📞</Text>
               <Text style={styles.dataChipText} numberOfLines={1} ellipsizeMode="tail">
-                {firstPhone.normalized_number ?? firstPhone.number}
+                {formatPhone(firstPhone.normalized_number ?? firstPhone.number)}
               </Text>
               {hasLinkedIn && !firstEmail && (
                 <TouchableOpacity

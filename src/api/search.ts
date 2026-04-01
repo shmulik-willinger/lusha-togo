@@ -1,19 +1,20 @@
 import apiClient from './client';
+import { CompanyNameOption, LocationOption, IndustryLabelOption } from './filters';
 
 export interface SearchFilters {
-  // Contact filters — exact field names as accepted by /v2/prospecting-full
+  // Contact filters
   contactName?: string[];
   contactJobTitle?: string[];
   contactDepartment?: string[];
   contactSeniority?: string[];
-  contactLocation?: string[];
+  contactLocation?: LocationOption[];
   contactExistingDataPoints?: string[];
   // Company filters
-  companyName?: string[];
+  companyName?: CompanyNameOption[];
   companySize?: { min?: number; max?: number };
   companyRevenue?: { min?: number; max?: number };
-  companyIndustryLabels?: string[];
-  companyLocation?: string[];
+  companyIndustryLabels?: IndustryLabelOption[];
+  companyLocation?: LocationOption[];
   companyFoundedYear?: { min?: number; max?: number };
 }
 
@@ -240,6 +241,36 @@ function mapSearchCompany(raw: any): SearchCompany {
   };
 }
 
+// Strip extra API response fields from location objects — the search API only accepts known fields
+function pickLocation(loc: LocationOption): Record<string, any> {
+  const result: Record<string, any> = {};
+  const keys: (keyof LocationOption)[] = ['key', 'name', 'country', 'state', 'city', 'continent', 'country_grouping', 'country_code', 'code'];
+  for (const k of keys) {
+    if ((loc as any)[k] !== undefined) result[k] = (loc as any)[k];
+  }
+  return result;
+}
+
+// Strip extra fields from company name objects
+function pickCompanyName(cn: CompanyNameOption): Record<string, any> {
+  const result: Record<string, any> = {};
+  const keys: (keyof CompanyNameOption)[] = ['name', 'fqdn', 'company_lid', 'logo_url', 'domains_homepage', 'industry_primary_group'];
+  for (const k of keys) {
+    if ((cn as any)[k] !== undefined) result[k] = (cn as any)[k];
+  }
+  return result;
+}
+
+// Strip extra fields from industry label objects
+function pickIndustryLabel(il: IndustryLabelOption): Record<string, any> {
+  const result: Record<string, any> = {};
+  const keys: (keyof IndustryLabelOption)[] = ['value', 'id', 'mainIndustry', 'mainIndustryId', 'subIndustriesCount'];
+  for (const k of keys) {
+    if ((il as any)[k] !== undefined) result[k] = (il as any)[k];
+  }
+  return result;
+}
+
 /**
  * Convert our simple SearchFilters into the exact payload format /v2/prospecting-full expects.
  * The API receives the serialized `data` portion of each filter (not the UI wrapper object).
@@ -247,39 +278,33 @@ function mapSearchCompany(raw: any): SearchCompany {
  */
 function buildApiFilters(f: SearchFilters): Record<string, any> {
   const api: Record<string, any> = {};
-  // contactJobTitle → [{ title: string }]  (ContactJobTitleData)
   if (f.contactJobTitle?.length) {
     api.contactJobTitle = f.contactJobTitle.map((t) => ({ title: t }));
   }
-  // contactSeniority → plain strings e.g. ["VP", "Director"]
   if (f.contactSeniority?.length) {
     api.contactSeniority = f.contactSeniority;
   }
-  // contactDepartment → [{ value, label }]  (ValueLabelData)
   if (f.contactDepartment?.length) {
     api.contactDepartment = f.contactDepartment.map((d) => ({ value: d, label: d }));
   }
-  // contactLocation → [{ name, country }]  (LocationData)
   if (f.contactLocation?.length) {
-    api.contactLocation = f.contactLocation.map((l) => ({ name: l, country: l }));
+    api.contactLocation = f.contactLocation.map(pickLocation);
   }
-  // contactName → plain strings (API expects string[])
+  if (f.contactExistingDataPoints?.length) {
+    api.contactExistingDataPoints = f.contactExistingDataPoints;
+  }
   if (f.contactName?.length) {
     api.contactName = f.contactName;
   }
-  // companyName → [{ name }]  (CompanyNameData)
   if (f.companyName?.length) {
-    api.companyName = f.companyName.map((n) => ({ name: n }));
+    api.companyName = f.companyName.map(pickCompanyName);
   }
-  // companyIndustryLabels → [{ value }]  (label not allowed)
   if (f.companyIndustryLabels?.length) {
-    api.companyIndustryLabels = f.companyIndustryLabels.map((i) => ({ value: i }));
+    api.companyIndustryLabels = f.companyIndustryLabels.map(pickIndustryLabel);
   }
-  // companyLocation → [{ name, country }]
   if (f.companyLocation?.length) {
-    api.companyLocation = f.companyLocation.map((l) => ({ name: l, country: l }));
+    api.companyLocation = f.companyLocation.map(pickLocation);
   }
-  // companySize/Revenue/FoundedYear → must be arrays
   if (f.companySize) api.companySize = [f.companySize];
   if (f.companyRevenue) api.companyRevenue = [f.companyRevenue];
   if (f.companyFoundedYear) api.companyFoundedYear = [f.companyFoundedYear];
@@ -302,14 +327,22 @@ export async function searchProspects(params: SearchParams): Promise<SearchRespo
 
   // sessionId is the Redis cache key on the server (maskId for unmask).
   // Must be captured here so we can pass it as maskId to each contact.
-  const sessionId = params.sessionId ?? crypto.randomUUID();
+  // Use Math.random-based UUID since Hermes JS engine lacks Web Crypto API.
+  const sessionId = params.sessionId ?? 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
 
   const apiFilters = buildApiFilters(effectiveFilters);
   const hasApiFilters = Object.keys(apiFilters).length > 0;
 
+  // The Lusha API's display:"companies" returns results:[] (subscription limitation).
+  // Use display:"contacts" and extract companies from the unique_companies map instead.
+  const displayMode = params.tab === 'companies' ? 'contacts' : (params.tab ?? 'contacts');
+
   const payload: Record<string, any> = {
     filters: apiFilters,
-    display: params.tab ?? 'contacts',
+    display: displayMode,
     sessionId,
     pages: {
       page: params.page ?? 1,
@@ -322,9 +355,9 @@ export async function searchProspects(params: SearchParams): Promise<SearchRespo
     fetchIntentTopics: false,
   };
 
-  // filters.searchText = free-text fallback for company search only
-  // (for contacts, structured filters like contactJobTitle are sufficient)
-  if (params.tab === 'companies' && params.searchText) {
+  // filters.searchText = free-text passed alongside structured filters for better relevance ranking.
+  // Sent for both contacts and companies — mirrors dashboard behavior.
+  if (params.searchText) {
     payload.filters.searchText = [params.searchText];
   }
 
@@ -340,6 +373,12 @@ export async function searchProspects(params: SearchParams): Promise<SearchRespo
       return { contacts: [], companies: [], total: 0, page: params.page ?? 1, hasMore: false };
     }
     throw err;
+  }
+
+  // Handle validation errors returned as HTTP 200 with error body (SEARCH_ENGINE_ERROR)
+  if (data?.error === 'SEARCH_ENGINE_ERROR') {
+    console.log('[search] search engine validation error:', JSON.stringify(data?.additionalInfo?.errorDetails).substring(0, 200));
+    return { contacts: [], companies: [], total: 0, page: params.page ?? 1, hasMore: false };
   }
 
   console.log('[search] raw keys:', Object.keys(data ?? {}).join(','), '| contacts keys:', Object.keys(data?.contacts ?? {}).join(','));
@@ -362,10 +401,16 @@ export async function searchProspects(params: SearchParams): Promise<SearchRespo
   const totalContacts = contactsData?.contacts_results_total ?? contactsData?.total ?? contacts.length;
 
   const companiesData = data?.companies;
-  const rawCompanies: any[] = companiesData?.results ?? (Array.isArray(companiesData) ? companiesData : []);
+  // For company tab: derive companies from unique_companies (contacts side-channel),
+  // since display:"companies" returns results:[] due to API plan limitations.
+  const rawCompanies: any[] = params.tab === 'companies'
+    ? Object.values(uniqueCompanies)
+    : (companiesData?.results ?? (Array.isArray(companiesData) ? companiesData : []));
   const companies = rawCompanies.map(mapSearchCompany);
   console.log('[search] mapped companies:', companies.length);
-  const total = params.tab === 'companies' ? (companiesData?.companies_results_total ?? companiesData?.total ?? rawCompanies.length) : totalContacts;
+  const total = params.tab === 'companies'
+    ? (contactsData?.contacts_results_total ?? contactsData?.total ?? rawContacts.length)
+    : totalContacts;
   const currentPage = params.page ?? 1;
   const pageSize = params.pageSize ?? 25;
 
