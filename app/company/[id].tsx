@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Image,
   Linking,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
@@ -19,6 +20,10 @@ import { useCompanyStore } from '../../src/store/companyStore';
 import { useContactStore } from '../../src/store/contactStore';
 import { revealContact } from '../../src/api/contacts';
 import { useMutation } from '@tanstack/react-query';
+import { useSignalsStore } from '../../src/store/signalsStore';
+import { createSubscription, deleteSubscription, listAllSubscriptions, reactivateSubscription, getCompanySignals, LushaSignalEvent } from '../../src/api/signals';
+import { useAuthStore } from '../../src/store/authStore';
+import { resolveUserId } from '../../src/utils/session';
 
 function StatRow({ label, value }: { label: string; value: string }) {
   return (
@@ -133,6 +138,309 @@ function DecisionMakerCard({ contact }: { contact: SearchContact }) {
           </View>
         )}
       </View>
+    </TouchableOpacity>
+  );
+}
+
+function signalLabel(type: string): string {
+  const labels: Record<string, string> = {
+    companyChange: 'Employee changed jobs',
+    promotion: 'Employee promoted',
+    websiteTrafficIncrease: 'Website traffic increase',
+    websiteTrafficDecrease: 'Website traffic decrease',
+    itSpendIncrease: 'IT spend increase',
+    itSpendDecrease: 'IT spend decrease',
+    surgeInHiring: 'Surge in hiring',
+    surgeInHiringByDepartment: 'Surge in hiring by dept',
+    surgeInHiringByLocation: 'Surge in hiring by location',
+    headcountIncrease1m: 'Headcount increase (1m)',
+    headcountIncrease3m: 'Headcount increase (3m)',
+    headcountIncrease6m: 'Headcount increase (6m)',
+    headcountIncrease12m: 'Headcount increase (12m)',
+    headcountDecrease1m: 'Headcount decrease (1m)',
+    headcountDecrease3m: 'Headcount decrease (3m)',
+    headcountDecrease6m: 'Headcount decrease (6m)',
+    headcountDecrease12m: 'Headcount decrease (12m)',
+    riskNews: 'Risk news',
+    commercialActivityNews: 'Commercial activity',
+    corporateStrategyNews: 'Corporate strategy',
+    financialEventsNews: 'Financial events',
+    peopleNews: 'People news',
+    marketIntelligenceNews: 'Market intelligence',
+    productActivityNews: 'Product activity',
+    funding: 'Funding',
+    techAdoption: 'Tech adoption',
+  };
+  return labels[type] ?? type;
+}
+
+function signalDetail(s: LushaSignalEvent): string {
+  const d = s.data ?? {};
+  switch (s.signalType) {
+    case 'companyChange':
+      return [
+        d.previousCompanyName && d.currentCompanyName ? `${d.previousCompanyName} → ${d.currentCompanyName}` : d.currentCompanyName,
+        d.currentTitle,
+      ].filter(Boolean).join(' · ');
+    case 'promotion':
+      return [d.currentTitle, d.currentSeniorityLabel ? `(${d.currentSeniorityLabel})` : null].filter(Boolean).join(' ');
+    case 'websiteTrafficIncrease':
+    case 'websiteTrafficDecrease':
+      return d.changeRatePercent ? `${d.changeRatePercent > 0 ? '+' : ''}${d.changeRatePercent}% vs avg` : '';
+    case 'itSpendIncrease':
+    case 'itSpendDecrease':
+      return d.changeRatePercent ? `${d.changeRatePercent > 0 ? '+' : ''}${d.changeRatePercent}% change` : '';
+    case 'surgeInHiring':
+    case 'surgeInHiringByDepartment':
+    case 'surgeInHiringByLocation':
+      return d.newJobs ? `${d.newJobs} new jobs` : '';
+    default:
+      return d.changeRatePercent ? `${d.changeRatePercent > 0 ? '+' : ''}${d.changeRatePercent}%` : d.currentTitle ?? '';
+  }
+}
+
+function CompanySignalsSection({ company }: { company: SearchCompany }) {
+  const { apiKey, addSignal, isFollowing, addSubscription, removeSubscription, subscriptions } = useSignalsStore();
+  const { session } = useAuthStore();
+  const entityId = company.company_id || company.company_lid;
+  const following = entityId ? isFollowing(entityId) : false;
+  const resolvedUserId = resolveUserId(session);
+
+  const [showLoading, setShowLoading] = useState(false);
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [signals, setSignals] = useState<LushaSignalEvent[]>([]);
+  const [showError, setShowError] = useState<string | null>(null);
+  const [shown, setShown] = useState(false);
+
+  if (!apiKey || !entityId) return null;
+
+  const handleShow = async () => {
+    setShowLoading(true);
+    setShowError(null);
+    try {
+      const results = await getCompanySignals(entityId, apiKey);
+      setSignals(results);
+      setShown(true);
+      for (const s of results) {
+        await addSignal({
+          id: `api-${entityId}-${s.signalType}-${s.signalDate ?? 'nodate'}`,
+          timestamp: new Date().toISOString(),
+          entityName: company.name,
+          entityId,
+          entityType: 'company',
+          signalType: s.signalType,
+          data: s.data,
+          read: true,
+          source: 'api',
+          logoUrl: company.logo_url,
+        });
+      }
+    } catch (e: any) {
+      setShowError(e?.response?.data?.message ?? e?.message ?? 'Could not fetch signals.');
+    } finally {
+      setShowLoading(false);
+    }
+  };
+
+  const handleRegister = async () => {
+    if (following) {
+      const sub = subscriptions.find((s) => s.entityId === entityId);
+      if (!sub) return;
+      Alert.alert('Unregister', `Stop receiving signal notifications for ${company.name}?`, [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Unregister', style: 'destructive',
+          onPress: async () => {
+            setRegisterLoading(true);
+            try { await deleteSubscription(sub.id, apiKey); } catch {}
+            await removeSubscription(sub.id);
+            setRegisterLoading(false);
+          },
+        },
+      ]);
+      return;
+    }
+    if (!resolvedUserId) {
+      Alert.alert('Error', 'Could not resolve your user ID. Please log out and log in again.');
+      return;
+    }
+    setRegisterLoading(true);
+    try {
+      const result = await createSubscription({
+        entityId, entityType: 'company', entityName: company.name, apiKey, userId: resolvedUserId,
+      });
+      await addSubscription({
+        id: result.id, entityId, entityType: 'company', entityName: company.name,
+        signalTypes: result.signalTypes, createdAt: result.createdAt ?? new Date().toISOString(),
+        logoUrl: company.logo_url,
+      });
+      Alert.alert('Registered!', `You'll receive push notifications when there are signals for ${company.name}.`);
+    } catch (e: any) {
+      const msg: string = e?.response?.data?.message ?? e?.message ?? '';
+      if (msg.toLowerCase().includes('already exists')) {
+        try {
+          const subs = await listAllSubscriptions(apiKey);
+          const existing = subs.find((s: any) => String(s.entityId) === String(entityId));
+          if (existing) {
+            await reactivateSubscription(existing.id, apiKey);
+            await addSubscription({
+              id: existing.id, entityId, entityType: 'company', entityName: company.name,
+              signalTypes: existing.signalTypes ?? [], createdAt: existing.createdAt ?? new Date().toISOString(),
+              logoUrl: company.logo_url,
+            });
+            Alert.alert('Registered!', `You'll receive push notifications when there are signals for ${company.name}.`);
+            return;
+          }
+        } catch {}
+      }
+      Alert.alert('Error', msg || 'Could not register.');
+    } finally {
+      setRegisterLoading(false);
+    }
+  };
+
+  return (
+    <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, paddingBottom: 8, marginBottom: 8 }}>
+      <Text style={{ fontSize: 11, fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 12 }}>
+        Signals
+      </Text>
+
+      <View style={{ flexDirection: 'row', gap: 10, marginBottom: shown && signals.length > 0 ? 12 : 4 }}>
+        <TouchableOpacity
+          onPress={handleShow}
+          disabled={showLoading}
+          style={{ flex: 1, backgroundColor: '#f0ecff', borderRadius: 10, paddingVertical: 11, alignItems: 'center', opacity: showLoading ? 0.7 : 1 }}
+          activeOpacity={0.85}
+        >
+          {showLoading
+            ? <ActivityIndicator size="small" color="#6f45ff" />
+            : <Text style={{ color: '#6f45ff', fontWeight: '700', fontSize: 14 }}>Show Signals</Text>
+          }
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleRegister}
+          disabled={registerLoading}
+          style={{ flex: 1, backgroundColor: following ? '#fee2e2' : '#6f45ff', borderRadius: 10, paddingVertical: 11, alignItems: 'center', opacity: registerLoading ? 0.7 : 1 }}
+          activeOpacity={0.85}
+        >
+          {registerLoading
+            ? <ActivityIndicator size="small" color={following ? '#dc2626' : '#fff'} />
+            : <Text style={{ color: following ? '#dc2626' : '#fff', fontWeight: '700', fontSize: 14 }}>
+                {following ? 'Unregister' : 'Register'}
+              </Text>
+          }
+        </TouchableOpacity>
+      </View>
+
+      {showError && <Text style={{ color: '#dc2626', fontSize: 13, marginBottom: 10 }}>{showError}</Text>}
+
+      {shown && signals.length === 0 && !showError && (
+        <Text style={{ color: '#9ca3af', fontSize: 13, paddingBottom: 12 }}>No signals found for this company.</Text>
+      )}
+      {signals.map((s, i) => (
+        <View key={i} style={{ paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#f3f4f6' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Text style={{ fontSize: 13, fontWeight: '600', color: '#1a1a1a' }}>{signalLabel(s.signalType)}</Text>
+            {s.signalDate && (
+              <Text style={{ fontSize: 11, color: '#9ca3af' }}>{new Date(s.signalDate).toLocaleDateString()}</Text>
+            )}
+          </View>
+          {!!signalDetail(s) && (
+            <Text style={{ fontSize: 12, color: '#6b7280', marginTop: 3 }}>{signalDetail(s)}</Text>
+          )}
+        </View>
+      ))}
+
+      {following && (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingBottom: 8, paddingTop: signals.length > 0 ? 4 : 0 }}>
+          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#22c55e' }} />
+          <Text style={{ fontSize: 12, color: '#6b7280' }}>Registered — All Signals</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function FollowCompanyButton({ company }: { company: SearchCompany }) {
+  const { apiKey, isFollowing, addSubscription, removeSubscription, subscriptions } = useSignalsStore();
+  const { session } = useAuthStore();
+  const entityId = company.company_id || company.company_lid;
+  const following = entityId ? isFollowing(entityId) : false;
+  const [loading, setLoading] = useState(false);
+  const resolvedUserId = resolveUserId(session);
+
+  if (!entityId || !apiKey || !resolvedUserId) return null;
+
+  const handleFollow = async () => {
+    setLoading(true);
+    try {
+      const result = await createSubscription({
+        entityId,
+        entityType: 'company',
+        entityName: company.name,
+        apiKey,
+        userId: resolvedUserId,
+      });
+      await addSubscription({
+        id: result.id,
+        entityId,
+        entityType: 'company',
+        entityName: company.name,
+        signalTypes: result.signalTypes,
+        createdAt: result.createdAt ?? new Date().toISOString(),
+        logoUrl: company.logo_url,
+      });
+    } catch (e: any) {
+      Alert.alert('Error', e?.response?.data?.message ?? e?.message ?? 'Could not follow company.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnfollow = () => {
+    const sub = subscriptions.find((s) => s.entityId === entityId);
+    if (!sub) return;
+    Alert.alert('Unfollow', `Stop following ${company.name}?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Unfollow',
+        style: 'destructive',
+        onPress: async () => {
+          setLoading(true);
+          try { await deleteSubscription(sub.id, apiKey); } catch (e: any) {
+            console.log('[follow-company] delete error:', e?.message);
+          }
+          await removeSubscription(sub.id);
+          setLoading(false);
+        },
+      },
+    ]);
+  };
+
+  return (
+    <TouchableOpacity
+      onPress={following ? handleUnfollow : handleFollow}
+      disabled={loading}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: following ? '#f0ecff' : '#6f45ff',
+        paddingHorizontal: 14,
+        paddingVertical: 7,
+        borderRadius: 16,
+        opacity: loading ? 0.6 : 1,
+        alignSelf: 'flex-start',
+        marginTop: 8,
+      }}
+      activeOpacity={0.8}
+    >
+      {loading
+        ? <ActivityIndicator size="small" color={following ? '#6f45ff' : '#fff'} />
+        : <Text style={{ fontSize: 13, color: following ? '#6f45ff' : '#fff', fontWeight: '600' }}>
+            {following ? '✓ Following' : '+ Follow'}
+          </Text>
+      }
     </TouchableOpacity>
   );
 }
@@ -258,6 +566,7 @@ export default function CompanyDetailScreen() {
               {company.description}
             </Text>
           )}
+          <FollowCompanyButton company={company} />
         </View>
 
         {/* Company Info */}
@@ -320,6 +629,9 @@ export default function CompanyDetailScreen() {
           )}
           <View style={{ height: 8 }} />
         </View>
+
+        {/* Signals */}
+        <CompanySignalsSection company={company} />
 
         {/* Links */}
         {(company.homepage_url || company.social?.linkedin || company.social?.twitter || company.social?.crunchbase) && (

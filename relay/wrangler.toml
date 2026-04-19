@@ -1,0 +1,12 @@
+name = "lusha-signals-relay"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# KV namespace binding — create it in Cloudflare Dashboard → Workers → KV
+# then paste the namespace ID here
+[[kv_namespaces]]
+binding = "DEVICE_TOKENS"
+id = "66bdf1831b384c29b806f03db1a58ad2"
+
+# After deploying, update RELAY_BASE_URL in src/api/signals.ts
+# with your worker URL: https://lusha-signals-relay.<your-subdomain>.workers.dev

@@ -85,3 +85,4 @@ Debug mode removes ProGuard/R8 minification and cuts build time significantly vs
 - **State**: Zustand for auth session, TanStack Query for server state.
 - **Navigation**: Expo Router (file-based) — add a file in `app/` to add a route.
 - **No hot reload**: Each code change requires a full APK rebuild and install.
+- **Screenshots**: When taking a screenshot from the emulator/device for verification, always resize it to max 1800px on the long side before adding to the conversation. Use: `sips -Z 1800 screenshot.png`. Never accumulate more than 2 screenshots in the same session — the Claude API limits images to 2000px when multiple images exist in context, and exceeding this crashes the session silently.

@@ -22,6 +22,7 @@ interface AuthState {
   setSession: (session: SessionData) => Promise<void>;
   clearSession: () => Promise<void>;
   updateCredits: (used: number, total: number) => void;
+  updateUserId: (userId: string) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -56,5 +57,14 @@ export const useAuthStore = create<AuthState>((set) => ({
     set((state) =>
       state.session ? { session: { ...state.session, creditsUsed, creditsTotal } } : {},
     );
+  },
+
+  updateUserId: (userId: string) => {
+    set((state) => {
+      if (!state.session) return {};
+      const updated = { ...state.session, userId };
+      SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(updated)).catch(() => {});
+      return { session: updated };
+    });
   },
 }));

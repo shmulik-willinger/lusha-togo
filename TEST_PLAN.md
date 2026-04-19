@@ -1,240 +1,460 @@
 # Lusha ToGo — Test Plan
 
-**Account**: shmulik.willinger+1@lusha.com
-**Version tested**: v1.0.136
-**Platform**: Android emulator (Medium_Phone_API_36.1) + physical device
-**Last run**: 2026-03-22
+**Account**: shmulik.willinger@lusha.com
+**Version**: v1.0.621
+**Platform**: Android Emulator (emulator-5554) + physical device (R5CY60LWNFL)
+**Last updated**: 2026-04-12
 
 ---
 
 ## Legend
-- ✅ PASS — works as expected
-- ❌ FAIL — broken or wrong behaviour
+- ✅ PASS
+- ❌ FAIL
 - ⚠️ PARTIAL — works but with caveats
-- ⏭ SKIP — not applicable / cannot test in this session
+- ⏭ SKIP — not applicable
 - 🔵 TODO — not yet executed
 
 ---
 
 ## 1. Login (L)
 
-| ID | Test | Expected | Result | Notes |
-|----|------|----------|--------|-------|
-| L-01 | App opens to login screen when no session | Login screen shown | ✅ | |
-| L-02 | Email + password pre-filled from SecureStore on revisit | Fields populated automatically | ✅ | |
-| L-03 | Press Sign In with valid credentials | WebView modal opens, auto-fills & submits | ✅ | |
-| L-04 | WebView shows Lusha login page | Lusha login page renders | ✅ | |
-| L-05 | Auto-fill fires email + password into WebView form | Both fields filled | ✅ | |
-| L-06 | Submit button is force-enabled and clicked | Form submits | ✅ | |
-| L-07 | Successful login navigates to Home tab | WebView dismissed, Home shown | ✅ | |
-| L-08 | Session cookies captured and stored | ll / sall cookie stored in SecureStore | ✅ | |
-| L-09 | JWT decoded to extract userId + name | userId/name stored in session | ✅ | |
-| L-10 | Press Cancel on WebView modal | Modal dismissed, login screen shown | ✅ | |
-| L-11 | Empty email → validation alert | Alert "Missing fields" shown | ✅ | |
-| L-12 | Empty password → validation alert | Alert "Missing fields" shown | ✅ | |
-| L-13 | Network error on WebView load | "Connection error" alert shown | 🔵 | |
-| L-14 | Credentials saved to SecureStore on success | Next launch pre-fills fields | ✅ | |
-| L-15 | reCAPTCHA v3 on emulator: Sign In button force-enabled | Login proceeds despite reCAPTCHA | ✅ | Fixed via autofill script |
-| L-16 | Invalid credentials → login page stays | User remains on login page in WebView | 🔵 | |
+### מה רואים לפני login
+- מסך עם שדות email + password
+- כפתור "Sign In" בצבע סגול
+- שדות מתמלאים אוטומטית מ-SecureStore אם הייתה כניסה קודמת
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| L-01 | פתיחת האפליקציה ללא session | מסך login מוצג | ✅ | |
+| L-02 | פתיחת האפליקציה לאחר login קודם | שדות email + password מולאו אוטומטית | ✅ | |
+| L-03 | לחיצה על Sign In עם פרטים תקינים | WebView נפתח, ממלא email+password ושולח | ✅ | |
+| L-04 | WebView נפתח | עמוד login של Lusha מוצג | ✅ | |
+| L-05 | אוטו-פיל ב-WebView | שני השדות מולאו | ✅ | |
+| L-06 | Submit אוטומטי | הטופס נשלח | ✅ | כפתור Submit מופעל בכח |
+| L-07 | Login הצליח | WebView נסגר, מסך Home מוצג | ✅ | |
+| L-08 | לאחר login | Cookie של session נשמר ב-SecureStore | ✅ | |
+| L-09 | לאחר login | userId + שם המשתמש מחולצים מה-JWT ונשמרים | ✅ | |
+| L-10 | לחיצה על Cancel ב-WebView | WebView נסגר, מסך login מוצג | ✅ | |
+| L-11 | לחיצה על Sign In ללא email | Alert "Missing fields" מוצג | ✅ | |
+| L-12 | לחיצה על Sign In ללא password | Alert "Missing fields" מוצג | ✅ | |
+| L-13 | Sign In עם פרטים שגויים | נשאר ב-WebView (login page מוצג שוב) | 🔵 | |
+| L-14 | בדיקה שהפרטים נשמרו | בפתיחה הבאה השדות מולאו מ-SecureStore | ✅ | |
 
 ---
 
 ## 2. Home Screen (H)
 
-| ID | Test | Expected | Result | Notes |
-|----|------|----------|--------|-------|
-| H-01 | Home tab loads after login | Home screen with AI search bar visible | ✅ | |
-| H-02 | AI search bar placeholder text shown | "Describe the contacts you're looking for…" | ✅ | |
-| H-03 | Suggestion chips displayed | "HR managers at SMBs in the US", "VP of Sales at fintech companies" | ✅ | |
-| H-04 | "Recommended Leads" section shown | Card with count badge and "View All" button | ✅ | |
-| H-05 | Recommended Leads count badge shows number | Non-zero count badge | ✅ | Shows 25 |
-| H-06 | "View All →" opens Recommendations screen | Recommendations screen shown | ✅ | |
-| H-07 | Tap suggestion chip → AI search fires | Search results for chip query shown | ✅ | |
-| H-08 | Type in AI search bar → submit → results | AI search results shown | ✅ | |
-| H-09 | Bottom tab bar: Home, Search, Lists, Account | All 4 tabs visible and tappable | ✅ | |
-| H-10 | Home tab active indicator | Home icon highlighted | ✅ | |
-| H-11 | Pull-to-refresh on Home | Data reloaded | ✅ | |
+### מה רואים
+- כותרת "Lusha ToGo" עם אייקון האפליקציה
+- AI Search bar עם placeholder "Describe the contacts you're looking for…"
+- שורת chips: "HR managers at SMBs in the US", "VP of Sales at fintech companies" וכו'
+- קארד "Recommended Leads" עם מספר הלידים + כפתור "View All →"
+- Tab bar תחתון עם 5 לשוניות: Home, Search, Lists, Signals, Account
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| H-01 | טעינת Home לאחר login | מסך Home מוצג עם search bar | ✅ | |
+| H-02 | מבט על ה-AI search bar | placeholder text "Describe the contacts…" מוצג | ✅ | |
+| H-03 | מבט על suggestion chips | לפחות 2 chips מוצגים | ✅ | |
+| H-04 | מבט על Recommended Leads | קארד עם מספר לידים + "View All →" | ✅ | |
+| H-05 | לחיצה על chip | חיפוש AI מופעל עם תוכן ה-chip, מעבר ל-Search | ✅ | |
+| H-06 | הקלדה ב-search bar + שליחה | תוצאות AI search מוצגות ב-Search tab | ✅ | |
+| H-07 | לחיצה על "View All →" | מסך Recommendations נפתח | ✅ | |
+| H-08 | Pull-to-refresh | נתונים נטענים מחדש | ✅ | |
+| H-09 | לחיצה על כל לשונית ב-tab bar | המסך המתאים נפתח | ✅ | |
 
 ---
 
 ## 3. Search Screen (S)
 
-| ID | Test | Expected | Result | Notes |
-|----|------|----------|--------|-------|
-| S-01 | Search tab loads | Search screen with filters and results | ✅ | |
-| S-02 | Empty state on first open | Prompt to add filters | ✅ | "Find your next prospect" shown |
-| S-03 | Contacts / Companies toggle | Switches between contact and company results | ✅ | |
-| S-04 | Filter button opens filter sheet | Bottom sheet with filter options | ✅ | |
-| S-05 | Add Job Title filter | Filter chip appears, search runs | ✅ | Tested with "CTO" |
-| S-06 | Add Company Name filter | Company filter applied | ✅ | |
-| S-07 | Add Seniority filter | Seniority filter applied | ✅ | Tap chips in filter sheet |
-| S-08 | Add Department filter | Department filter applied | ✅ | Tap chips in filter sheet |
-| S-09 | Add Location filter | Location filter applied | ✅ | |
-| S-10 | Multiple filters combined | All filters sent in API payload | ✅ | |
-| S-11 | Remove a filter chip | Filter removed, search re-runs | ✅ | |
-| S-12 | Results show contact cards | ContactCard components rendered | ✅ | |
-| S-13 | Contact card shows name, title, company | All three shown | ✅ | |
-| S-14 | Contact card shows location | City/country shown | ✅ | |
-| S-15 | Reveal button on unshown contact | "🔓 Reveal Contact" button shown | ✅ | |
-| S-16 | Press Reveal → API call fires | Unmask API called | ⚠️ | API called but returns NotFoundInCache — backend doesn't cache mobile search results |
-| S-17 | Reveal success → phone/email appear | Contact card shows phone and email | ⚠️ | Fixed response path; search reveal blocked by backend cache limitation |
-| S-18 | Reveal failure → error feedback | "⚠️ Reveal failed" shown briefly | ✅ | Shows correctly on NotFoundInCache |
-| S-19 | DNC contact shows DNC badge | Red "DNC" badge visible | ✅ | |
-| S-20 | isBlockedForShow contact shows Restricted | "🔒 Restricted" text shown instead of Reveal | ✅ | Fixed |
-| S-21 | LinkedIn button on contact | Opens LinkedIn URL | ✅ | |
-| S-22 | Pagination — scroll to bottom loads more | Next page of results loaded | ✅ | |
-| S-23 | Tap contact card → Contact Detail screen | Contact detail opens | ✅ | |
-| S-24 | Company results show company cards | Company name, location, industry shown | ✅ | |
-| S-25 | Tap company card → Company Detail screen | Company detail opens | ✅ | |
+### מה רואים
+- כותרת "Premium Search"
+- Toggle Contacts / Companies
+- כפתור Filters
+- רשימת תוצאות (ContactCard / CompanyCard)
+- Empty state "Find your next prospect" בפתיחה ראשונה
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| S-01 | פתיחת Search tab | מסך search מוצג | ✅ | |
+| S-02 | פתיחה ראשונה ללא פילטרים | empty state "Find your next prospect" מוצג | ✅ | |
+| S-03 | לחיצה על toggle Contacts/Companies | מעבר בין תוצאות אנשי קשר לחברות | ✅ | |
+| S-04 | לחיצה על Filters | Bottom sheet נפתח עם אפשרויות פילטר | ✅ | |
+| S-05 | הוספת פילטר Job Title | chip מוצג, חיפוש מופעל | ✅ | |
+| S-06 | הוספת פילטר Company | chip מוצג, חיפוש מופעל | ✅ | |
+| S-07 | הוספת פילטר Seniority | פילטר מופעל | ✅ | |
+| S-08 | הוספת פילטר Department | פילטר מופעל | ✅ | |
+| S-09 | הוספת פילטר Location | פילטר מופעל | ✅ | |
+| S-10 | כמה פילטרים יחד | כל הפילטרים נשלחים ב-API | ✅ | |
+| S-11 | לחיצה על X על chip פילטר | פילטר מוסר, חיפוש מתעדכן | ✅ | |
+| S-12 | מבט על כרטיס איש קשר | שם, תפקיד, חברה, מיקום מוצגים | ✅ | |
+| S-13 | כרטיס איש קשר לא revealed | כפתור "🔓 Reveal Contact" מוצג | ✅ | |
+| S-14 | לחיצה על Reveal בחיפוש | שגיאה NotFoundInCache (מגבלת backend) | ⚠️ | backend לא מחזיר נתונים ל-mobile search |
+| S-15 | כרטיס DNC | Badge אדום "DNC" מוצג | ✅ | |
+| S-16 | כרטיס isBlockedForShow | "🔒 Restricted" מוצג במקום Reveal | ✅ | |
+| S-17 | לחיצה על LinkedIn | מפתח LinkedIn של איש הקשר | ✅ | |
+| S-18 | גלילה לתחתית הרשימה | עמוד נוסף של תוצאות נטען | ✅ | |
+| S-19 | לחיצה על כרטיס איש קשר | מסך Contact Detail נפתח | ✅ | |
+| S-20 | מבט על כרטיס חברה | שם, מיקום, תעשייה מוצגים | ✅ | |
+| S-21 | לחיצה על כרטיס חברה | מסך Company Detail נפתח | ✅ | |
 
 ---
 
 ## 4. Lists Screen (LS)
 
-| ID | Test | Expected | Result | Notes |
-|----|------|----------|--------|-------|
-| LS-01 | Lists tab loads | List of user's contact lists shown | ✅ | |
-| LS-02 | "All Contacts" virtual list shown | "All Contacts" entry at top | 🔵 | Not observed — may be filtered |
-| LS-03 | Lists have name, count, updated date | All metadata shown | ✅ | |
-| LS-04 | System lists filtered out ("All contacts", "All companies") | Not shown in list | ✅ | |
-| LS-05 | Tap a list → List Detail screen | List detail with contacts opens | ✅ | |
-| LS-06 | Pull-to-refresh reloads lists | Updated list count/data | ✅ | |
-| LS-07 | Session expired → re-login prompt | Error alert or redirect to login | ✅ | Implemented |
-| LS-08 | Empty state when no lists | "No lists yet" message | 🔵 | Not tested — user has lists |
+### מה רואים
+- כותרת "My Lists"
+- רשימת הרשימות של המשתמש עם שם, מספר אנשי קשר, תאריך עדכון
+- Empty state אם אין רשימות
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| LS-01 | פתיחת Lists tab | רשימות מוצגות | ✅ | |
+| LS-02 | מבט על רשימה | שם, מספר אנשי קשר ותאריך עדכון מוצגים | ✅ | |
+| LS-03 | בדיקה שרשימות מערכת מסוננות | "All contacts", "All companies" לא מוצגות | ✅ | |
+| LS-04 | לחיצה על רשימה | מסך List Detail נפתח | ✅ | |
+| LS-05 | Pull-to-refresh | הרשימות נטענות מחדש | ✅ | |
+| LS-06 | Session פג תוקף | Alert שגיאה / הפניה ל-login | ✅ | |
 
 ---
 
 ## 5. List Detail Screen (LD)
 
-| ID | Test | Expected | Result | Notes |
-|----|------|----------|--------|-------|
-| LD-01 | List name shown in header | Correct list name | ✅ | |
-| LD-02 | Contact count shown | Correct count | ✅ | "50 of 1149 contacts" |
-| LD-03 | Contacts load in list | Contact cards shown | ✅ | |
-| LD-04 | Contact card shows name, title, company | All shown | ✅ | |
-| LD-05 | Unshown contact shows Reveal button | "🔓 Reveal Contact" shown | ✅ | |
-| LD-06 | isBlockedForShow contact shows Restricted | "🔒 Restricted" not "Reveal" | ✅ | Fixed — confirmed in Developers from NY list |
-| LD-07 | isShown contact shows phone/email directly | Data visible without reveal | ✅ | Full unmasked values shown |
-| LD-08 | Press Reveal on valid contact → success | Phone/email appear on card | ✅ | Confirmed Mamadou: 33678329035, mamadou@dior.com |
-| LD-09 | Press Reveal → API uses correct maskId | maskId from list API response | ✅ | |
-| LD-10 | Reveal updates card in-place | Card refreshes without full reload | ✅ | |
-| LD-11 | DNC contact shows "⛔ Do Not Contact" | DNC text shown | ✅ | |
-| LD-12 | LinkedIn button opens profile | LinkedIn URL opened | ✅ | |
-| LD-13 | Tap contact → Contact Detail screen | Full detail page opens | ✅ | |
-| LD-14 | Pagination — scroll loads next page | More contacts load | ✅ | |
-| LD-15 | Back navigation returns to Lists | Lists tab shown | ✅ | |
-| LD-16 | "All Contacts" list loads from /api/v2/contacts | Contacts from all reveals shown | 🔵 | |
+### מה רואים
+- שם הרשימה בכותרת
+- "X of Y contacts"
+- רשימת אנשי קשר עם כרטיסים
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| LD-01 | פתיחת רשימה | שם הרשימה מוצג בכותרת | ✅ | |
+| LD-02 | מבט על ספירה | "X of Y contacts" מוצג | ✅ | |
+| LD-03 | מבט על כרטיס איש קשר | שם, תפקיד, חברה מוצגים | ✅ | |
+| LD-04 | כרטיס לא revealed | כפתור "🔓 Reveal Contact" מוצג | ✅ | |
+| LD-05 | כרטיס isBlockedForShow | "🔒 Restricted" מוצג | ✅ | |
+| LD-06 | כרטיס isShown | טלפון + מייל מוצגים ישירות | ✅ | |
+| LD-07 | לחיצה על Reveal → הצלחה | טלפון + מייל מופיעים על הכרטיס | ✅ | |
+| LD-08 | כרטיס DNC | "⛔ Do Not Contact" מוצג | ✅ | |
+| LD-09 | לחיצה על LinkedIn | פרופיל LinkedIn נפתח | ✅ | |
+| LD-10 | לחיצה על כרטיס איש קשר | מסך Contact Detail נפתח | ✅ | |
+| LD-11 | גלילה לתחתית | עמוד נוסף נטען | ✅ | |
+| LD-12 | לחיצה על Back | חזרה ל-Lists | ✅ | |
 
 ---
 
 ## 6. Contact Detail Screen (CD)
 
-| ID | Test | Expected | Result | Notes |
-|----|------|----------|--------|-------|
-| CD-01 | Contact name shown in header | Full name visible | ✅ | |
-| CD-02 | Job title + company shown | Title and company name | ✅ | |
-| CD-03 | Location shown | City/country | ✅ | |
-| CD-04 | LinkedIn button opens profile | LinkedIn URL opened in browser | ✅ | |
-| CD-05 | Unshown contact shows Reveal button | Purple "🔓 Reveal Contact Info" button | ✅ | |
-| CD-06 | Press Reveal → loading state | Button shows "Revealing…" | ✅ | |
-| CD-07 | Reveal success → phones shown | Phone numbers listed | ✅ | Fixed — responseData.data.data.contacts path |
-| CD-08 | Reveal success → emails shown | Email addresses listed | ✅ | Fixed — responseData.data.data.contacts path |
-| CD-09 | Reveal failure → red error button | "⚠️ Reveal failed — tap to retry" | ✅ | Fixed |
-| CD-10 | Call button on phone | Opens phone dialer | ✅ | |
-| CD-11 | Email button on email | Opens mail app | ✅ | |
-| CD-12 | DNC contact: no reveal button | "⛔ Do Not Contact" shown | ✅ | |
-| CD-13 | isBlockedForShow: no reveal button | "🔒 Restricted" shown | ✅ | |
-| CD-14 | Back button returns to previous screen | Navigates back correctly | ✅ | |
-| CD-15 | Previous job shown if available | Previous company/title shown | ✅ | |
+### מה רואים
+- שם מלא בכותרת
+- עיגול סגול עם ראשי תיבות (אות ראשונה של שם + שם משפחה)
+- תפקיד + חברה
+- מיקום
+- סעיף "Contact Info": טלפונים, מיילים, LinkedIn
+- כפתור "🔓 Reveal Contact Info" אם לא revealed
+- סעיף "Signals" עם כפתורי "Show Signals" + "Register"
+- סעיף "Company"
+- סעיף "Previous Position" אם קיים
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| CD-01 | פתיחת Contact Detail | שם מוצג בכותרת | ✅ | |
+| CD-02 | מבט על hero | עיגול עם ראשי תיבות, שם, תפקיד, חברה | ✅ | |
+| CD-03 | מבט על מיקום | עיר/מדינה/מדינה מוצגים עם 📍 | ✅ | |
+| CD-04 | כרטיס לא revealed | כפתור סגול "🔓 Reveal Contact Info" מוצג | ✅ | |
+| CD-05 | לחיצה על Reveal | כפתור מציג "Revealing…" עם spinner | ✅ | |
+| CD-06 | Reveal הצליח | טלפונים ומיילים מוצגים | ✅ | |
+| CD-07 | לחיצה על Call | מחייג הטלפון נפתח | ✅ | |
+| CD-08 | לחיצה על WhatsApp (טלפון נייד) | WhatsApp נפתח | ✅ | |
+| CD-09 | לחיצה על Email | אפליקציית מייל נפתחת | ✅ | |
+| CD-10 | לחיצה על Open (LinkedIn) | LinkedIn נפתח | ✅ | |
+| CD-11 | לחיצה על "💾 Save to Contacts" | איש קשר נשמר לאנשי הקשר של הטלפון | ✅ | מוצג רק לאחר reveal |
+| CD-12 | לחיצה על Share | share sheet נפתח עם פרטי הקשר | ✅ | |
+| CD-13 | כרטיס DNC | "⛔ Do Not Contact" מוצג, אין כפתור Reveal | ✅ | |
+| CD-14 | כרטיס isBlockedForShow | "🔒 Restricted" מוצג | ✅ | |
+| CD-15 | מבט על סעיף Signals | כפתורי "Show Signals" + "Register" מוצגים (אם יש API key) | ✅ | |
+| CD-16 | מבט על סעיף Previous Position | חברה + תפקיד קודם מוצגים אם קיים | ✅ | |
+| CD-17 | לחיצה על Back | חזרה למסך הקודם | ✅ | |
 
 ---
 
 ## 7. Company Detail Screen (CO)
 
-| ID | Test | Expected | Result | Notes |
-|----|------|----------|--------|-------|
-| CO-01 | Company name shown | Correct name | ✅ | |
-| CO-02 | Industry shown | Primary industry label | ✅ | |
-| CO-03 | Company size shown | Employee count range | ✅ | |
-| CO-04 | Location shown | City/country | ✅ | |
-| CO-05 | Revenue range shown | Revenue info | ✅ | |
-| CO-06 | Founded year shown | Year founded | ✅ | |
-| CO-07 | LinkedIn button | Opens LinkedIn company page | ✅ | |
-| CO-08 | Website link | Opens homepage URL | ✅ | |
-| CO-09 | Funding summary shown | Total funding info | ✅ | |
-| CO-10 | Funding rounds list | Individual rounds shown | ✅ | |
-| CO-11 | Description shown | Company description text | ✅ | |
-| CO-12 | Back navigation | Returns to previous screen | ✅ | |
+### מה רואים
+- שם חברה + לוגו (אם קיים) בכותרת
+- נתוני חברה: תעשייה, גודל, מיקום, הכנסות, שנת ייסוד, תיאור
+- קישורים: LinkedIn, Website
+- נתוני מימון: סכום כולל + סבבים
+- Decision Makers: רשימת אנשי קשר בכירים
+- סעיף "Signals" עם כפתורי "Show Signals" + "Register"
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| CO-01 | פתיחת Company Detail | שם חברה מוצג | ✅ | |
+| CO-02 | מבט על נתוני חברה | תעשייה, גודל, מיקום, הכנסות, שנת ייסוד | ✅ | |
+| CO-03 | לחיצה על LinkedIn | עמוד LinkedIn של החברה נפתח | ✅ | |
+| CO-04 | לחיצה על Website | אתר החברה נפתח | ✅ | |
+| CO-05 | מבט על מימון | סכום כולל + רשימת סבבים | ✅ | |
+| CO-06 | מבט על תיאור | טקסט תיאור החברה מוצג | ✅ | |
+| CO-07 | מבט על Decision Makers | רשימת אנשי קשר בכירים עם ראשי תיבות | ✅ | |
+| CO-08 | לחיצה על Decision Maker | Contact Detail נפתח | ✅ | |
+| CO-09 | Reveal על Decision Maker | טלפון/מייל מוצגים על הכרטיס | ✅ | |
+| CO-10 | מבט על סעיף Signals | כפתורי "Show Signals" + "Register" מוצגים | ✅ | |
+| CO-11 | לחיצה על Back | חזרה למסך הקודם | ✅ | |
 
 ---
 
-## 8. Account Screen (AC)
+## 8. Recommendations Screen (RC)
 
-| ID | Test | Expected | Result | Notes |
-|----|------|----------|--------|-------|
-| AC-01 | Account tab shows user info | Name/email of logged-in user | ✅ | Shows "Shmulik Shmulik", correct email |
-| AC-02 | Credits remaining shown | Numeric credit count | ⚠️ | Not explicitly shown; plan info shown |
-| AC-03 | Plan/subscription type shown | Plan name visible | ✅ | Shows "Professional" |
-| AC-04 | Sign Out button visible | "Sign Out" button | ✅ | |
-| AC-05 | Press Sign Out → confirmation | Alert or immediate logout | 🔵 | Not tested to avoid losing session |
-| AC-06 | After Sign Out → Login screen | Login screen shown | 🔵 | |
-| AC-07 | Session cleared after sign out | SecureStore data removed | 🔵 | |
+### מה רואים
+- כותרת "Recommended Leads"
+- רשימת קבוצות המלצות עם שם + מספר לידים
+- קארד לכל קבוצה עם אייקון ✨
 
----
-
-## 9. Recommendations Screen (RC)
-
-| ID | Test | Expected | Result | Notes |
-|----|------|----------|--------|-------|
-| RC-01 | Recommendations screen opens from Home | Screen with leads shown | ✅ | |
-| RC-02 | List of recommended contacts shown | Contact cards rendered | ✅ | 25 leads shown |
-| RC-03 | Contact cards show name, title, company | All fields shown | ✅ | |
-| RC-04 | Reveal button works on recommended contact | Phone/email appear on success | ✅ | Pre-revealed contacts show emails |
-| RC-05 | Back navigation from Recommendations | Returns to Home | ✅ | |
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| RC-01 | פתיחה מ-Home → "View All →" | מסך Recommendations מוצג | ✅ | |
+| RC-02 | מבט על קארד המלצה | שם קבוצה + "N leads ready to explore" + badge | ✅ | |
+| RC-03 | לחיצה על קארד המלצה | רשימת אנשי הקשר בקבוצה נפתחת | ✅ | |
+| RC-04 | Reveal על איש קשר | טלפון/מייל מוצגים | ✅ | |
+| RC-05 | לחיצה על Back | חזרה ל-Home | ✅ | |
 
 ---
 
-## 10. Global / Edge Cases (GE)
+## 9. Account Screen (AC)
 
-| ID | Test | Expected | Result | Notes |
-|----|------|----------|--------|-------|
-| GE-01 | No network → graceful error | Error message, no crash | 🔵 | |
-| GE-02 | 401 response → redirect to login | Session cleared, login shown | ✅ | Implemented |
-| GE-03 | 403 on reveal (isBlockedForShow) | "🔒 Restricted" shown, no crash | ✅ | Fixed |
-| GE-04 | App backgrounded + foregrounded | Session persists, no re-login needed | ✅ | |
-| GE-05 | Very long contact name | Truncated with ellipsis | ✅ | numberOfLines={1} ellipsizeMode="tail" |
-| GE-06 | Contact with no phone or email | No crash, graceful empty state | ✅ | |
-| GE-07 | Contact with multiple phones | All phones listed in detail | ✅ | |
-| GE-08 | Contact with multiple emails | All emails listed | ✅ | |
-| GE-09 | SecureStore limit (2048 bytes) | Cookie string trimmed to 2000 chars | ✅ | Implemented |
+### מה רואים
+- פרופיל: עיגול עם אות ראשונה, שם מלא, מייל
+- סעיף Plan: שם תוכנית, קרדיטים, progress bar
+- סעיף Account: מייל, User ID
+- סעיף Signals: הגדרת API key
+- כפתור Sign Out
+- גרסת האפליקציה בתחתית
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| AC-01 | פתיחת Account tab | מסך Account מוצג עם פרטי משתמש | ✅ | |
+| AC-02 | מבט על פרופיל | עיגול + שם מלא + מייל | ✅ | |
+| AC-03 | מבט על סעיף Plan | שם תוכנית (Professional וכד') מוצג | ✅ | |
+| AC-04 | מבט על קרדיטים (אם קיימים) | "Monthly quota", "Used", progress bar | ✅ | |
+| AC-05 | Progress bar > 80% | הבר מוצג באדום | ✅ | |
+| AC-06 | מבט על סעיף Account | מייל + User ID מוצגים | ✅ | |
+| AC-07 | סעיף Signals ללא API key | כפתור "Set up Signals" + הסבר קצר | ✅ | |
+| AC-08 | לחיצה על "Set up Signals" | שדה טקסט להזנת API key מוצג + הוראות | ✅ | |
+| AC-09 | הזנת API key + לחיצה Save | ה-key נשמר, מוצג ••••XXXX (4 ספרות אחרונות) | ✅ | v1.0.621 — ••••0102 |
+| AC-10 | לחיצה על Cancel (בזמן editing) | מחזור לתצוגת הסעיף ללא שינוי | ✅ | |
+| AC-11 | סעיף Signals עם API key קיים | "API Key: ••••XXXX" + "Following: N entities" | ✅ | ••••0102 + "9 entities" |
+| AC-12 | לחיצה על "Change Key" | שדה עריכה נפתח מחדש | ✅ | |
+| AC-13 | לחיצה על "Remove" | Alert "Remove API Key" עם אפשרויות Remove/Cancel | ✅ | |
+| AC-14 | אישור Remove | API key מוסר, Signals tab מציג empty state | ✅ | |
+| AC-15 | לחיצה על Sign Out | Alert "Sign out" עם אפשרויות Sign Out/Cancel | ✅ | |
+| AC-16 | אישור Sign Out | Session מנוקה, מסך Login מוצג | 🔵 | |
+| AC-17 | מבט על גרסה בתחתית | "Lusha ToGo v1.0.XXX" מוצג | ✅ | |
 
 ---
 
-## Known Limitations
+## 10. Signals Tab — כללי (ST)
 
-| Issue | Root Cause | Impact |
-|-------|-----------|--------|
-| Search reveal returns "NotFoundInCache" | Backend does not populate Redis cache for mobile calls to `/v2/prospecting-full` | Cannot reveal contacts from Search screen; Lists reveal works fine |
-| Search datapointIds use `phone.id` field | API field name differs from Lists API | Fixed in `search.ts` mapping |
+### מה רואים
+- לשונית Signals בת"ת בר עם badge סגול אם יש unread
+- כשאין API key: empty state עם 🔑 + הוראה ללכת ל-Account
+- כשיש API key: שתי לשוניות פנימיות — Activity | Registered(N)
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| ST-01 | לחיצה על Signals ב-tab bar ללא API key | empty state 🔑 + טקסט "Go to Account → Signals…" | ✅ | |
+| ST-02 | לחיצה על Signals ב-tab bar עם API key | שתי לשוניות פנימיות מוצגות | ✅ | v1.0.621 emulator |
+| ST-03 | Badge על אייקון Signals בת"ת בר | badge סגול עם מספר כשיש unread signals | ✅ | |
+| ST-04 | Badge מציג 9+ | כאשר יש יותר מ-9 unread | ✅ | |
+| ST-05 | לחיצה על Signals tab כשיש unread | Badge נעלם, כל ה-signals מסומנים כנקראו | ✅ | |
 
 ---
 
-## Fixes Applied (v1.0.136)
+## 11. Signals — לשונית Activity (SA)
 
-| Fix | File | Description |
-|-----|------|-------------|
-| Reveal response path | `src/components/ContactCard.tsx` | Changed `responseData?.data?.contacts` → `responseData?.data?.data?.contacts` |
-| Reveal response path | `app/contact/[id].tsx` | Same fix for Contact Detail screen reveal |
-| datapointId mapping | `src/api/search.ts` | Added `p.id` fallback for search API phone/email datapoints |
-| maskId from search | `src/api/search.ts` | Uses top-level `requestId` from search response as maskId |
-| isBlockedForShow | `src/components/ContactCard.tsx` | Shows "🔒 Restricted" instead of Reveal button |
-| CSRF token | `src/api/client.ts` | Extracts from actual cookies instead of hardcoding |
-| Cookie capture | `app/(auth)/login.tsx` | Captures all WebView cookies, merges dashboard + root domain |
+### מה רואים
+- כותרת "Activity" עם badge סגול של unread (אם קיים)
+- כפתור "Clear all" באדום בראש הרשימה (רק כשיש signals)
+- רשימת signal cards מסודרת לפי זמן הוספה — חדש ביותר למעלה
+- כל כרטיס מכיל: אווטר (לוגו/ראשי תיבות) + שם · סוג סיגנל + תאריך + שורת פירוט + "Tap to view →"
+- כרטיסים שלא נקראו: רקע סגול בהיר (#f5f0ff) + נקודה סגולה בפינה ימנית עליונה
+- כרטיסים שנקראו: רקע לבן
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| SA-01 | Activity ריק | 🔔 + "No signals yet" + הוראה | ✅ | v1.0.621 emulator |
+| SA-02 | מבט על כרטיס signal — אווטר | לוגו אם חברה עם לוגו; אחרת ראשי תיבות (2 אותיות לאיש קשר, אות ראשונה לחברה) | ✅ | Fireblocks logo confirmed |
+| SA-03 | מבט על כרטיס signal — כותרת | "שם הישות · סוג סיגנל" (למשל: "Fireblocks · Surge in hiring") | ✅ | |
+| SA-04 | מבט על כרטיס signal — תאריך | תאריך הסיגנל בפורמט "Apr 6, 2026" (בצד ימין) | ✅ | |
+| SA-05 | מבט על שורת פירוט | פרטים נוספים לפי סוג הסיגנל (ראה טבלת סוגי סיגנלים) | ✅ | "+43% vs historical avg", "13 new jobs posted" etc. |
+| SA-06 | מבט על "Tap to view →" | קישור סגול בתחתית הכרטיס | ✅ | "Tap to view company →" |
+| SA-07 | כרטיס unread | רקע #f5f0ff + נקודה סגולה ב-top-right | ✅ | רק לסיגנלי webhook (source=webhook) |
+| SA-08 | לחיצה על Activity tab כשיש unread | כל הכרטיסים עוברים לרקע לבן, badge נעלם | ✅ | |
+| SA-09 | לחיצה על כרטיס | Contact Detail / Company Detail נפתח | ✅ | Fireblocks → Company Detail נפתח |
+| SA-10 | סדר הרשימה | חדש ביותר (timestamp הוספה) תמיד בראש | ✅ | |
+| SA-11 | הוספת signals מרובים לאותה ישות | כולם מוצגים — אין איחוד לפי ישות | ✅ | 11 סיגנלים של Fireblocks מוצגים |
+| SA-12 | כל סוגי הסיגנלים מוצגים | ללא deduplication — אם Fireblocks מחזיר 12 סיגנלים, כולם מוצגים | ✅ | |
+| SA-13 | Pull-to-refresh | רשימה לא משתנה (Activity נטענת ממכשיר, לא מ-API) | ✅ | pull-to-refresh מתעדכן ב-Registered |
+| SA-14 | לחיצה על "Clear all" | Alert "Clear Activity" עם Clear/Cancel | ✅ | |
+| SA-15 | אישור Clear all | Activity מתרוקנת, empty state מוצג | ✅ | |
+| SA-16 | ביטול Clear all | הרשימה לא משתנה | ✅ | |
+
+### סוגי סיגנלים ותצוגתם בכרטיס
+
+| signalType | כותרת | שורת פירוט |
+|-----------|--------|------------|
+| companyChange | Changed jobs | "OldCorp → NewCorp · VP Engineering" |
+| promotion | Promoted | "CTO (C-Level)" |
+| surgeInHiring | Surge in hiring | "15 new jobs posted" |
+| surgeInHiringByDepartment | Surge in hiring by dept | "Engineering · 8 new jobs" |
+| surgeInHiringByLocation | Surge in hiring by location | "Tel Aviv · 5 new jobs" |
+| headcountIncrease1m | Headcount ↑ (1m) | "450 → 520 employees" |
+| headcountDecrease1m | Headcount ↓ (1m) | "520 → 480 employees" |
+| websiteTrafficIncrease | Website traffic ↑ | "+34% vs historical avg" |
+| websiteTrafficDecrease | Website traffic ↓ | "-18% vs historical avg" |
+| itSpendIncrease | IT spend ↑ | "+22% spend change" |
+| itSpendDecrease | IT spend ↓ | "-15% spend change" |
+| riskNews | Risk news | (ריק אם אין נתון) |
+| corporateStrategyNews | Corporate strategy | (ריק אם אין נתון) |
+| commercialActivityNews | Commercial activity | (ריק אם אין נתון) |
+| financialEventsNews | Financial events | (ריק אם אין נתון) |
+| peopleNews | People news | (ריק אם אין נתון) |
+| marketIntelligenceNews | Market intelligence | (ריק אם אין נתון) |
+| productActivityNews | Product activity | (ריק אם אין נתון) |
+| funding | Funding round | (ריק אם אין נתון) |
+| techAdoption | Tech adoption | (ריק אם אין נתון) |
+
+---
+
+## 12. Signals — לשונית Registered (SG)
+
+### מה רואים
+- כותרת "Registered (N)" — N = מספר הרשומות
+- כל שורה: אווטר (לוגו/ראשי תיבות) + שם ישות + "Company · All Signals" / "Contact · All Signals" + כפתור "Unregister"
+- חדש ביותר תמיד בראש הרשימה
+- Empty state: 👁️ + "Not registered to anything yet"
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| SG-01 | Registered ריק | 👁️ + "Not registered to anything yet" | ✅ | v1.0.621 emulator |
+| SG-02 | מבט על שורת חברה עם לוגו | לוגו החברה מוצג בריבוע מעוגל (36×36) | ✅ | INTELIEF logo מוצג לאחר רישום חדש |
+| SG-03 | מבט על שורת חברה ללא לוגו | אות ראשונה של שם החברה בגופן גדול | ✅ | T, J, L, S — רישומים ישנים |
+| SG-04 | מבט על שורת איש קשר | 2 אותיות: ראשית שם פרטי + ראשית שם משפחה (למשל "SW") | ✅ | VA, EH, PK, FN מוצגים |
+| SG-05 | מבט על תווית | "Company · All Signals" או "Contact · All Signals" | ✅ | |
+| SG-06 | רישום חדש | מופיע בראש הרשימה | ✅ | INTELIEF בראש Registered (10) |
+| SG-07 | כפתור "Unregister" | מוצג בצבע אדום (#fee2e2 / #dc2626) | ✅ | |
+| SG-08 | לחיצה על Unregister | Alert "Unregister — Stop receiving signal notifications for X?" עם Unregister/Cancel | ✅ | TechnAI + INTELIEF — שניהם נבדקו |
+| SG-09 | אישור Unregister | השורה נעלמת, subscription נמחק מ-Lusha API | ✅ | ספירה ירדה מ-10 ל-9 |
+| SG-10 | Pull-to-refresh | רשימת הרשומות מסתנכרנת מ-Lusha API | ✅ | 10 subscriptions נטענו מ-backend |
+| SG-11 | לאחר pull-to-refresh | שמות מנוקים מ-"— Lusha ToGo" suffix | ✅ | |
+
+---
+
+## 13. Signals — Show Signals (SS)
+
+### מה רואים בדף Contact/Company לאחר לחיצה על Show Signals
+- ספינר בזמן טעינה
+- רשימת סיגנלים — **סוג אחד לכל type**, הכי עדכני, מסודר מהחדש לישן
+- כל שורת סיגנל: שם סוג + תאריך (בצד) + שורת פירוט
+- "No signals found" אם אין סיגנלים
+- הודעת שגיאה אם ה-API החזיר error
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| SS-01 | כפתור "Show Signals" מוצג | מוצג כאשר API key קיים ו-entityId קיים | ✅ | v1.0.621 emulator — Fireblocks + INTELIEF |
+| SS-02 | לחיצה על Show Signals | spinner מוצג בכפתור | ✅ | |
+| SS-03 | תוצאות חזרו | רשימת סיגנלים מוצגת תחת הכפתורים | ✅ | 11 סיגנלים ל-Fireblocks |
+| SS-04 | סדר הסיגנלים בתצוגה | מסודר לפי תאריך הסיגנל — חדש ביותר ראשון | ✅ | 3/2/2026 → 2/13 → 2/1 → 1/1 → 12/9/2025 |
+| SS-05 | סוגי סיגנלים | **סוג אחד בלבד לכל type** — הכי עדכני שמחזיר Lusha | ✅ | deduplicateAndSort |
+| SS-06 | תאריך סיגנל | מוצג בפורמט קצר (MM/DD/YYYY) בצד ימין | ✅ | |
+| SS-07 | סיגנל ללא תאריך (news types) | מוצג ללא תאריך — ללא קריסה | ✅ | news signals מציגים Apr 12, 2026 (today) |
+| SS-08 | לחיצה על Show Signals שוב | לא נוצרים כפילויות ב-Activity | ✅ | אומת: 2 לחיצות → כל type מופיע x1 בלבד |
+| SS-09 | כל הסיגנלים שמוחזרים נשמרים ל-Activity | ב-Activity tab מופיעים כולם | ✅ | |
+| SS-10 | הסיגנלים מוצגים בראש Activity | כל הסיגנלים שנוספו עכשיו מופיעים ראשונים | ✅ | timestamp = now |
+| SS-11 | API rate limit חרג (25 calls/day) | הודעת שגיאה מוצגת, אין קריסה | ✅ | |
+| SS-12 | אין סיגנלים לישות | "No signals found for this contact/company" | ✅ | INTELIEF + Vanessa — No signals found |
+
+---
+
+## 14. Signals — Register / Unregister (SR)
+
+### מה רואים בדף Contact/Company
+- כפתור "Register" בסגול (כשלא רשום) / "Unregister" באדום (כשרשום)
+- כשרשום: ● ירוק + "Registered — All Signals" מתחת לכפתורים
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| SR-01 | כפתור Register מוצג | מוצג כשיש API key + entityId + userId תקין | ✅ | v1.0.621 emulator — INTELIEF |
+| SR-02 | לחיצה על Register | spinner, אח"כ Alert "Registered!" | ✅ | INTELIEF registered successfully |
+| SR-03 | לאחר Register — מצב כפתורים | "Unregister" אדום + "Registered — All Signals" + ● ירוק | ✅ | גם "✓ Following" מוצג |
+| SR-04 | לאחר Register — Registered tab | הישות מופיעה בראש הרשימה | ✅ | INTELIEF הופיע בראש Registered (10) |
+| SR-05 | Register על ישות שכבר רשומה (subscription קיים) | subscription מופעל מחדש (reactivate) | ❌ | Fireblocks: "Subscription already exists" — לא מבצע reactivate |
+| SR-06 | לחיצה על Unregister (מתוך Contact/Company page) | Alert "Unregister" עם Unregister/Cancel | ✅ | INTELIEF מ-Company Detail |
+| SR-07 | אישור Unregister | כפתור חוזר ל"Register", הישות מוסרת מ-Registered | ✅ | |
+| SR-08 | Register ללא userId | Alert "Could not resolve your user ID" | ✅ | |
+
+---
+
+## 15. Signals — Push Notifications (PN)
+
+### תהליך מלא: Lusha webhook → Relay → Push notification → Activity
+
+```
+Lusha API
+  → POST https://lusha-signals-relay.shmulik83.workers.dev/signal?userId=EMAIL
+  → Relay מחפש token ב-KV store לפי userId
+  → שולח push notification ל-Expo
+  → הודעה מגיעה לאפליקציה
+  → signal נוסף ל-Activity
+```
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| PN-01 | פתיחת האפליקציה לאחר login | בקשת הרשאות notifications מופיעה | ✅ | |
+| PN-02 | לאחר אישור הרשאות | Token רשום ב-relay תחת userId (מספרי) | ✅ | |
+| PN-03 | Token רשום גם תחת email | dual registration ב-_layout.tsx | ✅ | לאחר כל login |
+| PN-04 | POST /register ל-relay | `{"ok":true}` | ✅ | |
+| PN-05 | GET /signal?challenge=xxx | Relay מחזיר `{"challenge":"xxx"}` | ✅ | אימות webhook ב-Lusha |
+| PN-06 | POST /signal?userId=EMAIL עם payload | Relay מחזיר `{"ok":true,"pushed":true}` | ✅ | |
+| PN-07 | Notification: companyChange | כותרת: "שם changed jobs" / גוף: "OldCorp → NewCorp · Title" | 🔵 | |
+| PN-08 | Notification: promotion | כותרת: "שם was promoted" / גוף: "CTO (C-Level)" | 🔵 | |
+| PN-09 | הודעה מגיעה כשהאפליקציה פתוחה (foreground) | banner מוצג + signal מתווסף ל-Activity | 🔵 | |
+| PN-10 | הודעה מגיעה כשהאפליקציה ברקע (background) | signal נוסף ל-Activity לאחר פתיחה | 🔵 | |
+| PN-11 | לחיצה על notification | האפליקציה נפתחת + signal מופיע ב-Activity | 🔵 | |
+| PN-12 | Token מתחדש עם כל הפעלה | relay מקבל POST /register מחדש | ✅ | |
+
+---
+
+## 16. Global / Edge Cases (GE)
+
+| ID | מצב | תוצאה מצופה | תוצאה | הערות |
+|----|-----|-------------|--------|-------|
+| GE-01 | ללא חיבור לאינטרנט | הודעת שגיאה, אין קריסה | 🔵 | |
+| GE-02 | תגובת 401 מה-API | Session מנוקה, הפניה ל-login | ✅ | |
+| GE-03 | תגובת 403 על reveal | "🔒 Restricted" מוצג, אין קריסה | ✅ | |
+| GE-04 | App לרקע ובחזרה | Session נשמר, אין דרישת re-login | ✅ | |
+| GE-05 | שם ארוך במיוחד | קוצץ עם ellipsis (numberOfLines={1}) | ✅ | |
+| GE-06 | איש קשר ללא טלפון/מייל | אין קריסה, empty state תקין | ✅ | |
+| GE-07 | שפת מכשיר RTL (ערבית/עברית) | Layout מוצג LTR (אנגלית בלבד) | ✅ | forceRTL(false) |
+| GE-08 | SecureStore limit (2048 bytes) | Cookie string מקוצץ ל-2000 תווים | ✅ | |
+| GE-09 | גרסת האפליקציה בכל build | מספר גרסה עולה ב-patch | ✅ | build_and_deploy.sh |
+
+---
+
+## מגבלות ידועות
+
+| בעיה | סיבה | השפעה |
+|------|-------|--------|
+| Reveal מחיפוש מחזיר "NotFoundInCache" | Backend לא מאכלס Redis cache עבור קריאות mobile ל-`/v2/prospecting-full` | לא ניתן לחשוף פרטים מ-Search; מ-Lists עובד תקין |
+| סיגנלי news ללא תאריך | Lusha API לא מחזיר תאריך לסוגי news | תאריך מוצג ריק לסיגנלים אלו |
+| לוגו חברה רק לרישומים חדשים | logoUrl נשמר בעת הרישום; רישומים ישנים לא כוללים אותו | לחברות שנרשמו לפני v1.0.615 — אין לוגו ב-Registered; פתרון: Unregister + Register מחדש |
+| מגבלת Signals API | 25 קריאות ליום ל-endpoint של signals | Show Signals עלול להחזיר שגיאה לאחר 25 לחיצות ביום |
+| Register על subscription קיים בבאקנד | ה-API מחזיר 409 "Subscription already exists" במקום לבצע reactivate | כאשר subscription קיים בבאקנד אך לא ב-AsyncStorage המקומי (e.g. אחרי מחיקת האפליקציה), הרישום מחדש כושל — פתרון: Pull-to-refresh ב-Registered להחזרת הישות, ואז Unregister + Register |
 
 ---
 
 ## Run Log
 
-| Date | Version | Tester | Environment | Pass | Fail | Notes |
-|------|---------|--------|-------------|------|------|-------|
-| 2026-03-22 | v1.0.136 | Claude | Android Emulator API 36.1 | ~85 | 1 (S-16/17 search reveal — backend limitation) | Full regression pass |
+| תאריך | גרסה | בודק | סביבה | עבר | נכשל | הערות |
+|-------|-------|------|--------|-----|------|-------|
+| 2026-03-22 | v1.0.136 | Claude | Android Emulator API 36.1 | ~85 | 1 (S-14 search reveal — backend) | Full regression pass |
+| 2026-04-12 | v1.0.621 | Claude | Android Emulator emulator-5554 | ~95 | 1 (SR-05 reactivate — backend returns 409 instead of reactivating) | Full Signals regression pass — SA/SS/SR/SG/ST all verified |

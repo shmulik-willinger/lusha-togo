@@ -2,7 +2,7 @@
   "expo": {
     "name": "Lusha ToGo",
     "slug": "lusha-togo",
-    "version": "1.0.517",
+    "version": "1.0.621",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "lushamoto",
@@ -38,7 +38,11 @@
           ]
         }
       ],
-      "versionCode": 517
+      "versionCode": 621,
+      "permissions": [
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -61,6 +65,16 @@
       "expo-font",
       "expo-web-browser",
       [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#6f45ff",
+          "sounds": [],
+          "androidMode": "default",
+          "androidCollapsedTitle": "Lusha Signals"
+        }
+      ],
+      [
         "expo-contacts",
         {
           "contactsPermission": "Allow Lusha ToGo to save contacts to your phone."
@@ -69,6 +83,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "cdb7979c-134e-4426-8ec6-b8b04e0da958"
+      }
+    },
+    "owner": "shmulikwillinger"
   }
 }
