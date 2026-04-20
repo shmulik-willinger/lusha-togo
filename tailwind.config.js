@@ -8,7 +8,30 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Lusha brand colors (from lusha-design-system)
+        // Phase 1 design tokens (see src/theme/tokens.ts)
+        brand:          '#6F45FF',
+        'brand-ink':    '#3B1E9A',
+        'brand-tint':   '#F1ECFF',
+        'brand-tint-2': '#E5DBFF',
+        live:           '#00D27A',
+        'live-tint':    '#DCFBEC',
+        'live-ink':     '#003D23',
+        warm:           '#FF8A3D',
+        'warm-tint':    '#FFF4E4',
+        'warm-ink':     '#B54300',
+        danger:         '#F43F5E',
+        'danger-tint':  '#FFE4E8',
+        'danger-ink':   '#A80025',
+        ink:            '#0B0B10',
+        'ink-2':        '#1C1C22',
+        muted:          '#6E6E78',
+        'muted-2':      '#A3A3AD',
+        line:           '#E7E7EC',
+        'line-2':       '#F1F1F4',
+        canvas:         '#F5F5F7',
+        surface:        '#FFFFFF',
+
+        // Legacy palettes (kept so existing className usages don't break during migration)
         primary: {
           DEFAULT: '#6f45ff',
           50:  '#f3efff',
@@ -22,11 +45,10 @@ module.exports = {
           800: '#381da0',
           900: '#261480',
         },
-        // Neutral palette
         neutral: {
           0:    '#ffffff',
           50:   '#f9f9f9',
-          100:  '#f2f2f2',
+          100:  '#f5f5f7',
           200:  '#e5e5e5',
           300:  '#d4d4d4',
           400:  '#a3a3a3',
@@ -37,7 +59,6 @@ module.exports = {
           900:  '#171717',
           1000: '#000000',
         },
-        // Semantic colors
         positive: {
           DEFAULT: '#10b981',
           light: '#d1fae5',
@@ -50,9 +71,8 @@ module.exports = {
           DEFAULT: '#f97316',
           light: '#ffedd5',
         },
-        // Background tokens
         bg: {
-          main: '#f2f2f2',
+          main: '#F5F5F7',
           surface: '#ffffff',
         },
       },
@@ -63,11 +83,12 @@ module.exports = {
         'sans-bold': ['Inter_700Bold', 'sans-serif'],
       },
       borderRadius: {
-        DEFAULT: '8px',
-        sm: '4px',
-        md: '8px',
-        lg: '12px',
-        xl: '16px',
+        DEFAULT: '14px',
+        xs: '6px',
+        sm: '10px',
+        md: '14px',
+        lg: '18px',
+        xl: '24px',
         full: '9999px',
       },
     },

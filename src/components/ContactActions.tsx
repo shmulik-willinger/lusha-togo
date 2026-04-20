@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, Linking, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Phone, Mail } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { ContactPhone, ContactEmail } from '../api/search';
 import { colors } from '../theme/tokens';
@@ -63,7 +63,7 @@ export function ContactActions({ phones, emails, linkedinUrl, compact = false }:
           className="flex-row items-center bg-primary-50 px-3 py-1.5 rounded-full gap-1"
           activeOpacity={0.7}
         >
-          <Ionicons name="call" size={12} color="#6f45ff" />
+          <Phone size={12} color="#6f45ff" strokeWidth={2.25} />
           <Text className="text-xs text-primary font-sans-semibold">Call</Text>
         </TouchableOpacity>
       )}
@@ -73,7 +73,7 @@ export function ContactActions({ phones, emails, linkedinUrl, compact = false }:
           className="flex-row items-center bg-primary-50 px-3 py-1.5 rounded-full gap-1"
           activeOpacity={0.7}
         >
-          <Ionicons name="mail" size={12} color="#6f45ff" />
+          <Mail size={12} color="#6f45ff" strokeWidth={2.25} />
           <Text className="text-xs text-primary font-sans-semibold">Email</Text>
         </TouchableOpacity>
       )}

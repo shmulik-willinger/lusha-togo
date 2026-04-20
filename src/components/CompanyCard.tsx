@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Globe, MapPin, DollarSign } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { SearchCompany } from '../api/search';
@@ -73,10 +73,10 @@ export function CompanyCard({ company }: CompanyCardProps) {
                       : `https://${company.homepage_url}`;
                     WebBrowser.openBrowserAsync(url);
                   }}
-                  style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: '#f2f2f2', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: '#f5f5f7', alignItems: 'center', justifyContent: 'center' }}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="globe-outline" size={15} color="#525252" />
+                  <Globe size={15} color="#525252" strokeWidth={1.75} />
                 </TouchableOpacity>
               )}
               {company.social?.linkedin && (
@@ -107,7 +107,7 @@ export function CompanyCard({ company }: CompanyCardProps) {
           </Text>
           {company.location?.city && (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3, gap: 3 }}>
-              <Ionicons name="location-outline" size={11} color="#a3a3a3" />
+              <MapPin size={11} color="#a3a3a3" strokeWidth={1.75} />
               <Text className="text-neutral-400 text-xs" numberOfLines={1} style={{ flexShrink: 1 }}>
                 {[company.location.city, company.location.country].filter(Boolean).join(', ')}
               </Text>
@@ -115,7 +115,7 @@ export function CompanyCard({ company }: CompanyCardProps) {
           )}
           {company.revenue_range?.string && (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3, gap: 3 }}>
-              <Ionicons name="cash-outline" size={11} color="#a3a3a3" />
+              <DollarSign size={11} color="#a3a3a3" strokeWidth={1.75} />
               <Text className="text-neutral-400 text-xs" numberOfLines={1} style={{ flexShrink: 1 }}>
                 {company.revenue_range.string}
               </Text>

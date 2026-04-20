@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import * as Contacts from 'expo-contacts';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { MapPin, Ban, Lock, Unlock, Phone, Mail, MessageCircle, Building2, Clock, UserPlus, Share2 } from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -43,10 +44,10 @@ function InfoRow({
   value,
   onPress,
   actionLabel,
-  actionIcon,
+  actionIcon: ActionIcon,
   onSecondaryPress,
   secondaryActionLabel,
-  secondaryActionIcon,
+  secondaryActionIcon: SecondaryActionIcon,
   danger,
   isDataMasked,
 }: {
@@ -55,10 +56,10 @@ function InfoRow({
   value: string;
   onPress?: () => void;
   actionLabel?: string;
-  actionIcon?: React.ComponentProps<typeof Ionicons>['name'];
+  actionIcon?: LucideIcon;
   onSecondaryPress?: () => void;
   secondaryActionLabel?: string;
-  secondaryActionIcon?: React.ComponentProps<typeof Ionicons>['name'];
+  secondaryActionIcon?: LucideIcon;
   danger?: boolean;
   isDataMasked?: boolean;
 }) {
@@ -86,7 +87,7 @@ function InfoRow({
           style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: isDataMasked ? '#6f45ff' : '#f3efff', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 9999, marginLeft: 8 }}
           activeOpacity={0.75}
         >
-          {actionIcon && <Ionicons name={actionIcon} size={13} color={isDataMasked ? '#fff' : '#6f45ff'} />}
+          {ActionIcon && <ActionIcon size={13} color={isDataMasked ? '#fff' : '#6f45ff'} strokeWidth={2.25} />}
           <Text style={{ color: isDataMasked ? '#fff' : '#6f45ff', fontSize: 13, fontWeight: '600' }}>{actionLabel}</Text>
         </TouchableOpacity>
       )}
@@ -96,7 +97,7 @@ function InfoRow({
           style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#e7f9ef', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 9999, marginLeft: 6 }}
           activeOpacity={0.75}
         >
-          {secondaryActionIcon && <Ionicons name={secondaryActionIcon} size={13} color="#25d366" />}
+          {SecondaryActionIcon && <SecondaryActionIcon size={13} color="#25d366" strokeWidth={2.25} />}
           <Text style={{ color: '#25d366', fontSize: 13, fontWeight: '600' }}>{secondaryActionLabel}</Text>
         </TouchableOpacity>
       )}
@@ -519,7 +520,7 @@ export default function ContactDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f2f2f2', direction: 'ltr' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
       <Stack.Screen options={{ title: data.name.full }} />
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
@@ -550,7 +551,7 @@ export default function ContactDetailScreen() {
 
           {data.location?.city && (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 4 }}>
-              <Ionicons name="location-outline" size={13} color="#a3a3a3" />
+              <MapPin size={13} color="#a3a3a3" strokeWidth={1.75} />
               <Text style={{ color: '#a3a3a3', fontSize: 13, flexShrink: 1 }} numberOfLines={1}>
                 {[data.location.city, data.location.state, data.location.country].filter(Boolean).join(', ')}
               </Text>
@@ -567,7 +568,7 @@ export default function ContactDetailScreen() {
           {isDNC ? (
             <View style={{ paddingVertical: 16 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Ionicons name="ban" size={16} color="#dc2626" />
+                <Ban size={16} color="#dc2626" strokeWidth={2} />
                 <Text style={{ color: '#dc2626', fontWeight: '600', fontSize: 15 }}>Do Not Contact</Text>
               </View>
               <Text style={{ color: '#737373', fontSize: 13, marginTop: 4 }}>
@@ -578,7 +579,7 @@ export default function ContactDetailScreen() {
             <View style={{ paddingVertical: 14 }}>
               {revealError ? (
                 <View style={{ backgroundColor: '#fef3c7', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#fde68a', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Ionicons name="lock-closed" size={16} color="#92400e" />
+                  <Lock size={16} color="#92400e" strokeWidth={2} />
                   <Text style={{ color: '#92400e', fontWeight: '600', fontSize: 14, lineHeight: 20, flex: 1 }}>
                     This Contact's Info is Protected – Upgrade to Unlock Access
                   </Text>
@@ -590,7 +591,7 @@ export default function ContactDetailScreen() {
                   style={{ backgroundColor: '#6f45ff', borderRadius: 12, paddingVertical: 14, alignItems: 'center', opacity: revealMutation.isPending ? 0.7 : 1, flexDirection: 'row', justifyContent: 'center', gap: 6 }}
                   activeOpacity={0.85}
                 >
-                  {!revealMutation.isPending && <Ionicons name="lock-open" size={16} color="#fff" />}
+                  {!revealMutation.isPending && <Unlock size={16} color="#fff" strokeWidth={2.25} />}
                   <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
                     {revealMutation.isPending ? 'Revealing…' : 'Reveal Contact Info'}
                   </Text>
@@ -606,7 +607,7 @@ export default function ContactDetailScreen() {
                 return (
                   <InfoRow
                     key={i}
-                    icon={<Ionicons name="call-outline" size={18} color={isMasked ? '#a3a3a3' : '#525252'} />}
+                    icon={<Phone size={18} color={isMasked ? '#a3a3a3' : '#525252'} strokeWidth={1.75} />}
                     label={phone.type ?? 'Phone'}
                     value={formatPhone(phoneNum)}
                     onPress={
@@ -619,10 +620,10 @@ export default function ContactDetailScreen() {
                       : phone.is_do_not_call ? undefined
                       : 'Call'
                     }
-                    actionIcon={isMasked && !revealMutation.isPending ? 'lock-open' : undefined}
+                    actionIcon={isMasked && !revealMutation.isPending ? Unlock : undefined}
                     onSecondaryPress={isMobile ? () => openWhatsApp(phoneNum) : undefined}
                     secondaryActionLabel={isMobile ? 'WhatsApp' : undefined}
-                    secondaryActionIcon={isMobile ? 'logo-whatsapp' : undefined}
+                    secondaryActionIcon={isMobile ? MessageCircle : undefined}
                     danger={phone.is_do_not_call}
                     isDataMasked={isMasked}
                   />
@@ -633,12 +634,12 @@ export default function ContactDetailScreen() {
                 return (
                   <InfoRow
                     key={i}
-                    icon={<Ionicons name="mail-outline" size={18} color={isMasked ? '#a3a3a3' : '#525252'} />}
+                    icon={<Mail size={18} color={isMasked ? '#a3a3a3' : '#525252'} strokeWidth={1.75} />}
                     label={email.label ?? 'Email'}
                     value={email.address}
                     onPress={isMasked ? () => revealMutation.mutate() : () => sendEmail(email.address)}
                     actionLabel={isMasked ? (revealMutation.isPending ? '...' : 'Reveal') : 'Email'}
-                    actionIcon={isMasked && !revealMutation.isPending ? 'lock-open' : undefined}
+                    actionIcon={isMasked && !revealMutation.isPending ? Unlock : undefined}
                     isDataMasked={isMasked}
                   />
                 );
@@ -667,7 +668,7 @@ export default function ContactDetailScreen() {
                   style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, backgroundColor: '#6f45ff', borderRadius: 12, paddingVertical: 12 }}
                   activeOpacity={0.85}
                 >
-                  <Ionicons name="person-add-outline" size={16} color="#fff" />
+                  <UserPlus size={16} color="#fff" strokeWidth={2.25} />
                   <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>Save to Contacts</Text>
                 </TouchableOpacity>
               )}
@@ -676,7 +677,7 @@ export default function ContactDetailScreen() {
                 style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, backgroundColor: '#f3efff', borderRadius: 12, paddingVertical: 12 }}
                 activeOpacity={0.85}
               >
-                <Ionicons name="share-outline" size={16} color="#6f45ff" />
+                <Share2 size={16} color="#6f45ff" strokeWidth={2.25} />
                 <Text style={{ color: '#6f45ff', fontWeight: '700', fontSize: 14 }}>Share</Text>
               </TouchableOpacity>
             </View>
@@ -690,7 +691,7 @@ export default function ContactDetailScreen() {
             <Text style={{ fontSize: 11, fontWeight: '700', color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
               Company
             </Text>
-            <InfoRow icon={<Ionicons name="business-outline" size={18} color="#525252" />} label="Company" value={data.company.name} />
+            <InfoRow icon={<Building2 size={18} color="#525252" strokeWidth={1.75} />} label="Company" value={data.company.name} />
             <View style={{ height: 8 }} />
           </View>
         )}
@@ -705,7 +706,7 @@ export default function ContactDetailScreen() {
               Previous Position
             </Text>
             <InfoRow
-              icon={<Ionicons name="time-outline" size={18} color="#525252" />}
+              icon={<Clock size={18} color="#525252" strokeWidth={1.75} />}
               label={data.previous_job.company}
               value={data.previous_job.job_title ?? ''}
             />

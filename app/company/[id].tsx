@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Phone, Mail, MapPin, Users, Calendar, DollarSign, Globe, AtSign, Rocket, ChevronRight } from 'lucide-react-native';
 import { Stack, router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useQuery } from '@tanstack/react-query';
@@ -52,7 +52,7 @@ function LinkRow({ icon, label, onPress }: { icon: React.ReactNode; label: strin
     >
       <View style={{ width: 28, alignItems: 'center' }}>{typeof icon === 'string' ? <Text style={{ fontSize: 18 }}>{icon}</Text> : icon}</View>
       <Text style={{ flex: 1, marginLeft: 8, color: '#6f45ff', fontWeight: '500', fontSize: 14 }}>{label}</Text>
-      <Text style={{ color: '#d1d5db', fontSize: 18 }}>›</Text>
+      <ChevronRight size={18} color="#a3a3a3" strokeWidth={1.75} />
     </TouchableOpacity>
   );
 }
@@ -136,13 +136,13 @@ function DecisionMakerCard({ contact }: { contact: SearchContact }) {
           <View style={{ alignItems: 'flex-end' }}>
             {phone && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Ionicons name="call" size={11} color="#525252" />
+                <Phone size={11} color="#525252" strokeWidth={2} />
                 <Text style={{ color: '#262626', fontSize: 12 }}>{phone}</Text>
               </View>
             )}
             {email && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-                <Ionicons name="mail" size={11} color="#525252" />
+                <Mail size={11} color="#525252" strokeWidth={2} />
                 <Text style={{ color: '#262626', fontSize: 11 }} numberOfLines={1}>{email}</Text>
               </View>
             )}
@@ -483,7 +483,7 @@ export default function CompanyDetailScreen() {
 
   if (!storedCompany) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#f2f2f2' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7' }}>
         <Stack.Screen options={{ title: 'Company' }} />
         <CompanyDetailSkeleton />
       </SafeAreaView>
@@ -518,7 +518,7 @@ export default function CompanyDetailScreen() {
   const decisionMakers = dmData?.contacts?.slice(0, 5) ?? [];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f2f2f2' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7' }}>
       <Stack.Screen options={{ title: company.name }} />
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -547,7 +547,7 @@ export default function CompanyDetailScreen() {
               )}
               {company.location?.city && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3, gap: 4 }}>
-                  <Ionicons name="location-outline" size={12} color="#a3a3a3" />
+                  <MapPin size={12} color="#a3a3a3" strokeWidth={1.75} />
                   <Text style={{ color: '#a3a3a3', fontSize: 13, flexShrink: 1 }} numberOfLines={1}>
                     {[company.location.city, company.location.country].filter(Boolean).join(', ')}
                   </Text>
@@ -560,19 +560,19 @@ export default function CompanyDetailScreen() {
           <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
             {sizeLabel && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f9f9f9', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}>
-                <Ionicons name="people-outline" size={12} color="#525252" />
+                <Users size={12} color="#525252" strokeWidth={1.75} />
                 <Text style={{ color: '#262626', fontSize: 12 }}>{sizeLabel} employees</Text>
               </View>
             )}
             {company.founded && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f9f9f9', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}>
-                <Ionicons name="calendar-outline" size={12} color="#525252" />
+                <Calendar size={12} color="#525252" strokeWidth={1.75} />
                 <Text style={{ color: '#262626', fontSize: 12 }}>Founded {company.founded}</Text>
               </View>
             )}
             {company.revenue_range?.string && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f9f9f9', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}>
-                <Ionicons name="cash-outline" size={12} color="#525252" />
+                <DollarSign size={12} color="#525252" strokeWidth={1.75} />
                 <Text style={{ color: '#262626', fontSize: 12 }}>{company.revenue_range.string}</Text>
               </View>
             )}
@@ -658,7 +658,7 @@ export default function CompanyDetailScreen() {
             </Text>
             {company.homepage_url && (
               <LinkRow
-                icon={<Ionicons name="globe-outline" size={18} color="#525252" />}
+                icon={<Globe size={18} color="#525252" strokeWidth={1.75} />}
                 label={company.homepage_url}
                 onPress={() => {
                   const url = company.homepage_url!.startsWith('http')
@@ -677,7 +677,7 @@ export default function CompanyDetailScreen() {
             )}
             {company.social?.twitter && (
               <LinkRow
-                icon={<Ionicons name="logo-twitter" size={18} color="#1DA1F2" />}
+                icon={<AtSign size={18} color="#1DA1F2" strokeWidth={1.75} />}
                 label={`@${company.social.twitter.replace(/.*twitter\.com\//i, '')}`}
                 onPress={() =>
                   WebBrowser.openBrowserAsync(
@@ -690,7 +690,7 @@ export default function CompanyDetailScreen() {
             )}
             {company.social?.crunchbase && (
               <LinkRow
-                icon={<Ionicons name="rocket-outline" size={18} color="#525252" />}
+                icon={<Rocket size={18} color="#525252" strokeWidth={1.75} />}
                 label="Crunchbase Profile"
                 onPress={() =>
                   WebBrowser.openBrowserAsync(

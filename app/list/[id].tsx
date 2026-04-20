@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Search as SearchIcon } from 'lucide-react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { useQuery } from '@tanstack/react-query';
@@ -78,13 +79,13 @@ export default function ListDetailScreen() {
   }, [data, filtered.length, isCompanyList]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f2f2f2', direction: 'ltr' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
       <Stack.Screen options={{ title: data?.name || (nameParam ? decodeURIComponent(nameParam) : 'List') }} />
 
       {/* Search within list */}
       <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
         <View style={{ direction: 'ltr', backgroundColor: '#fff', borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: '#e5e7eb' }}>
-          <Text style={{ color: '#a3a3a3', marginRight: 8, fontSize: 15 }}>🔍</Text>
+          <SearchIcon size={16} color="#a3a3a3" strokeWidth={2} style={{ marginRight: 8 }} />
           <TextInput
             style={{ flex: 1, color: '#262626', fontSize: 14 }}
             placeholder={isCompanyList ? 'Search companies...' : 'Search in this list...'}

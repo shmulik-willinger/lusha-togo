@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Lock, Search as SearchIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as Contacts from 'expo-contacts';
 import { FlashList } from '@shopify/flash-list';
@@ -222,7 +222,7 @@ export default function UploadContactsScreen() {
   if (screenState === 'permission_denied') {
     return (
       <SafeAreaView style={styles.centered}>
-        <Ionicons name="lock-closed-outline" size={48} color="#a3a3a3" style={{ marginBottom: 12 }} />
+        <Lock size={48} color="#a3a3a3" strokeWidth={1.5} style={{ marginBottom: 12 }} />
         <Text style={styles.emptyTitle}>Contacts permission required</Text>
         <Text style={styles.emptySub}>
           Please allow Lusha ToGo to access your contacts in Settings.
@@ -266,7 +266,7 @@ export default function UploadContactsScreen() {
 
   // ── Main contact picker ────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f2f2f2' }} edges={['top', 'bottom']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7' }} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn} hitSlop={8}>
@@ -282,7 +282,7 @@ export default function UploadContactsScreen() {
 
       {/* Search */}
       <View style={styles.searchContainer}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <SearchIcon size={16} color="#a3a3a3" strokeWidth={2} style={{ marginRight: 8 }} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search contacts…"
@@ -354,7 +354,7 @@ export default function UploadContactsScreen() {
 const styles = StyleSheet.create({
   centered: {
     flex: 1,
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#f5f5f7',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
@@ -539,7 +539,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 24,
     paddingTop: 12,
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#f5f5f7',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#e5e7eb',
   },

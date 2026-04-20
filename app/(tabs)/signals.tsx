@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Bell, Key, TrendingUp, TrendingDown, Users, Newspaper, Building2, Trophy, type LucideIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useSignalsStore, ReceivedSignal, StoredSubscription } from '../../src/store/signalsStore';
 import { listSubscriptions, deleteSubscription } from '../../src/api/signals';
@@ -55,14 +55,14 @@ const SIGNAL_LABELS: Record<string, string> = {
   techAdoption: 'Tech adoption',
 };
 
-function signalIcon(type: string): React.ComponentProps<typeof Ionicons>['name'] {
-  if (type.includes('Increase') || type.includes('increase') || type === 'funding') return 'trending-up';
-  if (type.includes('Decrease') || type.includes('decrease')) return 'trending-down';
-  if (type.includes('Hiring') || type.includes('hiring') || type.includes('headcount')) return 'people';
-  if (type.includes('News') || type.includes('news')) return 'newspaper';
-  if (type === 'companyChange') return 'business';
-  if (type === 'promotion') return 'trophy';
-  return 'notifications';
+function signalIcon(type: string): LucideIcon {
+  if (type.includes('Increase') || type.includes('increase') || type === 'funding') return TrendingUp;
+  if (type.includes('Decrease') || type.includes('decrease')) return TrendingDown;
+  if (type.includes('Hiring') || type.includes('hiring') || type.includes('headcount')) return Users;
+  if (type.includes('News') || type.includes('news')) return Newspaper;
+  if (type === 'companyChange') return Building2;
+  if (type === 'promotion') return Trophy;
+  return Bell;
 }
 
 function signalTitle(signal: ReceivedSignal): string {
@@ -126,7 +126,7 @@ function navigateToEntity(signal: ReceivedSignal) {
 function EmptySignals() {
   return (
     <View style={{ alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32 }}>
-      <Ionicons name="notifications-outline" size={48} color="#a3a3a3" style={{ marginBottom: 12 }} />
+      <Bell size={48} color="#a3a3a3" strokeWidth={1.5} style={{ marginBottom: 12 }} />
       <Text style={{ fontSize: 16, fontWeight: '700', color: '#262626', textAlign: 'center', marginBottom: 8 }}>
         No signals yet
       </Text>
@@ -140,7 +140,7 @@ function EmptySignals() {
 function NoApiKey() {
   return (
     <View style={{ alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32 }}>
-      <Ionicons name="key-outline" size={48} color="#a3a3a3" style={{ marginBottom: 12 }} />
+      <Key size={48} color="#a3a3a3" strokeWidth={1.5} style={{ marginBottom: 12 }} />
       <Text style={{ fontSize: 16, fontWeight: '700', color: '#262626', textAlign: 'center', marginBottom: 8 }}>
         Lusha API Key required
       </Text>
@@ -331,14 +331,14 @@ export default function SignalsScreen() {
 
   if (!apiKey) {
     return (
-      <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f2f2f2' }}>
+      <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7' }}>
         <NoApiKey />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f2f2f2' }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7' }}>
       {/* Inner tab bar */}
       <View style={{ flexDirection: 'row', backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e5e5e5' }}>
         <TouchableOpacity

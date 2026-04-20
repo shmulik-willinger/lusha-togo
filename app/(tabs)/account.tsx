@@ -220,7 +220,7 @@ export default function AccountScreen() {
   const creditsTotal = session?.creditsTotal ?? 0;
 
   return (
-    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f2f2f2', direction: 'ltr' }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Profile card */}
         <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 20, marginBottom: 10 }}>

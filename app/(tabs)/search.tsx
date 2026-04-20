@@ -7,7 +7,7 @@ import {
   FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Building2, Sparkles, SlidersHorizontal, X, AlertTriangle } from 'lucide-react-native';
 import { AISearchBar } from '../../src/components/AISearchBar';
 import { AIThinkingOverlay } from '../../src/components/AIThinkingOverlay';
 import { FilterSheet } from '../../src/components/FilterSheet';
@@ -52,7 +52,7 @@ export default function SearchScreen() {
 
   const isLoading = searchQuery.isLoading || aiSearch.isPending;
   return (
-    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f2f2f2', direction: 'ltr' }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
       <AIThinkingOverlay visible={aiSearch.isPending} />
 
       {/* AI Search bar */}
@@ -73,8 +73,10 @@ export default function SearchScreen() {
           <TouchableOpacity
             onPress={() => { clearFilters(); setSearchResetKey((k) => k + 1); }}
             activeOpacity={0.7}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
           >
-            <Text style={{ color: '#a3a3a3', fontSize: 13 }}>✕ Clear search</Text>
+            <X size={13} color="#a3a3a3" strokeWidth={2} />
+            <Text style={{ color: '#a3a3a3', fontSize: 13 }}>Clear search</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -84,15 +86,16 @@ export default function SearchScreen() {
         {/* Filters button */}
         <TouchableOpacity
           onPress={() => setFilterSheetOpen(true)}
-          className={`flex-row items-center px-3 py-2 rounded-full border ${
+          className={`flex-row items-center px-3 py-2 rounded-full border gap-1.5 ${
             activeFilterCount > 0
               ? 'bg-primary border-primary'
               : 'bg-white border-neutral-200'
           }`}
           activeOpacity={0.75}
         >
+          <SlidersHorizontal size={13} color={activeFilterCount > 0 ? '#ffffff' : '#525252'} strokeWidth={2} />
           <Text className={`text-xs font-sans-semibold ${activeFilterCount > 0 ? 'text-white' : 'text-neutral-600'}`}>
-            ⚙️ Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+            Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
           </Text>
         </TouchableOpacity>
 
@@ -189,7 +192,7 @@ export default function SearchScreen() {
 function EmptyState() {
   return (
     <View className="flex-1 items-center justify-center px-8">
-      <Text style={{ fontSize: 56, lineHeight: 72, marginBottom: 8 }}>🔮</Text>
+      <Sparkles size={56} color="#6f45ff" strokeWidth={1.5} style={{ marginBottom: 16 }} />
       <Text className="text-neutral-800 font-sans-semibold text-xl text-center mb-2">
         Find your next prospect
       </Text>
@@ -203,7 +206,7 @@ function EmptyState() {
 function AddCompanyFiltersState({ onOpenFilters }: { onOpenFilters: () => void }) {
   return (
     <View className="flex-1 items-center justify-center px-8">
-      <Ionicons name="business-outline" size={56} color="#a3a3a3" style={{ marginBottom: 16 }} />
+      <Building2 size={56} color="#a3a3a3" strokeWidth={1.5} style={{ marginBottom: 16 }} />
       <Text className="text-neutral-800 font-sans-semibold text-xl text-center mb-2">
         Add company filters
       </Text>
@@ -241,7 +244,7 @@ function ErrorState({ error, onRetry }: { error: unknown; onRetry: () => void })
     : (error as any)?.message ?? 'Unknown error';
   return (
     <ScrollView className="flex-1 px-8 pt-16">
-      <Text className="text-5xl mb-4 text-center">⚠️</Text>
+      <AlertTriangle size={56} color="#f97316" strokeWidth={1.5} style={{ marginBottom: 16 }} />
       <Text className="text-neutral-800 font-sans-semibold text-xl text-center mb-2">
         Search failed
       </Text>

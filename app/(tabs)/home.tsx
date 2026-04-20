@@ -7,6 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Sparkles, Upload, ChevronRight, AlertTriangle } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useAISearch } from '../../src/hooks/useAISearch';
 import { AISearchBar } from '../../src/components/AISearchBar';
@@ -24,7 +25,7 @@ function RecommendationCard({ group, onPress }: RecommendationCardProps) {
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.82}>
       <View style={styles.cardTop}>
         <View style={styles.cardIcon}>
-          <Text style={styles.cardIconText}>✨</Text>
+          <Sparkles size={18} color="#6f45ff" strokeWidth={2} />
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
           <Text style={styles.cardTitle} numberOfLines={1}>{group.name}</Text>
@@ -68,7 +69,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f2f2f2', direction: 'ltr' }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
 
       {/* ── Section 1: AI Search ─────────────────────────────────── */}
       <View style={styles.section}>
@@ -130,13 +131,13 @@ export default function HomeScreen() {
             activeOpacity={0.82}
           >
             <View style={styles.uploadContactsIcon}>
-              <Text style={{ fontSize: 20 }}>📤</Text>
+              <Upload size={20} color="#6f45ff" strokeWidth={2} />
             </View>
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={styles.uploadContactsTitle}>Upload Contacts</Text>
               <Text style={styles.uploadContactsSub}>Enrich your phone contacts with Lusha</Text>
             </View>
-            <Text style={{ color: '#6f45ff', fontSize: 18 }}>›</Text>
+            <ChevronRight size={20} color="#6f45ff" strokeWidth={1.75} />
           </TouchableOpacity>
         </View>
       </View>
@@ -152,7 +153,7 @@ function EmptyCard() {
     <View style={styles.card}>
       <View style={styles.cardTop}>
         <View style={styles.cardIcon}>
-          <Text style={styles.cardIconText}>✨</Text>
+          <Sparkles size={18} color="#6f45ff" strokeWidth={2} />
         </View>
         <View style={{ flex: 1, marginLeft: 12 }}>
           <Text style={styles.cardTitle}>No recommendations yet</Text>
@@ -166,7 +167,7 @@ function EmptyCard() {
 function ErrorCard({ onRetry }: { onRetry: () => void }) {
   return (
     <View style={[styles.card, { alignItems: 'center', paddingVertical: 24 }]}>
-      <Text style={{ fontSize: 32, marginBottom: 8 }}>⚠️</Text>
+      <AlertTriangle size={32} color="#f97316" strokeWidth={2} style={{ marginBottom: 8 }} />
       <Text style={{ color: '#262626', fontWeight: '600', fontSize: 15 }}>
         Couldn't load recommendations
       </Text>

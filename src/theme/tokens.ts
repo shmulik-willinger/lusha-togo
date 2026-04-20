@@ -1,55 +1,103 @@
-export const colors = {
-  primary: '#6f45ff',
-  primaryLight: '#f3efff',
-  primaryDark: '#5c35e0',
+// src/theme/tokens.ts
+// Single source of truth for color, radius, shadow, spacing, type.
+// Keep these in sync with tailwind.config.js.
 
-  bgMain: '#f2f2f2',
-  bgSurface: '#ffffff',
+export const color = {
+  // Brand
+  brand:       '#6F45FF',
+  brandInk:    '#3B1E9A',
+  brandTint:   '#F1ECFF',
+  brandTint2:  '#E5DBFF',
 
-  textPrimary: '#262626',
-  textSecondary: '#737373',
-  textDisabled: '#a3a3a3',
-  textInverse: '#ffffff',
+  // Live / verified
+  live:        '#00D27A',
+  liveTint:    '#DCFBEC',
+  liveInk:     '#003D23',
 
-  borderDefault: '#e5e5e5',
-  borderStrong: '#d4d4d4',
+  // Warm / intent
+  warm:        '#FF8A3D',
+  warmTint:    '#FFF4E4',
+  warmInk:     '#B54300',
 
-  positive: '#10b981',
-  positiveLight: '#d1fae5',
-  negative: '#f43f5e',
-  negativeLight: '#ffe4e6',
-  warning: '#f97316',
-  warningLight: '#ffedd5',
+  // Danger / DNC
+  danger:      '#F43F5E',
+  dangerTint:  '#FFE4E8',
+  dangerInk:   '#A80025',
 
-  linkedin: '#0a66c2',
-} as const;
+  // Neutrals
+  ink:         '#0B0B10',
+  ink2:        '#1C1C22',
+  muted:       '#6E6E78',
+  muted2:      '#A3A3AD',
+  line:        '#E7E7EC',
+  line2:       '#F1F1F4',
+  canvas:      '#F5F5F7',
+  surface:     '#FFFFFF',
 
-export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  base: 16,
-  lg: 20,
-  xl: 24,
-  '2xl': 32,
-  '3xl': 48,
+  // Extras (kept for compatibility)
+  linkedin:    '#0A66C2',
 } as const;
 
 export const radius = {
-  sm: 4,
-  md: 8,
-  lg: 12,
-  xl: 16,
-  full: 9999,
+  xs: 6,
+  sm: 10,
+  md: 14,
+  lg: 18,
+  xl: 24,
+  pill: 999,
 } as const;
 
-export const fontSize = {
-  xs: 12,
-  sm: 13,
-  base: 14,
-  md: 15,
-  lg: 16,
-  xl: 18,
-  '2xl': 20,
-  '3xl': 24,
+export const space = {
+  '0.5': 2,
+  '1':   4,
+  '2':   8,
+  '3':   12,
+  '4':   16,
+  '6':   24,
+  '8':   32,
+  '12':  48,
 } as const;
+
+export const shadow = {
+  card: {
+    shadowColor: '#0B0B10',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  elevated: {
+    shadowColor: '#0B0B10',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  livePulse: {
+    shadowColor: '#00D27A',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 0,
+  },
+} as const;
+
+export const type = {
+  display: { fontSize: 26, fontWeight: '800', letterSpacing: -0.8, lineHeight: 30 },
+  h1:      { fontSize: 20, fontWeight: '800', letterSpacing: -0.4, lineHeight: 24 },
+  title:   { fontSize: 15, fontWeight: '700', letterSpacing: -0.2, lineHeight: 20 },
+  body:    { fontSize: 13, fontWeight: '500', lineHeight: 18 },
+  label:   { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, lineHeight: 14, textTransform: 'uppercase' as const },
+  mono:    { fontSize: 11, fontFamily: 'JetBrainsMono-Regular' },
+} as const;
+
+export const hit = {
+  min: 44,
+} as const;
+
+export type ColorToken  = keyof typeof color;
+export type RadiusToken = keyof typeof radius;
+
+// Backwards-compat alias: old code imported `colors` (plural) + `colors.linkedin` etc.
+// Keep this export so incremental migration doesn't break the build.
+export const colors = color;

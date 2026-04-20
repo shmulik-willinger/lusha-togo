@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Home, Search, ListChecks, BellRing, CircleUser } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSignalsStore } from '../../src/store/signalsStore';
+import { color as brandColor } from '../../src/theme/tokens';
 
 function HomeHeaderTitle() {
   return (
@@ -12,7 +13,7 @@ function HomeHeaderTitle() {
         source={require('../../assets/icon.png')}
         style={{ width: 34, height: 34, borderRadius: 9 }}
       />
-      <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 21, color: '#262626' }}>
+      <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 21, color: brandColor.ink }}>
         Lusha ToGo
       </Text>
     </View>
@@ -27,11 +28,11 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#6f45ff',
-        tabBarInactiveTintColor: '#a3a3a3',
+        tabBarActiveTintColor: brandColor.brand,
+        tabBarInactiveTintColor: brandColor.muted2,
         tabBarStyle: {
-          backgroundColor: '#ffffff',
-          borderTopColor: '#e5e5e5',
+          backgroundColor: brandColor.surface,
+          borderTopColor: brandColor.line,
           borderTopWidth: 1,
           height: TAB_H + insets.bottom,
           paddingBottom: insets.bottom + 4,
@@ -41,11 +42,11 @@ export default function TabsLayout() {
           fontSize: 11,
           fontFamily: 'Inter_600SemiBold',
         },
-        headerStyle: { backgroundColor: '#ffffff' },
+        headerStyle: { backgroundColor: brandColor.surface },
         headerTitleStyle: {
           fontFamily: 'Inter_700Bold',
           fontSize: 18,
-          color: '#262626',
+          color: brandColor.ink,
         },
         headerTitleAlign: 'left',
         headerShadowVisible: false,
@@ -57,8 +58,8 @@ export default function TabsLayout() {
         options={{
           title: 'Home',
           headerTitle: () => <HomeHeaderTitle />,
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Home size={22} color={color} strokeWidth={focused ? 2.25 : 2} />
           ),
         }}
       />
@@ -67,8 +68,8 @@ export default function TabsLayout() {
         options={{
           title: 'Search',
           headerTitle: 'Premium Search',
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons name={focused ? 'search' : 'search-outline'} size={24} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Search size={22} color={color} strokeWidth={focused ? 2.25 : 2} />
           ),
         }}
       />
@@ -77,8 +78,8 @@ export default function TabsLayout() {
         options={{
           title: 'Lists',
           headerTitle: 'My Lists',
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons name={focused ? 'list' : 'list-outline'} size={24} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <ListChecks size={22} color={color} strokeWidth={focused ? 2.25 : 2} />
           ),
         }}
       />
@@ -87,15 +88,15 @@ export default function TabsLayout() {
         options={{
           title: 'Signals',
           headerTitle: 'Signals',
-          tabBarIcon: ({ focused, color }) => (
+          tabBarIcon: ({ color, focused }) => (
             <View>
-              <Ionicons name={focused ? 'notifications' : 'notifications-outline'} size={24} color={color} />
+              <BellRing size={22} color={color} strokeWidth={focused ? 2.25 : 2} />
               {unreadCount > 0 && (
                 <View style={{
                   position: 'absolute',
                   top: -2,
                   right: -4,
-                  backgroundColor: '#6f45ff',
+                  backgroundColor: brandColor.brand,
                   borderRadius: 7,
                   minWidth: 14,
                   height: 14,
@@ -117,8 +118,8 @@ export default function TabsLayout() {
         options={{
           title: 'Account',
           headerTitle: 'Account',
-          tabBarIcon: ({ focused, color }) => (
-            <Ionicons name={focused ? 'person-circle' : 'person-circle-outline'} size={24} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <CircleUser size={22} color={color} strokeWidth={focused ? 2.25 : 2} />
           ),
         }}
       />

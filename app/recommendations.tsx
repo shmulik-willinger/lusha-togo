@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, TextInput, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Search as SearchIcon } from 'lucide-react-native';
 import { Stack } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { ContactCard } from '../src/components/ContactCard';
@@ -84,7 +85,7 @@ export default function RecommendationsScreen() {
       : `${filteredCompanies.length} compan${filteredCompanies.length !== 1 ? 'ies' : 'y'}`;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f2f2f2', direction: 'ltr' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
       <Stack.Screen options={{ title: 'Recommended Leads' }} />
 
       {/* Toggle */}
@@ -112,7 +113,7 @@ export default function RecommendationsScreen() {
       {/* Search */}
       <View style={{ paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4 }}>
         <View style={{ direction: 'ltr', backgroundColor: '#fff', borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: '#e5e7eb' }}>
-          <Text style={{ color: '#a3a3a3', marginRight: 8, fontSize: 15 }}>🔍</Text>
+          <SearchIcon size={16} color="#a3a3a3" strokeWidth={2} style={{ marginRight: 8 }} />
           <TextInput
             style={{ flex: 1, color: '#262626', fontSize: 14 }}
             placeholder={tab === 'contacts' ? 'Search contacts...' : 'Search companies...'}

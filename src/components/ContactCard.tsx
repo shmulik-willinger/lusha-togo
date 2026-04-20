@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { MapPin, Phone, Mail, Ban, Lock, Unlock } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { SearchContact } from '../api/search';
@@ -152,7 +152,7 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
 
           {!!locationLine && (
             <View style={styles.locationRow}>
-              <Ionicons name="location-outline" size={11} color="#a3a3a3" />
+              <MapPin size={11} color="#a3a3a3" strokeWidth={1.75} />
               <Text style={styles.location} numberOfLines={1} ellipsizeMode="tail">
                 {locationLine}
               </Text>
@@ -167,12 +167,12 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
       {/* ── Action row ── */}
       {isDNC ? (
         <View style={styles.dncRow}>
-          <Ionicons name="ban" size={14} color="#dc2626" />
+          <Ban size={14} color="#dc2626" strokeWidth={2} />
           <Text style={styles.dncText}>Do Not Contact</Text>
         </View>
       ) : isBlocked ? (
         <View style={styles.dncRow}>
-          <Ionicons name="lock-closed" size={14} color="#dc2626" />
+          <Lock size={14} color="#dc2626" strokeWidth={2} />
           <Text style={styles.dncText}>Restricted</Text>
         </View>
       ) : isRevealed ? (
@@ -183,7 +183,7 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
               style={styles.dataChipFull}
               activeOpacity={0.7}
             >
-              <Ionicons name="call" size={13} color="#525252" />
+              <Phone size={13} color="#525252" strokeWidth={2} />
               <Text style={styles.dataChipText} numberOfLines={1} ellipsizeMode="tail">
                 {formatPhone(firstPhone.normalized_number ?? firstPhone.number)}
               </Text>
@@ -204,7 +204,7 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
               style={styles.dataChipFull}
               activeOpacity={0.7}
             >
-              <Ionicons name="mail" size={13} color="#525252" />
+              <Mail size={13} color="#525252" strokeWidth={2} />
               <Text style={styles.dataChipText} numberOfLines={1} ellipsizeMode="tail">
                 {firstEmail.address}
               </Text>
@@ -231,7 +231,7 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
         </View>
       ) : revealError ? (
         <View style={styles.protectedRow}>
-          <Ionicons name="lock-closed" size={13} color="#92400e" />
+          <Lock size={13} color="#92400e" strokeWidth={2} />
           <Text style={styles.protectedText}>
             This Contact's Info is Protected – Upgrade to Unlock Access
           </Text>
@@ -248,7 +248,7 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
               <Text style={styles.revealBtnText}>Revealing…</Text>
             ) : (
               <View style={styles.revealBtnInner}>
-                <Ionicons name="lock-open" size={14} color="#ffffff" />
+                <Unlock size={14} color="#ffffff" strokeWidth={2.25} />
                 <Text style={styles.revealBtnText}>Reveal Contact</Text>
               </View>
             )}

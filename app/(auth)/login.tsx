@@ -13,7 +13,7 @@ import {
   SafeAreaView,
   Image,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { ShieldCheck, Lock } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import type { WebViewNavigation } from 'react-native-webview';
@@ -482,13 +482,13 @@ export default function LoginScreen() {
               style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, borderWidth: 1.5, borderColor: '#6f45ff', borderRadius: 12, paddingVertical: 14, marginTop: 4 }}
               activeOpacity={0.85}
             >
-              <Ionicons name="shield-checkmark-outline" size={18} color="#6f45ff" />
+              <ShieldCheck size={18} color="#6f45ff" strokeWidth={2} />
               <Text style={{ color: '#6f45ff', fontSize: 15, fontWeight: '700' }}>Sign in with SSO</Text>
             </TouchableOpacity>
 
             {ssoError ? (
               <View style={{ marginTop: 12, backgroundColor: '#fef2f2', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#fecaca', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Ionicons name="lock-closed" size={16} color="#dc2626" />
+                <Lock size={16} color="#dc2626" strokeWidth={2} />
                 <Text style={{ color: '#dc2626', fontSize: 14, fontWeight: '500', flex: 1 }}>
                   {ssoError}
                 </Text>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, ScrollView } from 'react-native';
+import { Sparkles } from 'lucide-react-native';
 
 const CONTACT_EXAMPLES = [
   'HR managers at SMBs in the US',
@@ -39,7 +40,7 @@ export function AISearchBar({ activeTab, onSubmit, loading = false, onClear, ini
       <View
         style={{ direction: 'ltr', marginHorizontal: 16, backgroundColor: '#fff', borderRadius: 16, flexDirection: 'row', alignItems: compact ? 'center' : 'flex-end', minHeight: compact ? 76 : undefined, paddingHorizontal: 14, paddingVertical: compact ? 16 : 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 3 }}
       >
-        <Text style={{ fontSize: 18, marginRight: 8, marginBottom: compact ? 0 : 2 }}>✨</Text>
+        <Sparkles size={18} color="#f59e0b" strokeWidth={2} style={{ marginRight: 8, marginBottom: compact ? 0 : 2 }} />
         <TextInput
           style={{ flex: 1, color: '#262626', fontSize: 15, maxHeight: 100, minHeight: 24, textAlign: 'left', writingDirection: 'ltr' }}
           placeholder={`Describe the ${activeTab} you're looking for...`}

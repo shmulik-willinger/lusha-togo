@@ -9,7 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Building2, ChevronRight, Search as SearchIcon, X, FolderOpen, AlertTriangle } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { useContactLists } from '../../src/hooks/useLists';
@@ -76,7 +76,7 @@ function ListItem({ list }: { list: ContactList }) {
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2, gap: 4 }}>
           {list.type === 'companies' && (
-            <Ionicons name="business-outline" size={12} color="#737373" />
+            <Building2 size={12} color="#737373" strokeWidth={1.75} />
           )}
           <Text style={{ fontSize: 13, color: '#737373' }} numberOfLines={1}>
             {list.contactCount.toLocaleString()} {list.type === 'companies' ? 'compan' + (list.contactCount !== 1 ? 'ies' : 'y') : 'contact' + (list.contactCount !== 1 ? 's' : '')}
@@ -85,7 +85,7 @@ function ListItem({ list }: { list: ContactList }) {
           </Text>
         </View>
       </View>
-      <Text style={{ color: '#d1d5db', fontSize: 20, marginLeft: 8, fontWeight: '300' }}>›</Text>
+      <ChevronRight size={20} color="#a3a3a3" strokeWidth={1.75} style={{ marginLeft: 8 }} />
     </TouchableOpacity>
   );
 }
@@ -114,7 +114,7 @@ export default function ListsScreen() {
   }, [lists, search]);
 
   return (
-    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f2f2f2', direction: 'ltr' }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
       {isLoading ? (
         <View style={{ paddingTop: 12 }}>
           {[...Array(6)].map((_, i) => <ListSkeleton key={i} />)}
@@ -126,7 +126,7 @@ export default function ListsScreen() {
       ) : (
         <>
           <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, marginBottom: 4, borderRadius: 12, paddingHorizontal: 12, paddingVertical: Platform.OS === 'ios' ? 10 : 6, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}>
-            <Text style={{ fontSize: 15, marginRight: 8 }}>🔍</Text>
+            <SearchIcon size={16} color="#a3a3a3" strokeWidth={2} style={{ marginRight: 8 }} />
             <TextInput
               style={{ flex: 1, fontSize: 15, color: '#262626' }}
               placeholder="Search lists…"
@@ -137,8 +137,8 @@ export default function ListsScreen() {
             />
             {search.length > 0 && (
               <TouchableOpacity onPress={() => setSearch('')} hitSlop={8}>
-                <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: '#d1d5db', alignItems: 'center', justifyContent: 'center' }}>
-                  <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700', lineHeight: 13 }}>✕</Text>
+                <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: '#a3a3a3', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={10} color="#fff" strokeWidth={3} />
                 </View>
               </TouchableOpacity>
             )}
@@ -170,7 +170,7 @@ export default function ListsScreen() {
 function EmptyState({ onRetry, isRefetching }: { onRetry: () => void; isRefetching: boolean }) {
   return (
     <View className="flex-1 items-center justify-center px-8">
-      <Text className="text-5xl mb-4">📂</Text>
+      <FolderOpen size={56} color="#a3a3a3" strokeWidth={1.5} style={{ marginBottom: 16 }} />
       <Text className="text-neutral-800 font-sans-semibold text-xl text-center mb-2">
         No lists found
       </Text>
@@ -201,7 +201,7 @@ function ErrorState({ onRetry, error }: { onRetry: () => void; error: unknown })
 
   return (
     <View className="flex-1 items-center justify-center px-8">
-      <Text className="text-5xl mb-4">⚠️</Text>
+      <AlertTriangle size={56} color="#f97316" strokeWidth={1.5} style={{ marginBottom: 16 }} />
       <Text className="text-neutral-800 font-sans-semibold text-xl text-center mb-2">
         {isSessionExpired ? 'Session Expired' : 'Couldn\'t load lists'}
       </Text>

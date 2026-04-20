@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { X } from 'lucide-react-native';
 import { SearchFilters } from '../api/search';
 import {
   CompanyNameOption,
@@ -165,7 +166,7 @@ function AutocompleteFilter<T>({
               activeOpacity={0.75}
             >
               <Text className="text-xs text-white font-sans-semibold">{getLabel(item)}</Text>
-              <Text className="text-white text-xs" style={{ marginLeft: 4 }}>✕</Text>
+              <X size={11} color="#ffffff" strokeWidth={2.5} style={{ marginLeft: 4 }} />
             </TouchableOpacity>
           ))}
         </View>
