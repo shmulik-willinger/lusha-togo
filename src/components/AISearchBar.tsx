@@ -41,7 +41,7 @@ export function AISearchBar({ activeTab, onSubmit, loading = false, onClear, ini
       >
         <Text style={{ fontSize: 18, marginRight: 8, marginBottom: compact ? 0 : 2 }}>✨</Text>
         <TextInput
-          style={{ flex: 1, color: '#1a1a1a', fontSize: 15, maxHeight: 100, minHeight: 24, textAlign: 'left', writingDirection: 'ltr' }}
+          style={{ flex: 1, color: '#262626', fontSize: 15, maxHeight: 100, minHeight: 24, textAlign: 'left', writingDirection: 'ltr' }}
           placeholder={`Describe the ${activeTab} you're looking for...`}
           placeholderTextColor="#a3a3a3"
           value={text}
@@ -58,7 +58,7 @@ export function AISearchBar({ activeTab, onSubmit, loading = false, onClear, ini
             style={{ marginRight: 4 }}
             activeOpacity={0.7}
           >
-            <Text style={{ color: '#9ca3af', fontSize: 22 }}>×</Text>
+            <Text style={{ color: '#a3a3a3', fontSize: 22 }}>×</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
@@ -73,7 +73,7 @@ export function AISearchBar({ activeTab, onSubmit, loading = false, onClear, ini
 
       {/* Char counter */}
       {text.length > 0 && (
-        <Text style={{ fontSize: 11, color: '#9ca3af', textAlign: 'right', marginRight: 20, marginTop: 4 }}>
+        <Text style={{ fontSize: 11, color: '#a3a3a3', textAlign: 'right', marginRight: 20, marginTop: 4 }}>
           {text.length}/200
         </Text>
       )}
@@ -89,7 +89,7 @@ export function AISearchBar({ activeTab, onSubmit, loading = false, onClear, ini
             <TouchableOpacity
               key={example}
               onPress={() => { setText(example); onSubmit(example); }}
-              style={{ backgroundColor: '#f0ecff', borderWidth: 1, borderColor: '#ddd6fe', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20 }}
+              style={{ backgroundColor: '#f3efff', borderWidth: 1, borderColor: '#ddd6fe', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20 }}
               activeOpacity={0.7}
             >
               <Text style={{ color: '#6f45ff', fontSize: 12, fontWeight: '500' }}>{example}</Text>

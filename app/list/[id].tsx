@@ -78,24 +78,24 @@ export default function ListDetailScreen() {
   }, [data, filtered.length, isCompanyList]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f2f2f2', direction: 'ltr' }}>
       <Stack.Screen options={{ title: data?.name || (nameParam ? decodeURIComponent(nameParam) : 'List') }} />
 
       {/* Search within list */}
       <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
         <View style={{ direction: 'ltr', backgroundColor: '#fff', borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: '#e5e7eb' }}>
-          <Text style={{ color: '#9ca3af', marginRight: 8, fontSize: 15 }}>🔍</Text>
+          <Text style={{ color: '#a3a3a3', marginRight: 8, fontSize: 15 }}>🔍</Text>
           <TextInput
-            style={{ flex: 1, color: '#1a1a1a', fontSize: 14 }}
+            style={{ flex: 1, color: '#262626', fontSize: 14 }}
             placeholder={isCompanyList ? 'Search companies...' : 'Search in this list...'}
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor="#a3a3a3"
             value={search}
             onChangeText={setSearch}
             textAlign="left"
           />
           {search.length > 0 && (
             <Text
-              style={{ color: '#9ca3af', fontSize: 20, marginLeft: 8 }}
+              style={{ color: '#a3a3a3', fontSize: 20, marginLeft: 8 }}
               onPress={() => setSearch('')}
             >
               ×
@@ -106,7 +106,7 @@ export default function ListDetailScreen() {
 
       {/* Count */}
       {data && (
-        <Text style={{ color: '#9ca3af', fontSize: 12, paddingHorizontal: 16, marginBottom: 4 }}>
+        <Text style={{ color: '#a3a3a3', fontSize: 12, paddingHorizontal: 16, marginBottom: 4 }}>
           {countLabel}
         </Text>
       )}

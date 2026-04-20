@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Contacts from 'expo-contacts';
 import { FlashList } from '@shopify/flash-list';
@@ -221,7 +222,7 @@ export default function UploadContactsScreen() {
   if (screenState === 'permission_denied') {
     return (
       <SafeAreaView style={styles.centered}>
-        <Text style={{ fontSize: 40, marginBottom: 12 }}>🔒</Text>
+        <Ionicons name="lock-closed-outline" size={48} color="#a3a3a3" style={{ marginBottom: 12 }} />
         <Text style={styles.emptyTitle}>Contacts permission required</Text>
         <Text style={styles.emptySub}>
           Please allow Lusha ToGo to access your contacts in Settings.
@@ -265,7 +266,7 @@ export default function UploadContactsScreen() {
 
   // ── Main contact picker ────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7' }} edges={['top', 'bottom']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f2f2f2' }} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn} hitSlop={8}>
@@ -285,7 +286,7 @@ export default function UploadContactsScreen() {
         <TextInput
           style={styles.searchInput}
           placeholder="Search contacts…"
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor="#a3a3a3"
           value={search}
           onChangeText={setSearch}
           clearButtonMode="while-editing"
@@ -353,7 +354,7 @@ export default function UploadContactsScreen() {
 const styles = StyleSheet.create({
   centered: {
     flex: 1,
-    backgroundColor: '#f5f5f7',
+    backgroundColor: '#f2f2f2',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
@@ -361,19 +362,19 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 15,
-    color: '#1a1a1a',
+    color: '#262626',
     fontWeight: '500',
   },
   emptyTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#262626',
     textAlign: 'center',
     marginBottom: 8,
   },
   emptySub: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: '#a3a3a3',
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -404,7 +405,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#262626',
   },
   headerBtn: {
     minWidth: 72,
@@ -439,7 +440,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 15,
-    color: '#1a1a1a',
+    color: '#262626',
   },
 
   // Count bar
@@ -452,10 +453,10 @@ const styles = StyleSheet.create({
   },
   countBarText: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#a3a3a3',
   },
   selectedBadge: {
-    backgroundColor: '#f0ecff',
+    backgroundColor: '#f3efff',
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 3,
@@ -504,7 +505,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#f0ecff',
+    backgroundColor: '#f3efff',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -521,11 +522,11 @@ const styles = StyleSheet.create({
   rowName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#262626',
   },
   rowSub: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#a3a3a3',
     marginTop: 2,
   },
 
@@ -538,7 +539,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 24,
     paddingTop: 12,
-    backgroundColor: '#f5f5f7',
+    backgroundColor: '#f2f2f2',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#e5e7eb',
   },

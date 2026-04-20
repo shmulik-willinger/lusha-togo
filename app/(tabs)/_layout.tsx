@@ -12,7 +12,7 @@ function HomeHeaderTitle() {
         source={require('../../assets/icon.png')}
         style={{ width: 34, height: 34, borderRadius: 9 }}
       />
-      <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 21, color: '#1a1a1a' }}>
+      <Text style={{ fontFamily: 'Inter_700Bold', fontSize: 21, color: '#262626' }}>
         Lusha ToGo
       </Text>
     </View>
@@ -45,7 +45,7 @@ export default function TabsLayout() {
         headerTitleStyle: {
           fontFamily: 'Inter_700Bold',
           fontSize: 18,
-          color: '#1a1a1a',
+          color: '#262626',
         },
         headerTitleAlign: 'left',
         headerShadowVisible: false,

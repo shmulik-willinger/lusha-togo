@@ -84,11 +84,11 @@ export default function RecommendationsScreen() {
       : `${filteredCompanies.length} compan${filteredCompanies.length !== 1 ? 'ies' : 'y'}`;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f2f2f2', direction: 'ltr' }}>
       <Stack.Screen options={{ title: 'Recommended Leads' }} />
 
       {/* Toggle */}
-      <View style={{ flexDirection: 'row', backgroundColor: '#f0ecff', borderRadius: 10, padding: 3, marginHorizontal: 16, marginTop: 12 }}>
+      <View style={{ flexDirection: 'row', backgroundColor: '#f3efff', borderRadius: 10, padding: 3, marginHorizontal: 16, marginTop: 12 }}>
         <TouchableOpacity
           style={{ flex: 1, paddingVertical: 8, borderRadius: 8, backgroundColor: tab === 'contacts' ? '#6f45ff' : 'transparent', alignItems: 'center' }}
           onPress={() => { setTab('contacts'); setSearch(''); }}
@@ -112,23 +112,23 @@ export default function RecommendationsScreen() {
       {/* Search */}
       <View style={{ paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4 }}>
         <View style={{ direction: 'ltr', backgroundColor: '#fff', borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: '#e5e7eb' }}>
-          <Text style={{ color: '#9ca3af', marginRight: 8, fontSize: 15 }}>🔍</Text>
+          <Text style={{ color: '#a3a3a3', marginRight: 8, fontSize: 15 }}>🔍</Text>
           <TextInput
-            style={{ flex: 1, color: '#1a1a1a', fontSize: 14 }}
+            style={{ flex: 1, color: '#262626', fontSize: 14 }}
             placeholder={tab === 'contacts' ? 'Search contacts...' : 'Search companies...'}
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor="#a3a3a3"
             value={search}
             onChangeText={setSearch}
             textAlign="left"
           />
           {search.length > 0 && (
-            <Text style={{ color: '#9ca3af', fontSize: 20, marginLeft: 8 }} onPress={() => setSearch('')}>×</Text>
+            <Text style={{ color: '#a3a3a3', fontSize: 20, marginLeft: 8 }} onPress={() => setSearch('')}>×</Text>
           )}
         </View>
       </View>
 
       {/* Count */}
-      <Text style={{ color: '#9ca3af', fontSize: 12, paddingHorizontal: 16, marginBottom: 4 }}>
+      <Text style={{ color: '#a3a3a3', fontSize: 12, paddingHorizontal: 16, marginBottom: 4 }}>
         {isLoading ? '' : countLabel}
       </Text>
 
@@ -175,7 +175,7 @@ function NoResults({ search, type }: { search: string; type: 'contacts' | 'compa
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <Text style={{ fontSize: 36, marginBottom: 8 }}>🤷</Text>
-      <Text style={{ color: '#1a1a1a', fontWeight: '600', fontSize: 16 }}>
+      <Text style={{ color: '#262626', fontWeight: '600', fontSize: 16 }}>
         {search ? 'No matches' : `No ${type} recommendations`}
       </Text>
     </View>

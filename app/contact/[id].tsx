@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import * as Contacts from 'expo-contacts';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -42,8 +43,10 @@ function InfoRow({
   value,
   onPress,
   actionLabel,
+  actionIcon,
   onSecondaryPress,
   secondaryActionLabel,
+  secondaryActionIcon,
   danger,
   isDataMasked,
 }: {
@@ -52,24 +55,26 @@ function InfoRow({
   value: string;
   onPress?: () => void;
   actionLabel?: string;
+  actionIcon?: React.ComponentProps<typeof Ionicons>['name'];
   onSecondaryPress?: () => void;
   secondaryActionLabel?: string;
+  secondaryActionIcon?: React.ComponentProps<typeof Ionicons>['name'];
   danger?: boolean;
   isDataMasked?: boolean;
 }) {
   return (
-    <View style={{ direction: 'ltr', flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' }}>
-      <View style={{ width: 32, alignItems: 'flex-start' }}>
+    <View style={{ direction: 'ltr', flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#e5e5e5' }}>
+      <View style={{ width: 28, alignItems: 'flex-start', opacity: isDataMasked ? 0.4 : 1 }}>
         {typeof icon === 'string'
-          ? <Text style={{ fontSize: 18, opacity: isDataMasked ? 0.4 : 1 }}>{icon}</Text>
+          ? <Text style={{ fontSize: 18 }}>{icon}</Text>
           : icon}
       </View>
       <View style={{ flex: 1, marginLeft: 8 }}>
-        <Text style={{ fontSize: 11, color: '#9ca3af', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+        <Text style={{ fontSize: 11, color: '#a3a3a3', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 }}>
           {label}
         </Text>
         <Text
-          style={{ fontSize: 15, marginTop: 2, color: isDataMasked ? '#9ca3af' : danger ? '#dc2626' : '#1a1a1a', fontWeight: '500' }}
+          style={{ fontSize: 15, marginTop: 2, color: isDataMasked ? '#a3a3a3' : danger ? '#dc2626' : '#262626', fontWeight: '500' }}
           numberOfLines={1}
         >
           {value}
@@ -78,18 +83,20 @@ function InfoRow({
       {onPress && actionLabel && (
         <TouchableOpacity
           onPress={onPress}
-          style={{ backgroundColor: isDataMasked ? '#6f45ff' : '#f0ecff', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, marginLeft: 8 }}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: isDataMasked ? '#6f45ff' : '#f3efff', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 9999, marginLeft: 8 }}
           activeOpacity={0.75}
         >
+          {actionIcon && <Ionicons name={actionIcon} size={13} color={isDataMasked ? '#fff' : '#6f45ff'} />}
           <Text style={{ color: isDataMasked ? '#fff' : '#6f45ff', fontSize: 13, fontWeight: '600' }}>{actionLabel}</Text>
         </TouchableOpacity>
       )}
       {onSecondaryPress && secondaryActionLabel && (
         <TouchableOpacity
           onPress={onSecondaryPress}
-          style={{ backgroundColor: '#e7f9ef', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, marginLeft: 6 }}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#e7f9ef', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 9999, marginLeft: 6 }}
           activeOpacity={0.75}
         >
+          {secondaryActionIcon && <Ionicons name={secondaryActionIcon} size={13} color="#25d366" />}
           <Text style={{ color: '#25d366', fontSize: 13, fontWeight: '600' }}>{secondaryActionLabel}</Text>
         </TouchableOpacity>
       )}
@@ -221,7 +228,7 @@ function ContactSignalsSection({ contact }: { contact: SearchContact }) {
 
   return (
     <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, marginBottom: 10 }}>
-      <Text style={{ fontSize: 11, fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 12 }}>
+      <Text style={{ fontSize: 11, fontWeight: '700', color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 12 }}>
         Signals
       </Text>
 
@@ -230,7 +237,7 @@ function ContactSignalsSection({ contact }: { contact: SearchContact }) {
         <TouchableOpacity
           onPress={handleShow}
           disabled={showLoading}
-          style={{ flex: 1, backgroundColor: '#f0ecff', borderRadius: 10, paddingVertical: 11, alignItems: 'center', opacity: showLoading ? 0.7 : 1 }}
+          style={{ flex: 1, backgroundColor: '#f3efff', borderRadius: 10, paddingVertical: 11, alignItems: 'center', opacity: showLoading ? 0.7 : 1 }}
           activeOpacity={0.85}
         >
           {showLoading
@@ -261,7 +268,7 @@ function ContactSignalsSection({ contact }: { contact: SearchContact }) {
 
       {/* Signals list */}
       {shown && signals.length === 0 && !showError && (
-        <Text style={{ color: '#9ca3af', fontSize: 13, paddingBottom: 12 }}>No signals found for this contact.</Text>
+        <Text style={{ color: '#a3a3a3', fontSize: 13, paddingBottom: 12 }}>No signals found for this contact.</Text>
       )}
       {(() => {
         const latest = new Map<string, LushaSignalEvent>();
@@ -274,15 +281,15 @@ function ContactSignalsSection({ contact }: { contact: SearchContact }) {
         return Array.from(latest.values())
           .sort((a, b) => (b.signalDate ? new Date(b.signalDate).getTime() : 0) - (a.signalDate ? new Date(a.signalDate).getTime() : 0))
           .map((s, i) => (
-            <View key={i} style={{ paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#f3f4f6' }}>
+            <View key={i} style={{ paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#e5e5e5' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: '#1a1a1a' }}>{signalLabel(s.signalType)}</Text>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: '#262626' }}>{signalLabel(s.signalType)}</Text>
                 {s.signalDate && (
-                  <Text style={{ fontSize: 11, color: '#9ca3af' }}>{new Date(s.signalDate).toLocaleDateString()}</Text>
+                  <Text style={{ fontSize: 11, color: '#a3a3a3' }}>{new Date(s.signalDate).toLocaleDateString()}</Text>
                 )}
               </View>
               {!!signalDetail(s) && (
-                <Text style={{ fontSize: 12, color: '#6b7280', marginTop: 3 }}>{signalDetail(s)}</Text>
+                <Text style={{ fontSize: 12, color: '#737373', marginTop: 3 }}>{signalDetail(s)}</Text>
               )}
             </View>
           ));
@@ -291,7 +298,7 @@ function ContactSignalsSection({ contact }: { contact: SearchContact }) {
       {following && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingBottom: 12, paddingTop: signals.length > 0 ? 4 : 0 }}>
           <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#22c55e' }} />
-          <Text style={{ fontSize: 12, color: '#6b7280' }}>Registered — All Signals</Text>
+          <Text style={{ fontSize: 12, color: '#737373' }}>Registered — All Signals</Text>
         </View>
       )}
     </View>
@@ -363,7 +370,7 @@ function FollowButton({ contact }: { contact: SearchContact }) {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        backgroundColor: following ? '#f0ecff' : '#6f45ff',
+        backgroundColor: following ? '#f3efff' : '#6f45ff',
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 16,
@@ -512,26 +519,26 @@ export default function ContactDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f2f2f2', direction: 'ltr' }}>
       <Stack.Screen options={{ title: data.name.full }} />
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         {/* Hero */}
         <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 18, marginBottom: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#f0ecff', alignItems: 'center', justifyContent: 'center', marginRight: 14, flexShrink: 0 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#f3efff', alignItems: 'center', justifyContent: 'center', marginRight: 14, flexShrink: 0 }}>
               <Text style={{ color: '#6f45ff', fontSize: 22, fontWeight: '700' }}>
                 {getInitials(data.name)}
               </Text>
             </View>
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <Text style={{ color: '#1a1a1a', fontSize: 19, fontWeight: '700', flex: 1 }} numberOfLines={1}>{data.name.full}</Text>
+                <Text style={{ color: '#262626', fontSize: 19, fontWeight: '700', flex: 1 }} numberOfLines={1}>{data.name.full}</Text>
                 {isDNC && <Badge variant="negative">DNC</Badge>}
                 <FollowButton contact={data} />
               </View>
               {data.job_title?.title && (
-                <Text style={{ color: '#6b7280', fontSize: 14, marginTop: 3 }} numberOfLines={1}>{data.job_title.title}</Text>
+                <Text style={{ color: '#737373', fontSize: 14, marginTop: 3 }} numberOfLines={1}>{data.job_title.title}</Text>
               )}
               {data.company?.name && (
                 <Text style={{ color: '#6f45ff', fontSize: 14, fontWeight: '600', marginTop: 2 }} numberOfLines={1}>
@@ -542,42 +549,50 @@ export default function ContactDetailScreen() {
           </View>
 
           {data.location?.city && (
-            <Text style={{ color: '#9ca3af', fontSize: 13, marginTop: 10 }}>
-              📍 {[data.location.city, data.location.state, data.location.country].filter(Boolean).join(', ')}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 4 }}>
+              <Ionicons name="location-outline" size={13} color="#a3a3a3" />
+              <Text style={{ color: '#a3a3a3', fontSize: 13, flexShrink: 1 }} numberOfLines={1}>
+                {[data.location.city, data.location.state, data.location.country].filter(Boolean).join(', ')}
+              </Text>
+            </View>
           )}
         </View>
 
         {/* Contact Info */}
         <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, marginBottom: 10 }}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
             Contact Info
           </Text>
 
           {isDNC ? (
             <View style={{ paddingVertical: 16 }}>
-              <Text style={{ color: '#dc2626', fontWeight: '600', fontSize: 15 }}>⛔ Do Not Contact</Text>
-              <Text style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Ionicons name="ban" size={16} color="#dc2626" />
+                <Text style={{ color: '#dc2626', fontWeight: '600', fontSize: 15 }}>Do Not Contact</Text>
+              </View>
+              <Text style={{ color: '#737373', fontSize: 13, marginTop: 4 }}>
                 This contact has opted out of communications.
               </Text>
             </View>
           ) : !showContactInfo ? (
             <View style={{ paddingVertical: 14 }}>
               {revealError ? (
-                <View style={{ backgroundColor: '#fef3c7', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#fde68a' }}>
-                  <Text style={{ color: '#92400e', fontWeight: '600', fontSize: 14, textAlign: 'center', lineHeight: 20 }}>
-                    🔒 This Contact's Info is Protected – Upgrade to Unlock Access
+                <View style={{ backgroundColor: '#fef3c7', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#fde68a', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Ionicons name="lock-closed" size={16} color="#92400e" />
+                  <Text style={{ color: '#92400e', fontWeight: '600', fontSize: 14, lineHeight: 20, flex: 1 }}>
+                    This Contact's Info is Protected – Upgrade to Unlock Access
                   </Text>
                 </View>
               ) : (
                 <TouchableOpacity
                   onPress={() => revealMutation.mutate()}
                   disabled={revealMutation.isPending}
-                  style={{ backgroundColor: '#6f45ff', borderRadius: 12, paddingVertical: 14, alignItems: 'center', opacity: revealMutation.isPending ? 0.7 : 1 }}
+                  style={{ backgroundColor: '#6f45ff', borderRadius: 12, paddingVertical: 14, alignItems: 'center', opacity: revealMutation.isPending ? 0.7 : 1, flexDirection: 'row', justifyContent: 'center', gap: 6 }}
                   activeOpacity={0.85}
                 >
+                  {!revealMutation.isPending && <Ionicons name="lock-open" size={16} color="#fff" />}
                   <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-                    {revealMutation.isPending ? 'Revealing…' : '🔓 Reveal Contact Info'}
+                    {revealMutation.isPending ? 'Revealing…' : 'Reveal Contact Info'}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -591,7 +606,7 @@ export default function ContactDetailScreen() {
                 return (
                   <InfoRow
                     key={i}
-                    icon="📞"
+                    icon={<Ionicons name="call-outline" size={18} color={isMasked ? '#a3a3a3' : '#525252'} />}
                     label={phone.type ?? 'Phone'}
                     value={formatPhone(phoneNum)}
                     onPress={
@@ -600,12 +615,14 @@ export default function ContactDetailScreen() {
                       : () => callPhone(phoneNum)
                     }
                     actionLabel={
-                      isMasked ? (revealMutation.isPending ? '...' : '🔓 Reveal')
+                      isMasked ? (revealMutation.isPending ? '...' : 'Reveal')
                       : phone.is_do_not_call ? undefined
                       : 'Call'
                     }
+                    actionIcon={isMasked && !revealMutation.isPending ? 'lock-open' : undefined}
                     onSecondaryPress={isMobile ? () => openWhatsApp(phoneNum) : undefined}
-                    secondaryActionLabel={isMobile ? '💬 WhatsApp' : undefined}
+                    secondaryActionLabel={isMobile ? 'WhatsApp' : undefined}
+                    secondaryActionIcon={isMobile ? 'logo-whatsapp' : undefined}
                     danger={phone.is_do_not_call}
                     isDataMasked={isMasked}
                   />
@@ -616,11 +633,12 @@ export default function ContactDetailScreen() {
                 return (
                   <InfoRow
                     key={i}
-                    icon="✉️"
+                    icon={<Ionicons name="mail-outline" size={18} color={isMasked ? '#a3a3a3' : '#525252'} />}
                     label={email.label ?? 'Email'}
                     value={email.address}
                     onPress={isMasked ? () => revealMutation.mutate() : () => sendEmail(email.address)}
-                    actionLabel={isMasked ? (revealMutation.isPending ? '...' : '🔓 Reveal') : 'Email'}
+                    actionLabel={isMasked ? (revealMutation.isPending ? '...' : 'Reveal') : 'Email'}
+                    actionIcon={isMasked && !revealMutation.isPending ? 'lock-open' : undefined}
                     isDataMasked={isMasked}
                   />
                 );
@@ -646,17 +664,19 @@ export default function ContactDetailScreen() {
               {hasPhones && (
                 <TouchableOpacity
                   onPress={saveToPhoneContacts}
-                  style={{ flex: 1, backgroundColor: '#6f45ff', borderRadius: 12, paddingVertical: 12, alignItems: 'center' }}
+                  style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, backgroundColor: '#6f45ff', borderRadius: 12, paddingVertical: 12 }}
                   activeOpacity={0.85}
                 >
-                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>💾 Save to Contacts</Text>
+                  <Ionicons name="person-add-outline" size={16} color="#fff" />
+                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>Save to Contacts</Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
                 onPress={shareContact}
-                style={{ flex: 1, backgroundColor: '#f0ecff', borderRadius: 12, paddingVertical: 12, alignItems: 'center' }}
+                style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 6, backgroundColor: '#f3efff', borderRadius: 12, paddingVertical: 12 }}
                 activeOpacity={0.85}
               >
+                <Ionicons name="share-outline" size={16} color="#6f45ff" />
                 <Text style={{ color: '#6f45ff', fontWeight: '700', fontSize: 14 }}>Share</Text>
               </TouchableOpacity>
             </View>
@@ -667,10 +687,10 @@ export default function ContactDetailScreen() {
         {/* Company */}
         {data.company?.name && (
           <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, marginBottom: 10 }}>
-            <Text style={{ fontSize: 11, fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
+            <Text style={{ fontSize: 11, fontWeight: '700', color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
               Company
             </Text>
-            <InfoRow icon="🏢" label="Company" value={data.company.name} />
+            <InfoRow icon={<Ionicons name="business-outline" size={18} color="#525252" />} label="Company" value={data.company.name} />
             <View style={{ height: 8 }} />
           </View>
         )}
@@ -681,11 +701,11 @@ export default function ContactDetailScreen() {
         {/* Previous position */}
         {data.previous_job?.company && (
           <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, marginBottom: 10 }}>
-            <Text style={{ fontSize: 11, fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
+            <Text style={{ fontSize: 11, fontWeight: '700', color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
               Previous Position
             </Text>
             <InfoRow
-              icon="⏱️"
+              icon={<Ionicons name="time-outline" size={18} color="#525252" />}
               label={data.previous_job.company}
               value={data.previous_job.job_title ?? ''}
             />

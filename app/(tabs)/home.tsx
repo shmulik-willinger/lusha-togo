@@ -68,7 +68,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f2f2f2', direction: 'ltr' }}>
 
       {/* ── Section 1: AI Search ─────────────────────────────────── */}
       <View style={styles.section}>
@@ -167,7 +167,7 @@ function ErrorCard({ onRetry }: { onRetry: () => void }) {
   return (
     <View style={[styles.card, { alignItems: 'center', paddingVertical: 24 }]}>
       <Text style={{ fontSize: 32, marginBottom: 8 }}>⚠️</Text>
-      <Text style={{ color: '#1a1a1a', fontWeight: '600', fontSize: 15 }}>
+      <Text style={{ color: '#262626', fontWeight: '600', fontSize: 15 }}>
         Couldn't load recommendations
       </Text>
       <TouchableOpacity
@@ -198,11 +198,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#262626',
   },
   sectionSubtitle: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#a3a3a3',
     marginTop: 2,
   },
   card: {
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: '#f0ecff',
+    backgroundColor: '#f3efff',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -236,15 +236,15 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#262626',
   },
   cardSubtitle: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#a3a3a3',
     marginTop: 2,
   },
   countBadge: {
-    backgroundColor: '#f0ecff',
+    backgroundColor: '#f3efff',
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   dividerLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#9ca3af',
+    color: '#a3a3a3',
     letterSpacing: 1.5,
     marginHorizontal: 12,
   },
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: '#f0ecff',
+    backgroundColor: '#f3efff',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -315,11 +315,11 @@ const styles = StyleSheet.create({
   uploadContactsTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#262626',
   },
   uploadContactsSub: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#a3a3a3',
     marginTop: 2,
   },
 });

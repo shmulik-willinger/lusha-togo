@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, Linking, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { ContactPhone, ContactEmail } from '../api/search';
 import { colors } from '../theme/tokens';
@@ -59,20 +60,20 @@ export function ContactActions({ phones, emails, linkedinUrl, compact = false }:
       {primaryPhone && !primaryPhone.is_do_not_call && (
         <TouchableOpacity
           onPress={() => callPhone(primaryPhone.normalized_number ?? primaryPhone.number)}
-          className="flex-row items-center bg-primary-50 px-3 py-1.5 rounded-full"
+          className="flex-row items-center bg-primary-50 px-3 py-1.5 rounded-full gap-1"
           activeOpacity={0.7}
         >
-          <Text className="text-xs mr-1">📞</Text>
+          <Ionicons name="call" size={12} color="#6f45ff" />
           <Text className="text-xs text-primary font-sans-semibold">Call</Text>
         </TouchableOpacity>
       )}
       {primaryEmail && (
         <TouchableOpacity
           onPress={() => sendEmail(primaryEmail.address)}
-          className="flex-row items-center bg-primary-50 px-3 py-1.5 rounded-full"
+          className="flex-row items-center bg-primary-50 px-3 py-1.5 rounded-full gap-1"
           activeOpacity={0.7}
         >
-          <Text className="text-xs mr-1">✉️</Text>
+          <Ionicons name="mail" size={12} color="#6f45ff" />
           <Text className="text-xs text-primary font-sans-semibold">Email</Text>
         </TouchableOpacity>
       )}

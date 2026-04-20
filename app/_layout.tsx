@@ -97,7 +97,7 @@ function addSignalFromNotification(
 
 const HEADER_STYLE = {
   headerStyle: { backgroundColor: '#ffffff' },
-  headerTitleStyle: { fontFamily: 'Inter_700Bold', fontSize: 17, color: '#1a1a1a' },
+  headerTitleStyle: { fontFamily: 'Inter_700Bold', fontSize: 17, color: '#262626' },
   headerTitleAlign: 'left' as const,
   headerShadowVisible: false,
   headerBackTitleVisible: false,

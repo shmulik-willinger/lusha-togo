@@ -20,9 +20,9 @@ import { useSignalsStore } from '../../src/store/signalsStore';
 
 function InfoCard({ label, value }: { label: string; value: string }) {
   return (
-    <View style={{ direction: 'ltr', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' }}>
-      <Text style={{ color: '#6b7280', fontSize: 14 }}>{label}</Text>
-      <Text style={{ color: '#1a1a1a', fontWeight: '600', fontSize: 14, maxWidth: '65%', textAlign: 'right' }} numberOfLines={1}>{value}</Text>
+    <View style={{ direction: 'ltr', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: '#e5e5e5' }}>
+      <Text style={{ color: '#737373', fontSize: 14 }}>{label}</Text>
+      <Text style={{ color: '#262626', fontWeight: '600', fontSize: 14, maxWidth: '65%', textAlign: 'right' }} numberOfLines={1}>{value}</Text>
     </View>
   );
 }
@@ -34,15 +34,15 @@ function UsageBar({ used, total }: { used: number; total: number }) {
   return (
     <View style={{ marginTop: 8, marginBottom: 8 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-        <Text style={{ color: '#6b7280', fontSize: 14 }}>{used.toLocaleString()} used</Text>
-        <Text style={{ color: '#6b7280', fontSize: 14 }}>{total.toLocaleString()} total</Text>
+        <Text style={{ color: '#737373', fontSize: 14 }}>{used.toLocaleString()} used</Text>
+        <Text style={{ color: '#737373', fontSize: 14 }}>{total.toLocaleString()} total</Text>
       </View>
-      <View style={{ height: 10, backgroundColor: '#f3f4f6', borderRadius: 8, overflow: 'hidden' }}>
+      <View style={{ height: 10, backgroundColor: '#e5e5e5', borderRadius: 8, overflow: 'hidden' }}>
         <View
           style={{ height: '100%', borderRadius: 8, width: `${pct * 100}%`, backgroundColor: isHigh ? '#ef4444' : '#6f45ff' }}
         />
       </View>
-      <Text style={{ color: isHigh ? '#ef4444' : '#6b7280', fontSize: 13, marginTop: 6, textAlign: 'right' }}>
+      <Text style={{ color: isHigh ? '#ef4444' : '#737373', fontSize: 13, marginTop: 6, textAlign: 'right' }}>
         {Math.round(pct * 100)}% used
       </Text>
     </View>
@@ -90,13 +90,13 @@ function SignalsSection() {
 
   return (
     <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, marginBottom: 10 }}>
-      <Text style={{ fontSize: 11, fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
+      <Text style={{ fontSize: 11, fontWeight: '700', color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
         Signals
       </Text>
 
       {!apiKey && !editing ? (
         <View style={{ paddingVertical: 14 }}>
-          <Text style={{ color: '#6b7280', fontSize: 13, marginBottom: 12, lineHeight: 18 }}>
+          <Text style={{ color: '#737373', fontSize: 13, marginBottom: 12, lineHeight: 18 }}>
             Add your Lusha API key to follow contacts and companies and receive signals as push notifications.
           </Text>
           <TouchableOpacity
@@ -109,18 +109,18 @@ function SignalsSection() {
         </View>
       ) : editing ? (
         <View style={{ paddingVertical: 14 }}>
-          <Text style={{ color: '#6b7280', fontSize: 12, marginBottom: 8 }}>
+          <Text style={{ color: '#737373', fontSize: 12, marginBottom: 8 }}>
             Find your API key in Lusha dashboard → Settings → API Keys
           </Text>
           <TextInput
             value={draft}
             onChangeText={setDraft}
             placeholder="Paste your Lusha API key"
-            placeholderTextColor="#9ca3af"
+            placeholderTextColor="#a3a3a3"
             autoCapitalize="none"
             autoCorrect={false}
             secureTextEntry
-            style={{ borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#1a1a1a', marginBottom: 10 }}
+            style={{ borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: '#262626', marginBottom: 10 }}
           />
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TouchableOpacity
@@ -132,27 +132,27 @@ function SignalsSection() {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setEditing(false)}
-              style={{ flex: 1, backgroundColor: '#f3f4f6', borderRadius: 10, paddingVertical: 11, alignItems: 'center' }}
+              style={{ flex: 1, backgroundColor: '#e5e5e5', borderRadius: 10, paddingVertical: 11, alignItems: 'center' }}
               activeOpacity={0.85}
             >
-              <Text style={{ color: '#6b7280', fontWeight: '600', fontSize: 14 }}>Cancel</Text>
+              <Text style={{ color: '#737373', fontWeight: '600', fontSize: 14 }}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
       ) : (
         <View style={{ paddingVertical: 10 }}>
           <View style={{ direction: 'ltr', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 }}>
-            <Text style={{ color: '#6b7280', fontSize: 14 }}>API Key</Text>
-            <Text style={{ color: '#1a1a1a', fontWeight: '600', fontSize: 14 }}>••••{apiKey.slice(-4)}</Text>
+            <Text style={{ color: '#737373', fontSize: 14 }}>API Key</Text>
+            <Text style={{ color: '#262626', fontWeight: '600', fontSize: 14 }}>••••{apiKey.slice(-4)}</Text>
           </View>
           <View style={{ direction: 'ltr', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 }}>
-            <Text style={{ color: '#6b7280', fontSize: 14 }}>Following</Text>
-            <Text style={{ color: '#1a1a1a', fontWeight: '600', fontSize: 14 }}>{subscriptions.length} entities</Text>
+            <Text style={{ color: '#737373', fontSize: 14 }}>Following</Text>
+            <Text style={{ color: '#262626', fontWeight: '600', fontSize: 14 }}>{subscriptions.length} entities</Text>
           </View>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
             <TouchableOpacity
               onPress={() => { setDraft(''); setEditing(true); }}
-              style={{ flex: 1, backgroundColor: '#f0ecff', borderRadius: 10, paddingVertical: 9, alignItems: 'center' }}
+              style={{ flex: 1, backgroundColor: '#f3efff', borderRadius: 10, paddingVertical: 9, alignItems: 'center' }}
               activeOpacity={0.85}
             >
               <Text style={{ color: '#6f45ff', fontWeight: '600', fontSize: 13 }}>Change Key</Text>
@@ -220,12 +220,12 @@ export default function AccountScreen() {
   const creditsTotal = session?.creditsTotal ?? 0;
 
   return (
-    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f2f2f2', direction: 'ltr' }}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Profile card */}
         <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 20, marginBottom: 10 }}>
           <View style={{ direction: 'ltr', flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#f0ecff', alignItems: 'center', justifyContent: 'center', marginRight: 14, flexShrink: 0 }}>
+            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#f3efff', alignItems: 'center', justifyContent: 'center', marginRight: 14, flexShrink: 0 }}>
               <Text style={{ color: '#6f45ff', fontSize: 20, fontWeight: '700' }}>
                 {fullName?.[0]?.toUpperCase() ?? '?'}
               </Text>
@@ -238,8 +238,8 @@ export default function AccountScreen() {
                 </>
               ) : (
                 <>
-                  <Text style={{ color: '#1a1a1a', fontWeight: '700', fontSize: 17 }}>{fullName}</Text>
-                  <Text style={{ color: '#6b7280', fontSize: 13, marginTop: 3 }}>{email}</Text>
+                  <Text style={{ color: '#262626', fontWeight: '700', fontSize: 17 }}>{fullName}</Text>
+                  <Text style={{ color: '#737373', fontSize: 13, marginTop: 3 }}>{email}</Text>
                 </>
               )}
             </View>
@@ -248,13 +248,13 @@ export default function AccountScreen() {
 
         {/* Plan & credits */}
         <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, marginBottom: 10 }}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
             Plan
           </Text>
           <InfoCard label="Plan" value={plan} />
           {creditsTotal > 0 && (
             <View style={{ paddingVertical: 14 }}>
-              <Text style={{ color: '#374151', fontWeight: '600', fontSize: 13, marginBottom: 6 }}>Account credits</Text>
+              <Text style={{ color: '#262626', fontWeight: '600', fontSize: 13, marginBottom: 6 }}>Account credits</Text>
               <InfoCard label="Monthly quota" value={creditsTotal.toLocaleString()} />
               {creditsUsed != null && creditsUsed > 0 && (
                 <>
@@ -268,7 +268,7 @@ export default function AccountScreen() {
 
         {/* Account info */}
         <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, marginBottom: 10 }}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
             Account
           </Text>
           <InfoCard label="Email" value={email} />
@@ -293,7 +293,7 @@ export default function AccountScreen() {
         </View>
 
         {/* App version */}
-        <Text style={{ textAlign: 'center', color: '#9ca3af', fontSize: 12, marginBottom: 32 }}>
+        <Text style={{ textAlign: 'center', color: '#a3a3a3', fontSize: 12, marginBottom: 32 }}>
           Lusha ToGo v{Constants.expoConfig?.version ?? '?'}
         </Text>
       </ScrollView>

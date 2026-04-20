@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { useContactLists } from '../../src/hooks/useLists';
@@ -70,14 +71,19 @@ function ListItem({ list }: { list: ContactList }) {
         <Text style={{ fontSize: 15, fontWeight: '700', color }}>{initials}</Text>
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 15, fontWeight: '600', color: '#1a1a1a' }} numberOfLines={1}>
+        <Text style={{ fontSize: 15, fontWeight: '600', color: '#262626' }} numberOfLines={1}>
           {list.name}
         </Text>
-        <Text style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>
-          {list.type === 'companies' ? '🏢 ' : ''}{list.contactCount.toLocaleString()} {list.type === 'companies' ? 'compan' + (list.contactCount !== 1 ? 'ies' : 'y') : 'contact' + (list.contactCount !== 1 ? 's' : '')}
-          {'  ·  '}
-          <Text style={{ color: '#9ca3af' }}>{timeAgo(list.updatedAt)}</Text>
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2, gap: 4 }}>
+          {list.type === 'companies' && (
+            <Ionicons name="business-outline" size={12} color="#737373" />
+          )}
+          <Text style={{ fontSize: 13, color: '#737373' }} numberOfLines={1}>
+            {list.contactCount.toLocaleString()} {list.type === 'companies' ? 'compan' + (list.contactCount !== 1 ? 'ies' : 'y') : 'contact' + (list.contactCount !== 1 ? 's' : '')}
+            {'  ·  '}
+            <Text style={{ color: '#a3a3a3' }}>{timeAgo(list.updatedAt)}</Text>
+          </Text>
+        </View>
       </View>
       <Text style={{ color: '#d1d5db', fontSize: 20, marginLeft: 8, fontWeight: '300' }}>›</Text>
     </TouchableOpacity>
@@ -108,7 +114,7 @@ export default function ListsScreen() {
   }, [lists, search]);
 
   return (
-    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f2f2f2', direction: 'ltr' }}>
       {isLoading ? (
         <View style={{ paddingTop: 12 }}>
           {[...Array(6)].map((_, i) => <ListSkeleton key={i} />)}
@@ -122,9 +128,9 @@ export default function ListsScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12, marginBottom: 4, borderRadius: 12, paddingHorizontal: 12, paddingVertical: Platform.OS === 'ios' ? 10 : 6, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}>
             <Text style={{ fontSize: 15, marginRight: 8 }}>🔍</Text>
             <TextInput
-              style={{ flex: 1, fontSize: 15, color: '#1a1a1a' }}
+              style={{ flex: 1, fontSize: 15, color: '#262626' }}
               placeholder="Search lists…"
-              placeholderTextColor="#9ca3af"
+              placeholderTextColor="#a3a3a3"
               value={search}
               onChangeText={setSearch}
               autoCorrect={false}
@@ -151,7 +157,7 @@ export default function ListsScreen() {
             }
             ListEmptyComponent={
               <View style={{ alignItems: 'center', paddingTop: 48 }}>
-                <Text style={{ fontSize: 15, color: '#9ca3af' }}>No lists match "{search}"</Text>
+                <Text style={{ fontSize: 15, color: '#a3a3a3' }}>No lists match "{search}"</Text>
               </View>
             }
           />

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { SearchCompany } from '../api/search';
@@ -72,10 +73,10 @@ export function CompanyCard({ company }: CompanyCardProps) {
                       : `https://${company.homepage_url}`;
                     WebBrowser.openBrowserAsync(url);
                   }}
-                  style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: '#f2f2f2', alignItems: 'center', justifyContent: 'center' }}
                   activeOpacity={0.7}
                 >
-                  <Text style={{ fontSize: 14 }}>🌐</Text>
+                  <Ionicons name="globe-outline" size={15} color="#525252" />
                 </TouchableOpacity>
               )}
               {company.social?.linkedin && (
@@ -105,14 +106,20 @@ export function CompanyCard({ company }: CompanyCardProps) {
             {[company.industry?.primary_industry, sizeStr].filter(Boolean).join(' · ')}
           </Text>
           {company.location?.city && (
-            <Text className="text-neutral-400 text-xs mt-0.5" numberOfLines={1}>
-              📍 {[company.location.city, company.location.country].filter(Boolean).join(', ')}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3, gap: 3 }}>
+              <Ionicons name="location-outline" size={11} color="#a3a3a3" />
+              <Text className="text-neutral-400 text-xs" numberOfLines={1} style={{ flexShrink: 1 }}>
+                {[company.location.city, company.location.country].filter(Boolean).join(', ')}
+              </Text>
+            </View>
           )}
           {company.revenue_range?.string && (
-            <Text className="text-neutral-400 text-xs mt-0.5" numberOfLines={1}>
-              💰 {company.revenue_range.string}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3, gap: 3 }}>
+              <Ionicons name="cash-outline" size={11} color="#a3a3a3" />
+              <Text className="text-neutral-400 text-xs" numberOfLines={1} style={{ flexShrink: 1 }}>
+                {company.revenue_range.string}
+              </Text>
+            </View>
           )}
         </View>
       </View>

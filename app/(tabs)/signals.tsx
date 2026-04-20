@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSignalsStore, ReceivedSignal, StoredSubscription } from '../../src/store/signalsStore';
 import { listSubscriptions, deleteSubscription } from '../../src/api/signals';
@@ -54,14 +55,14 @@ const SIGNAL_LABELS: Record<string, string> = {
   techAdoption: 'Tech adoption',
 };
 
-function signalIcon(type: string): string {
-  if (type.includes('Increase') || type.includes('increase') || type === 'funding') return '📈';
-  if (type.includes('Decrease') || type.includes('decrease')) return '📉';
-  if (type.includes('Hiring') || type.includes('hiring') || type.includes('headcount')) return '👥';
-  if (type.includes('News') || type.includes('news')) return '📰';
-  if (type === 'companyChange') return '🏢';
-  if (type === 'promotion') return '🎯';
-  return '🔔';
+function signalIcon(type: string): React.ComponentProps<typeof Ionicons>['name'] {
+  if (type.includes('Increase') || type.includes('increase') || type === 'funding') return 'trending-up';
+  if (type.includes('Decrease') || type.includes('decrease')) return 'trending-down';
+  if (type.includes('Hiring') || type.includes('hiring') || type.includes('headcount')) return 'people';
+  if (type.includes('News') || type.includes('news')) return 'newspaper';
+  if (type === 'companyChange') return 'business';
+  if (type === 'promotion') return 'trophy';
+  return 'notifications';
 }
 
 function signalTitle(signal: ReceivedSignal): string {
@@ -125,11 +126,11 @@ function navigateToEntity(signal: ReceivedSignal) {
 function EmptySignals() {
   return (
     <View style={{ alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32 }}>
-      <Text style={{ fontSize: 40, marginBottom: 12 }}>🔔</Text>
-      <Text style={{ fontSize: 16, fontWeight: '700', color: '#1a1a1a', textAlign: 'center', marginBottom: 8 }}>
+      <Ionicons name="notifications-outline" size={48} color="#a3a3a3" style={{ marginBottom: 12 }} />
+      <Text style={{ fontSize: 16, fontWeight: '700', color: '#262626', textAlign: 'center', marginBottom: 8 }}>
         No signals yet
       </Text>
-      <Text style={{ fontSize: 14, color: '#9ca3af', textAlign: 'center', lineHeight: 20 }}>
+      <Text style={{ fontSize: 14, color: '#a3a3a3', textAlign: 'center', lineHeight: 20 }}>
         Open a contact or company and tap Show Signals or Register to start receiving signals.
       </Text>
     </View>
@@ -139,11 +140,11 @@ function EmptySignals() {
 function NoApiKey() {
   return (
     <View style={{ alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32 }}>
-      <Text style={{ fontSize: 40, marginBottom: 12 }}>🔑</Text>
-      <Text style={{ fontSize: 16, fontWeight: '700', color: '#1a1a1a', textAlign: 'center', marginBottom: 8 }}>
+      <Ionicons name="key-outline" size={48} color="#a3a3a3" style={{ marginBottom: 12 }} />
+      <Text style={{ fontSize: 16, fontWeight: '700', color: '#262626', textAlign: 'center', marginBottom: 8 }}>
         Lusha API Key required
       </Text>
-      <Text style={{ fontSize: 14, color: '#9ca3af', textAlign: 'center', lineHeight: 20 }}>
+      <Text style={{ fontSize: 14, color: '#a3a3a3', textAlign: 'center', lineHeight: 20 }}>
         Go to Account → Signals → Set up Signals, and paste your Lusha API key.
       </Text>
     </View>
@@ -154,7 +155,7 @@ function SourceBadge({ source }: { source: 'api' | 'webhook' }) {
   const isApi = source === 'api';
   return (
     <View style={{
-      backgroundColor: isApi ? '#e0f2fe' : '#f0ecff',
+      backgroundColor: isApi ? '#e0f2fe' : '#f3efff',
       borderRadius: 6,
       paddingHorizontal: 6,
       paddingVertical: 2,
@@ -169,7 +170,7 @@ function SourceBadge({ source }: { source: 'api' | 'webhook' }) {
 function EntityAvatar({ signal }: { signal: ReceivedSignal }) {
   if (signal.logoUrl) {
     return (
-      <View style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: '#f0ecff', alignItems: 'center', justifyContent: 'center', marginRight: 12, overflow: 'hidden' }}>
+      <View style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: '#f3efff', alignItems: 'center', justifyContent: 'center', marginRight: 12, overflow: 'hidden' }}>
         <Image source={{ uri: signal.logoUrl }} style={{ width: 36, height: 36 }} resizeMode="contain" />
       </View>
     );
@@ -179,7 +180,7 @@ function EntityAvatar({ signal }: { signal: ReceivedSignal }) {
     : (signal.entityName?.[0]?.toUpperCase() ?? '?');
   const fontSize = signal.entityType === 'contact' ? 12 : 15;
   return (
-    <View style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: '#f0ecff', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+    <View style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: '#f3efff', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
       <Text style={{ color: '#6f45ff', fontWeight: '700', fontSize }}>{initials}</Text>
     </View>
   );
@@ -196,22 +197,22 @@ function SignalCard({ signal }: { signal: ReceivedSignal }) {
         paddingHorizontal: 16,
         paddingVertical: 14,
         borderBottomWidth: 1,
-        borderBottomColor: '#f3f4f6',
+        borderBottomColor: '#e5e5e5',
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
         <EntityAvatar signal={signal} />
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: '#1a1a1a', flex: 1, marginRight: 8 }} numberOfLines={1}>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#262626', flex: 1, marginRight: 8 }} numberOfLines={1}>
               {signalTitle(signal)}
             </Text>
-            <Text style={{ fontSize: 11, color: '#9ca3af', flexShrink: 0 }}>
+            <Text style={{ fontSize: 11, color: '#a3a3a3', flexShrink: 0 }}>
               {signalDate(signal)}
             </Text>
           </View>
           {!!body && (
-            <Text style={{ fontSize: 13, color: '#6b7280', lineHeight: 18 }} numberOfLines={2}>
+            <Text style={{ fontSize: 13, color: '#737373', lineHeight: 18 }} numberOfLines={2}>
               {body}
             </Text>
           )}
@@ -238,8 +239,8 @@ function getInitials(name: string): string {
 
 function SubscriptionRow({ sub, onUnfollow }: { sub: StoredSubscription; onUnfollow: (id: string) => void }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' }}>
-      <View style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: '#f0ecff', alignItems: 'center', justifyContent: 'center', marginRight: 12, overflow: 'hidden' }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#e5e5e5' }}>
+      <View style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: '#f3efff', alignItems: 'center', justifyContent: 'center', marginRight: 12, overflow: 'hidden' }}>
         {sub.logoUrl ? (
           <Image source={{ uri: sub.logoUrl }} style={{ width: 36, height: 36 }} resizeMode="contain" />
         ) : (
@@ -249,10 +250,10 @@ function SubscriptionRow({ sub, onUnfollow }: { sub: StoredSubscription; onUnfol
         )}
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 14, fontWeight: '600', color: '#1a1a1a' }} numberOfLines={1}>
+        <Text style={{ fontSize: 14, fontWeight: '600', color: '#262626' }} numberOfLines={1}>
           {sub.entityName}
         </Text>
-        <Text style={{ fontSize: 12, color: '#9ca3af', marginTop: 1 }}>
+        <Text style={{ fontSize: 12, color: '#a3a3a3', marginTop: 1 }}>
           {sub.entityType === 'contact' ? 'Contact' : 'Company'} · All Signals
         </Text>
       </View>
@@ -330,14 +331,14 @@ export default function SignalsScreen() {
 
   if (!apiKey) {
     return (
-      <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7' }}>
+      <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f2f2f2' }}>
         <NoApiKey />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7' }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f2f2f2' }}>
       {/* Inner tab bar */}
       <View style={{ flexDirection: 'row', backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e5e5e5' }}>
         <TouchableOpacity
@@ -346,7 +347,7 @@ export default function SignalsScreen() {
           activeOpacity={0.8}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: activeTab === 'activity' ? '#6f45ff' : '#6b7280' }}>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: activeTab === 'activity' ? '#6f45ff' : '#737373' }}>
               Activity
             </Text>
             {unreadCount > 0 && (
@@ -362,7 +363,7 @@ export default function SignalsScreen() {
           style={{ flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: activeTab === 'following' ? '#6f45ff' : 'transparent' }}
           activeOpacity={0.8}
         >
-          <Text style={{ fontSize: 14, fontWeight: '600', color: activeTab === 'following' ? '#6f45ff' : '#6b7280' }}>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: activeTab === 'following' ? '#6f45ff' : '#737373' }}>
             Registered ({subscriptions.length})
           </Text>
         </TouchableOpacity>
@@ -376,7 +377,7 @@ export default function SignalsScreen() {
         {activeTab === 'activity' ? (
           signals.length === 0 ? <EmptySignals /> : (
             <View style={{ backgroundColor: '#fff', marginTop: 8 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#e5e5e5' }}>
                 <TouchableOpacity
                   onPress={() => Alert.alert('Clear Activity', 'Remove all signals from Activity?', [
                     { text: 'Cancel', style: 'cancel' },
@@ -396,10 +397,10 @@ export default function SignalsScreen() {
           subscriptions.length === 0 ? (
             <View style={{ alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32 }}>
               <Text style={{ fontSize: 40, marginBottom: 12 }}>👁️</Text>
-              <Text style={{ fontSize: 16, fontWeight: '700', color: '#1a1a1a', textAlign: 'center', marginBottom: 8 }}>
+              <Text style={{ fontSize: 16, fontWeight: '700', color: '#262626', textAlign: 'center', marginBottom: 8 }}>
                 Not registered to anything yet
               </Text>
-              <Text style={{ fontSize: 14, color: '#9ca3af', textAlign: 'center', lineHeight: 20 }}>
+              <Text style={{ fontSize: 14, color: '#a3a3a3', textAlign: 'center', lineHeight: 20 }}>
                 Open a contact or company page and tap Register to receive live push notifications.
               </Text>
             </View>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { SearchContact } from '../api/search';
@@ -150,9 +151,12 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
           )}
 
           {!!locationLine && (
-            <Text style={styles.location} numberOfLines={1} ellipsizeMode="tail">
-              📍 {locationLine}
-            </Text>
+            <View style={styles.locationRow}>
+              <Ionicons name="location-outline" size={11} color="#a3a3a3" />
+              <Text style={styles.location} numberOfLines={1} ellipsizeMode="tail">
+                {locationLine}
+              </Text>
+            </View>
           )}
         </View>
       </View>
@@ -162,9 +166,15 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
 
       {/* ── Action row ── */}
       {isDNC ? (
-        <Text style={styles.dncText}>⛔ Do Not Contact</Text>
+        <View style={styles.dncRow}>
+          <Ionicons name="ban" size={14} color="#dc2626" />
+          <Text style={styles.dncText}>Do Not Contact</Text>
+        </View>
       ) : isBlocked ? (
-        <Text style={styles.dncText}>🔒 Restricted</Text>
+        <View style={styles.dncRow}>
+          <Ionicons name="lock-closed" size={14} color="#dc2626" />
+          <Text style={styles.dncText}>Restricted</Text>
+        </View>
       ) : isRevealed ? (
         <View style={styles.revealedColumn}>
           {firstPhone && (
@@ -173,7 +183,7 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
               style={styles.dataChipFull}
               activeOpacity={0.7}
             >
-              <Text style={styles.dataChipIcon}>📞</Text>
+              <Ionicons name="call" size={13} color="#525252" />
               <Text style={styles.dataChipText} numberOfLines={1} ellipsizeMode="tail">
                 {formatPhone(firstPhone.normalized_number ?? firstPhone.number)}
               </Text>
@@ -194,7 +204,7 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
               style={styles.dataChipFull}
               activeOpacity={0.7}
             >
-              <Text style={styles.dataChipIcon}>✉</Text>
+              <Ionicons name="mail" size={13} color="#525252" />
               <Text style={styles.dataChipText} numberOfLines={1} ellipsizeMode="tail">
                 {firstEmail.address}
               </Text>
@@ -220,9 +230,12 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
           )}
         </View>
       ) : revealError ? (
-        <Text style={styles.protectedText}>
-          🔒 This Contact's Info is Protected – Upgrade to Unlock Access
-        </Text>
+        <View style={styles.protectedRow}>
+          <Ionicons name="lock-closed" size={13} color="#92400e" />
+          <Text style={styles.protectedText}>
+            This Contact's Info is Protected – Upgrade to Unlock Access
+          </Text>
+        </View>
       ) : (
         <View style={styles.actionRow}>
           <TouchableOpacity
@@ -231,9 +244,14 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
             style={[styles.revealBtn, revealMutation.isPending && { opacity: 0.6 }]}
             activeOpacity={0.8}
           >
-            <Text style={styles.revealBtnText}>
-              {revealMutation.isPending ? 'Revealing…' : '🔓 Reveal Contact'}
-            </Text>
+            {revealMutation.isPending ? (
+              <Text style={styles.revealBtnText}>Revealing…</Text>
+            ) : (
+              <View style={styles.revealBtnInner}>
+                <Ionicons name="lock-open" size={14} color="#ffffff" />
+                <Text style={styles.revealBtnText}>Reveal Contact</Text>
+              </View>
+            )}
           </TouchableOpacity>
           {hasLinkedIn && (
             <TouchableOpacity
@@ -251,7 +269,7 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
 }
 
 const PURPLE = '#6f45ff';
-const PURPLE_LIGHT = '#f0ecff';
+const PURPLE_LIGHT = '#f3efff';
 
 const styles = StyleSheet.create({
   card: {
@@ -301,19 +319,46 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#262626',
     letterSpacing: 0.1,
   },
   subtitle: {
     fontSize: 13,
-    color: '#6b7280',
+    color: '#737373',
     marginTop: 2,
     fontWeight: '400',
   },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 3,
+    gap: 3,
+  },
   location: {
     fontSize: 12,
-    color: '#9ca3af',
-    marginTop: 2,
+    color: '#a3a3a3',
+    flexShrink: 1,
+  },
+  dncRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  revealBtnInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  protectedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#fef3c7',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderWidth: 1,
+    borderColor: '#fde68a',
   },
   dncBadge: {
     backgroundColor: '#fee2e2',
@@ -330,7 +375,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#e5e5e5',
     marginVertical: 10,
     marginHorizontal: -2,
   },
@@ -347,7 +392,7 @@ const styles = StyleSheet.create({
   dataChipFull: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#f9f9f9',
     borderWidth: 1,
     borderColor: '#e5e7eb',
     borderRadius: 8,
@@ -358,7 +403,7 @@ const styles = StyleSheet.create({
   dataChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#f9f9f9',
     borderWidth: 1,
     borderColor: '#e5e7eb',
     borderRadius: 8,
@@ -377,12 +422,9 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     marginLeft: 'auto',
   },
-  dataChipIcon: {
-    fontSize: 12,
-  },
   dataChipText: {
     fontSize: 12,
-    color: '#374151',
+    color: '#262626',
     fontWeight: '500',
     flexShrink: 1,
   },
@@ -419,15 +461,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   protectedText: {
+    flex: 1,
     fontSize: 12,
     color: '#92400e',
     fontWeight: '500',
     lineHeight: 17,
-    backgroundColor: '#fef3c7',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderWidth: 1,
-    borderColor: '#fde68a',
   },
 });

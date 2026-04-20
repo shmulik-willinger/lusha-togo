@@ -7,6 +7,7 @@ import {
   FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { AISearchBar } from '../../src/components/AISearchBar';
 import { AIThinkingOverlay } from '../../src/components/AIThinkingOverlay';
 import { FilterSheet } from '../../src/components/FilterSheet';
@@ -51,7 +52,7 @@ export default function SearchScreen() {
 
   const isLoading = searchQuery.isLoading || aiSearch.isPending;
   return (
-    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f2f2f2', direction: 'ltr' }}>
       <AIThinkingOverlay visible={aiSearch.isPending} />
 
       {/* AI Search bar */}
@@ -73,7 +74,7 @@ export default function SearchScreen() {
             onPress={() => { clearFilters(); setSearchResetKey((k) => k + 1); }}
             activeOpacity={0.7}
           >
-            <Text style={{ color: '#9ca3af', fontSize: 13 }}>✕ Clear search</Text>
+            <Text style={{ color: '#a3a3a3', fontSize: 13 }}>✕ Clear search</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -202,7 +203,7 @@ function EmptyState() {
 function AddCompanyFiltersState({ onOpenFilters }: { onOpenFilters: () => void }) {
   return (
     <View className="flex-1 items-center justify-center px-8">
-      <Text className="text-5xl mb-4">🏢</Text>
+      <Ionicons name="business-outline" size={56} color="#a3a3a3" style={{ marginBottom: 16 }} />
       <Text className="text-neutral-800 font-sans-semibold text-xl text-center mb-2">
         Add company filters
       </Text>

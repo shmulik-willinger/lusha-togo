@@ -13,6 +13,7 @@ import {
   SafeAreaView,
   Image,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import type { WebViewNavigation } from 'react-native-webview';
@@ -471,23 +472,25 @@ export default function LoginScreen() {
 
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 16, marginBottom: 4 }}>
               <View style={{ flex: 1, height: 1, backgroundColor: '#e5e7eb' }} />
-              <Text style={{ marginHorizontal: 12, fontSize: 12, color: '#9ca3af', fontWeight: '500' }}>or</Text>
+              <Text style={{ marginHorizontal: 12, fontSize: 12, color: '#a3a3a3', fontWeight: '500' }}>or</Text>
               <View style={{ flex: 1, height: 1, backgroundColor: '#e5e7eb' }} />
             </View>
 
             <TouchableOpacity
               onPress={handleSSOPress}
               disabled={loading}
-              style={{ borderWidth: 1.5, borderColor: '#6f45ff', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 4 }}
+              style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, borderWidth: 1.5, borderColor: '#6f45ff', borderRadius: 12, paddingVertical: 14, marginTop: 4 }}
               activeOpacity={0.85}
             >
-              <Text style={{ color: '#6f45ff', fontSize: 15, fontWeight: '700' }}>🔐 Sign in with SSO</Text>
+              <Ionicons name="shield-checkmark-outline" size={18} color="#6f45ff" />
+              <Text style={{ color: '#6f45ff', fontSize: 15, fontWeight: '700' }}>Sign in with SSO</Text>
             </TouchableOpacity>
 
             {ssoError ? (
-              <View style={{ marginTop: 12, backgroundColor: '#fef2f2', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#fecaca' }}>
-                <Text style={{ color: '#dc2626', fontSize: 14, fontWeight: '500', textAlign: 'center' }}>
-                  🔒 {ssoError}
+              <View style={{ marginTop: 12, backgroundColor: '#fef2f2', borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#fecaca', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="lock-closed" size={16} color="#dc2626" />
+                <Text style={{ color: '#dc2626', fontSize: 14, fontWeight: '500', flex: 1 }}>
+                  {ssoError}
                 </Text>
               </View>
             ) : null}
@@ -495,7 +498,7 @@ export default function LoginScreen() {
             {ssoExpanded && (
               <View style={{ marginTop: 12 }}>
                 <TextInput
-                  style={{ backgroundColor: '#f9fafb', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 13, fontSize: 15, color: '#1a1a1a', marginBottom: 10 }}
+                  style={{ backgroundColor: '#f9f9f9', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 13, fontSize: 15, color: '#262626', marginBottom: 10 }}
                   placeholder="Enter your work email"
                   placeholderTextColor="#a3a3a3"
                   value={ssoEmail}
@@ -562,9 +565,9 @@ export default function LoginScreen() {
           {!captchaRequired && (
             <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', zIndex: 10 }}>
               <ActivityIndicator size="large" color="#6f45ff" />
-              <Text style={{ marginTop: 14, color: '#1a1a1a', fontSize: 15, fontWeight: '600' }}>Signing in…</Text>
+              <Text style={{ marginTop: 14, color: '#262626', fontSize: 15, fontWeight: '600' }}>Signing in…</Text>
               <TouchableOpacity onPress={handleWebViewClose} style={{ marginTop: 24 }} activeOpacity={0.7}>
-                <Text style={{ color: '#9ca3af', fontSize: 14 }}>Cancel</Text>
+                <Text style={{ color: '#a3a3a3', fontSize: 14 }}>Cancel</Text>
               </TouchableOpacity>
             </View>
           )}

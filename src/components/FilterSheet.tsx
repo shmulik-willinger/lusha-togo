@@ -216,10 +216,10 @@ function AutocompleteFilter<T>({
                   setText('');
                   setSuggestions([]);
                 }}
-                style={{ paddingHorizontal: 12, paddingVertical: 11, borderBottomWidth: i < suggestions.length - 1 ? 1 : 0, borderBottomColor: '#f3f4f6' }}
+                style={{ paddingHorizontal: 12, paddingVertical: 11, borderBottomWidth: i < suggestions.length - 1 ? 1 : 0, borderBottomColor: '#e5e5e5' }}
                 activeOpacity={0.7}
               >
-                <Text style={{ fontSize: 14, color: '#374151' }}>{getLabel(item)}</Text>
+                <Text style={{ fontSize: 14, color: '#262626' }}>{getLabel(item)}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
