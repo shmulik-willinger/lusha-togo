@@ -25,6 +25,9 @@ import { AppearanceSheet } from '../../src/components/account/AppearanceSheet';
 import { SettingsGroup, type SettingsRow } from '../../src/components/ui/SettingsGroup';
 import { Section } from '../../src/components/ui/Section';
 import { useSignalsStore } from '../../src/store/signalsStore';
+import { useCompanyStore } from '../../src/store/companyStore';
+import { useContactStore } from '../../src/store/contactStore';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { color as staticColor, radius } from '../../src/theme/tokens';
 
@@ -143,7 +146,10 @@ function SignalsSetupModal({ visible, onClose }: { visible: boolean; onClose: ()
 
 export default function AccountScreen() {
   const { session, clearSession, updateCredits } = useAuthStore();
-  const { apiKey, subscriptions } = useSignalsStore();
+  const { apiKey, subscriptions, reset: resetSignals } = useSignalsStore();
+  const resetCompany = useCompanyStore((s) => s.reset);
+  const resetContact = useContactStore((s) => s.reset);
+  const queryClient = useQueryClient();
   const { color, pref, setPref } = useTheme();
   const [signalsModalOpen, setSignalsModalOpen] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
@@ -169,8 +175,19 @@ export default function AccountScreen() {
         text: 'Sign Out',
         style: 'destructive',
         onPress: async () => {
-          await logout();
+          // Fire-and-forget the server logout so a slow /v2/logout never blocks UX
+          void logout().catch(() => {});
+
+          // Clear EVERY per-user cache so the next user does not inherit anything.
+          // clearSession is fast now (fire-and-forget internals); resetSignals is
+          // lightweight (state + AsyncStorage.removeItem); the two store resets
+          // are just set() calls; queryClient.clear() is in-memory only.
           await clearSession();
+          void resetSignals().catch(() => {});
+          resetCompany();
+          resetContact();
+          queryClient.clear();
+
           router.replace('/(auth)/login');
         },
       },

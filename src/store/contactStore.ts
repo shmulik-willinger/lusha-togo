@@ -12,6 +12,7 @@ interface ContactStore {
   revealedContacts: Record<string, SearchContact>;
   setRevealedContact: (contact: SearchContact) => void;
   getRevealedContact: (contactId: string) => SearchContact | undefined;
+  reset: () => void;
 }
 
 export const useContactStore = create<ContactStore>((set, get) => ({
@@ -26,4 +27,10 @@ export const useContactStore = create<ContactStore>((set, get) => ({
       revealedContacts: { ...state.revealedContacts, [contact.contactId]: contact },
     })),
   getRevealedContact: (contactId) => get().revealedContacts[contactId],
+  reset: () => set({
+    selectedContact: null,
+    recommendedLeads: [],
+    recommendedTotal: 0,
+    revealedContacts: {},
+  }),
 }));

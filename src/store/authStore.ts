@@ -1,7 +1,12 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CookieManager from '@react-native-cookies/cookies';
 
 const SESSION_KEY = 'lusha_session';
+const SECURE_API_KEY = 'lusha_api_key';
+const STORAGE_SIGNALS_KEY = 'lusha_signals_history';
+const STORAGE_SUBS_KEY = 'lusha_subscriptions';
 
 export interface SessionData {
   cookie: string;       // full cookie string captured from WebView
@@ -49,8 +54,21 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   clearSession: async () => {
-    await SecureStore.deleteItemAsync(SESSION_KEY);
+    // Fast path: clear the session record + in-memory state so the router
+    // navigates to /(auth)/login immediately and never renders stale data.
+    try { await SecureStore.deleteItemAsync(SESSION_KEY); } catch {}
     set({ session: null });
+
+    // Slow path: fire-and-forget cleanup. We don't await these because any
+    // single failure (or a blocking CookieManager call on Android) would ANR
+    // the UI and block sign-out. The next login either overwrites them or
+    // ignores them entirely.
+    void Promise.resolve().then(async () => {
+      try { await CookieManager.clearAll(); } catch {}
+      try { await SecureStore.deleteItemAsync(SECURE_API_KEY); } catch {}
+      try { await AsyncStorage.removeItem(STORAGE_SIGNALS_KEY); } catch {}
+      try { await AsyncStorage.removeItem(STORAGE_SUBS_KEY); } catch {}
+    });
   },
 
   updateCredits: (creditsUsed: number, creditsTotal: number) => {

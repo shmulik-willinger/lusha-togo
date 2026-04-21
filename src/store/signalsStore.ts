@@ -64,6 +64,8 @@ interface SignalsState {
   addSignal: (signal: ReceivedSignal) => Promise<void>;
   markAllRead: () => Promise<void>;
   clearSignals: () => Promise<void>;
+  /** Full reset — called on logout so a new user doesn't inherit subs/signals/api key */
+  reset: () => Promise<void>;
 }
 
 export const useSignalsStore = create<SignalsState>((set, get) => ({
@@ -146,5 +148,12 @@ export const useSignalsStore = create<SignalsState>((set, get) => ({
   clearSignals: async () => {
     await AsyncStorage.removeItem(STORAGE_SIGNALS_KEY);
     set({ signals: [], unreadCount: 0 });
+  },
+
+  reset: async () => {
+    try { await SecureStore.deleteItemAsync(SECURE_API_KEY); } catch {}
+    try { await AsyncStorage.removeItem(STORAGE_SIGNALS_KEY); } catch {}
+    try { await AsyncStorage.removeItem(STORAGE_SUBS_KEY); } catch {}
+    set({ apiKey: '', subscriptions: [], signals: [], unreadCount: 0 });
   },
 }));
