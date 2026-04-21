@@ -14,6 +14,9 @@ import { router } from 'expo-router';
 import { useSignalsStore, ReceivedSignal, StoredSubscription } from '../../src/store/signalsStore';
 import { listSubscriptions, deleteSubscription } from '../../src/api/signals';
 import { SignalsTeaser } from '../../src/components/signals/SignalsTeaser';
+import { useCompanyStore } from '../../src/store/companyStore';
+import { useContactStore } from '../../src/store/contactStore';
+import { SearchCompany, SearchContact } from '../../src/api/search';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -113,11 +116,31 @@ function signalBody(signal: ReceivedSignal): string {
   }
 }
 
-function navigateToEntity(signal: ReceivedSignal) {
+function navigateToEntity(
+  signal: ReceivedSignal,
+  setSelectedCompany: (c: SearchCompany) => void,
+  setSelectedContact: (c: SearchContact) => void,
+) {
   if (!signal.entityId) return;
   if (signal.entityType === 'company') {
+    // Seed the store with a minimal company so CompanyDetailScreen renders the right entity
+    const minimal = {
+      company_lid: String(signal.entityId),
+      company_id: String(signal.entityId),
+      name: signal.entityName,
+      logo_url: signal.logoUrl,
+    } as unknown as SearchCompany;
+    setSelectedCompany(minimal);
     router.push(`/company/${signal.entityId}`);
   } else {
+    const [first, ...rest] = (signal.entityName ?? '').split(' ');
+    const last = rest.join(' ');
+    const minimal = {
+      contactId: String(signal.entityId),
+      personId: signal.entityId,
+      name: { first, last, full: signal.entityName },
+    } as unknown as SearchContact;
+    setSelectedContact(minimal);
     router.push(`/contact/${signal.entityId}`);
   }
 }
@@ -189,9 +212,11 @@ function EntityAvatar({ signal }: { signal: ReceivedSignal }) {
 
 function SignalCard({ signal }: { signal: ReceivedSignal }) {
   const body = signalBody(signal);
+  const setSelectedCompany = useCompanyStore((s) => s.setSelectedCompany);
+  const setSelectedContact = useContactStore((s) => s.setSelectedContact);
   return (
     <TouchableOpacity
-      onPress={() => navigateToEntity(signal)}
+      onPress={() => navigateToEntity(signal, setSelectedCompany, setSelectedContact)}
       activeOpacity={signal.entityId ? 0.75 : 1}
       style={{
         backgroundColor: signal.read ? '#fff' : '#f5f0ff',

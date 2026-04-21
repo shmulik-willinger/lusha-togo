@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Check } from 'lucide-react-native';
 import { color, radius } from '../../theme/tokens';
 
@@ -19,10 +20,14 @@ const OPTIONS: { value: Pref; label: string; sub: string }[] = [
 ];
 
 export function AppearanceSheet({ visible, value, onChange, onClose }: AppearanceSheetProps) {
+  const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
-        <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+        <Pressable
+          style={[styles.sheet, { paddingBottom: Math.max(20, insets.bottom + 16) }]}
+          onPress={(e) => e.stopPropagation()}
+        >
           <View style={styles.handle} />
           <Text style={styles.title}>Appearance</Text>
           {OPTIONS.map((opt) => {
@@ -58,7 +63,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
-    paddingBottom: 40,
   },
   handle: {
     width: 36, height: 4, borderRadius: 2,

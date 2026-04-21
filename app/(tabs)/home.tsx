@@ -8,6 +8,9 @@ import { useRecommendations } from '../../src/hooks/useRecommendations';
 import { HomeHero } from '../../src/components/home/HomeHero';
 import { SignalCard } from '../../src/components/home/SignalCard';
 import { useSignalsStore, ReceivedSignal } from '../../src/store/signalsStore';
+import { useCompanyStore } from '../../src/store/companyStore';
+import { useContactStore } from '../../src/store/contactStore';
+import { SearchCompany, SearchContact } from '../../src/api/search';
 import { color, radius } from '../../src/theme/tokens';
 
 function signalKindFromType(t: string): 'funding' | 'jobChange' | 'news' {
@@ -24,11 +27,54 @@ function signalSubtitle(s: ReceivedSignal): string {
   return s.signalType;
 }
 
+function navigateToSignalEntity(
+  signal: ReceivedSignal,
+  setSelectedCompany: (c: SearchCompany) => void,
+  setSelectedContact: (c: SearchContact) => void,
+) {
+  if (!signal.entityId) return;
+  if (signal.entityType === 'company') {
+    // Seed a minimal SearchCompany so the detail screen renders immediately
+    const minimal = {
+      company_lid: String(signal.entityId),
+      company_id: String(signal.entityId),
+      name: signal.entityName,
+      logo_url: signal.logoUrl,
+    } as unknown as SearchCompany;
+    setSelectedCompany(minimal);
+    router.push(`/company/${signal.entityId}`);
+  } else {
+    const [first, ...rest] = (signal.entityName ?? '').split(' ');
+    const last = rest.join(' ');
+    const minimal = {
+      contactId: String(signal.entityId),
+      personId: signal.entityId,
+      name: { first, last, full: signal.entityName },
+    } as unknown as SearchContact;
+    setSelectedContact(minimal);
+    router.push(`/contact/${signal.entityId}`);
+  }
+}
+
 export default function HomeScreen() {
   const { data: recsData, isLoading, refetch, error } = useRecommendations();
   const signals = useSignalsStore((s) => s.signals);
+  const setSelectedCompany = useCompanyStore((s) => s.setSelectedCompany);
+  const setSelectedContact = useContactStore((s) => s.setSelectedContact);
 
-  const recentSignals = signals.slice(0, 3);
+  // De-dupe by entityId — show at most one card per entity
+  const recentSignals = (() => {
+    const seen = new Set<string>();
+    const out: ReceivedSignal[] = [];
+    for (const s of signals) {
+      const key = `${s.entityType}:${s.entityId}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(s);
+      if (out.length === 3) break;
+    }
+    return out;
+  })();
   const total = recsData?.leads?.length ?? 0;
 
   return (
@@ -51,10 +97,9 @@ export default function HomeScreen() {
                   kind={signalKindFromType(s.signalType)}
                   title={s.entityName}
                   subtitle={signalSubtitle(s)}
-                  onPress={() => {
-                    if (s.entityType === 'company') router.push(`/company/${s.entityId}`);
-                    else router.push(`/contact/${s.entityId}`);
-                  }}
+                  logoUrl={s.logoUrl}
+                  entityName={s.entityName}
+                  onPress={() => navigateToSignalEntity(s, setSelectedCompany, setSelectedContact)}
                 />
               ))}
             </View>

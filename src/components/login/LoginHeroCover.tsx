@@ -32,10 +32,12 @@ export function LoginHeroCover({ height = 360 }: LoginHeroCoverProps) {
             style={{ width: 40, height: 40, borderRadius: 10 }}
           />
         </View>
-        <Text style={styles.title}>Sell smarter. From anywhere.</Text>
-        <Text style={styles.sub}>
-          Verified B2B contacts in your pocket. Sign in to sync your pipeline.
-        </Text>
+        <View style={styles.textBlock}>
+          <Text style={styles.title}>Sell smarter.{'\n'}From anywhere.</Text>
+          <Text style={styles.sub}>
+            Verified B2B contacts in your pocket. Sign in to sync your pipeline.
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -43,18 +45,19 @@ export function LoginHeroCover({ height = 360 }: LoginHeroCoverProps) {
 
 const styles = StyleSheet.create({
   wrap: { overflow: 'hidden' },
-  inner: { flex: 1, padding: 24, justifyContent: 'flex-end' },
+  inner: { flex: 1, paddingHorizontal: 24, paddingTop: 56, paddingBottom: 40 },
   mark: {
     width: 40, height: 40, borderRadius: 10,
     alignItems: 'center', justifyContent: 'center',
-    marginBottom: 'auto',
+    marginBottom: 24,
   },
+  textBlock: { flex: 1, justifyContent: 'center' },
   title: {
     color: '#FFFFFF', fontSize: 28, fontWeight: '800',
-    letterSpacing: -1, lineHeight: 32, maxWidth: 260,
+    letterSpacing: -1, lineHeight: 34, maxWidth: 280,
   },
   sub: {
-    color: 'rgba(255,255,255,0.65)', fontSize: 12, lineHeight: 18,
-    maxWidth: 260, marginTop: 8,
+    color: 'rgba(255,255,255,0.65)', fontSize: 13, lineHeight: 19,
+    maxWidth: 280, marginTop: 10,
   },
 });

@@ -9,7 +9,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { Bell, Moon, HelpCircle, LogOut } from 'lucide-react-native';
@@ -64,6 +64,7 @@ function SignalsSetupModal({ visible, onClose }: { visible: boolean; onClose: ()
   const { apiKey, setApiKey } = useSignalsStore();
   const [draft, setDraft] = useState('');
   const [editing, setEditing] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible) {
@@ -90,7 +91,7 @@ function SignalsSetupModal({ visible, onClose }: { visible: boolean; onClose: ()
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }} onPress={onClose}>
-        <Pressable style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 40 }} onPress={(e) => e.stopPropagation()}>
+        <Pressable style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: Math.max(20, insets.bottom + 16) }} onPress={(e) => e.stopPropagation()}>
           <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: '#D1D1DB', alignSelf: 'center', marginBottom: 14 }} />
           <Text style={{ fontSize: 17, fontWeight: '800', color: staticColor.ink, marginBottom: 8 }}>Signals Setup</Text>
           <Text style={{ fontSize: 12, color: staticColor.muted, marginBottom: 14 }}>
