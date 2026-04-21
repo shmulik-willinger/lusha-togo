@@ -502,29 +502,39 @@ export default function CompanyDetailScreen() {
     );
   }
 
-  // Merge enriched search data into stored data — fills in fields missing
-  // from recommendations AND from signal-seeded minimal navigation.
+  // Merge enriched search data into stored data.
+  //
+  // Different entry points give us different shapes of `storedCompany`:
+  //   - Search:          full SearchCompany (from /prospecting-search)
+  //   - List detail:     full SearchCompany
+  //   - Recommendations: PARTIAL — only primary_industry / min-max size / city
+  //   - Signals tap:     MINIMAL — just name + logo + id
+  //
+  // To make every entry point render the same rich page, we prefer
+  // `enrichSearch` values when they're present (it re-fetches the same
+  // prospecting endpoint that Search uses), and fall back to the stored
+  // value only when enrichSearch didn't return this field.
   const e = enrichSearch?.companies?.[0];
   const company: SearchCompany = {
     ...storedCompany,
-    // Core identity fields that are commonly missing when seeded from a signal
-    industry: storedCompany.industry ?? e?.industry,
-    company_size: storedCompany.company_size ?? e?.company_size,
-    location: storedCompany.location ?? e?.location,
-    // Rich fields typically only in the prospecting search response
-    social: storedCompany.social ?? e?.social,
-    homepage_url: storedCompany.homepage_url ?? e?.homepage_url,
-    description: storedCompany.description ?? e?.description,
-    revenue_range: storedCompany.revenue_range ?? e?.revenue_range,
-    founded: storedCompany.founded ?? e?.founded,
-    secondary_industry: storedCompany.secondary_industry ?? e?.secondary_industry,
-    specialties: storedCompany.specialties ?? e?.specialties,
-    linkedin_followers: storedCompany.linkedin_followers ?? e?.linkedin_followers,
-    sic: storedCompany.sic ?? e?.sic,
-    naics: storedCompany.naics ?? e?.naics,
-    funding_rounds: storedCompany.funding_rounds ?? e?.funding_rounds,
-    funding_summary: storedCompany.funding_summary ?? e?.funding_summary,
-    logo_url: storedCompany.logo_url ?? e?.logo_url,
+    // Prefer enrichSearch for rich object fields so partial data from
+    // Recommendations doesn't mask the full prospecting payload.
+    industry: e?.industry ?? storedCompany.industry,
+    company_size: e?.company_size ?? storedCompany.company_size,
+    location: e?.location ?? storedCompany.location,
+    social: e?.social ?? storedCompany.social,
+    homepage_url: e?.homepage_url ?? storedCompany.homepage_url,
+    description: e?.description ?? storedCompany.description,
+    revenue_range: e?.revenue_range ?? storedCompany.revenue_range,
+    founded: e?.founded ?? storedCompany.founded,
+    secondary_industry: e?.secondary_industry ?? storedCompany.secondary_industry,
+    specialties: e?.specialties ?? storedCompany.specialties,
+    linkedin_followers: e?.linkedin_followers ?? storedCompany.linkedin_followers,
+    sic: e?.sic ?? storedCompany.sic,
+    naics: e?.naics ?? storedCompany.naics,
+    funding_rounds: e?.funding_rounds ?? storedCompany.funding_rounds,
+    funding_summary: e?.funding_summary ?? storedCompany.funding_summary,
+    logo_url: storedCompany.logo_url ?? e?.logo_url, // prefer original logo we already showed
   };
 
   const sizeLabel = company.company_size?.min != null && company.company_size?.max != null
