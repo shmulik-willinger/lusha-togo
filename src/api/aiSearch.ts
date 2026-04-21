@@ -1,6 +1,6 @@
 import apiClient from './client';
 import { SearchFilters } from './search';
-import { CompanyNameOption, LocationOption } from './filters';
+import { CompanyNameOption, LocationOption, IndustryLabelOption, fetchCompanyLocations, fetchIndustryLabels } from './filters';
 
 export interface TextToFiltersResponse {
   request_id: string;
@@ -53,6 +53,62 @@ export function clientTextToFilters(_text: string): SearchFilters {
 export function clientTextToCompanyFiltersWithResidual(text: string): { filters: SearchFilters; residual: string } {
   const { filters, residual } = extractCompanyFilters(text);
   return { filters, residual };
+}
+
+/**
+ * Async version that upgrades text hints to proper Lusha filter objects by
+ * calling the autocomplete endpoints. Matches what the dashboard does when
+ * text-to-filters is down: parse → autocomplete → valid IDs.
+ *
+ * If autocomplete fails, the raw {name: "..."} hint is dropped entirely —
+ * better to return broader search results than zero results from an
+ * invalid filter.
+ */
+export async function clientTextToCompanyFiltersWithLookup(text: string): Promise<{ filters: SearchFilters; residual: string }> {
+  const { filters, residual } = extractCompanyFilters(text);
+  const residualTokens = residual.split(/\s+/).filter(Boolean);
+  const industryKeyword = residualTokens[0] && /^[A-Za-z]+$/.test(residualTokens[0]) ? residualTokens[0] : '';
+
+  // Location — replace the bare {name:"UK"} with a proper autocomplete hit
+  const locHint = filters.companyLocation?.[0]?.name;
+  const locationPromise = locHint
+    ? fetchCompanyLocations(locHint).then((opts) => opts.find((o) => o.key === 'country') ?? opts[0] ?? null)
+    : Promise.resolve(null);
+
+  // Industry — try to convert the residual keyword into a real industry label
+  const industryPromise = industryKeyword
+    ? fetchIndustryLabels(industryKeyword).then((opts) =>
+        // Prefer main-industry matches, fall back to first
+        opts.find((o) => o.mainIndustry?.toLowerCase() === industryKeyword.toLowerCase()) ?? opts[0] ?? null,
+      )
+    : Promise.resolve(null);
+
+  const [resolvedLocation, resolvedIndustry] = await Promise.all([locationPromise, industryPromise]);
+
+  const out: SearchFilters = { ...filters };
+  if (resolvedLocation) {
+    out.companyLocation = [resolvedLocation as LocationOption];
+  } else {
+    // No valid location option — drop the raw hint
+    delete out.companyLocation;
+  }
+  if (resolvedIndustry) {
+    out.companyIndustryLabels = [resolvedIndustry as IndustryLabelOption];
+  }
+
+  // Revenue: the raw min-only hint won't match Lusha's bucket format, so we
+  // drop it entirely and rely on the other filters. (Revenue lookup would need
+  // its own bucket catalog that the client doesn't have.)
+  delete out.companyRevenue;
+
+  // Strip the industry keyword from the searchText once we've promoted it to a
+  // structured filter — otherwise we double-filter ("Biotech" keyword + Biotech
+  // industry) and often get zero.
+  const cleanResidual = resolvedIndustry && industryKeyword
+    ? residual.replace(new RegExp(`\\b${industryKeyword}\\b`, 'i'), '').replace(/\s+/g, ' ').trim()
+    : residual;
+
+  return { filters: out, residual: cleanResidual };
 }
 
 export function clientTextToCompanyFilters(text: string): SearchFilters {
@@ -114,15 +170,17 @@ function extractCompanyFilters(text: string): { filters: SearchFilters; residual
   }
 
   // --- Founded year ---
-  // "founded after 2015", "founded in 2010", "since 2020"
+  // Lusha's API requires both min and max for the year range ("lte must be >= 1").
+  // Cap max at the current year; cap min at 1900 for "before X" queries.
+  const currentYear = new Date().getFullYear();
   const foundedAfter = residual.match(/\b(?:founded\s+(?:after|since)|since)\s+(\d{4})\b/i);
   const foundedBefore = residual.match(/\bfounded\s+before\s+(\d{4})\b/i);
   const foundedIn = residual.match(/\bfounded\s+in\s+(\d{4})\b/i);
   if (foundedAfter) {
-    result.companyFoundedYear = { min: Number(foundedAfter[1]) };
+    result.companyFoundedYear = { min: Number(foundedAfter[1]), max: currentYear };
     residual = residual.replace(foundedAfter[0], ' ');
   } else if (foundedBefore) {
-    result.companyFoundedYear = { max: Number(foundedBefore[1]) };
+    result.companyFoundedYear = { min: 1900, max: Number(foundedBefore[1]) };
     residual = residual.replace(foundedBefore[0], ' ');
   } else if (foundedIn) {
     const y = Number(foundedIn[1]);
