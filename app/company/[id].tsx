@@ -520,25 +520,39 @@ export default function CompanyDetailScreen() {
   // back to free-text search if the structured call returns no contacts. Some
   // companies (e.g. AbbVie) have data in prospecting but only match via the
   // dashboard's free-text search, not via the structured filter.
-  const { data: dmData, isLoading: dmLoading } = useQuery({
+  // Quota-exceeded errors are swallowed here so the rest of the page still
+  // renders — the main Search tab surfaces the dedicated quota UI already.
+  const { data: dmData, isLoading: dmLoading, error: dmError } = useQuery({
     queryKey: ['company-contacts', storedCompany?.name],
     queryFn: async () => {
       const name = storedCompany!.name;
-      const byFilter = await searchProspects({
-        filters: { companyName: [{ name } as CompanyNameOption] },
-        pageSize: 5,
-        tab: 'contacts',
-      });
-      if ((byFilter.contacts?.length ?? 0) > 0) return byFilter;
-      return await searchProspects({
-        searchText: name,
-        pageSize: 5,
-        tab: 'contacts',
-      });
+      try {
+        const byFilter = await searchProspects({
+          filters: { companyName: [{ name } as CompanyNameOption] },
+          pageSize: 5,
+          tab: 'contacts',
+        });
+        if ((byFilter.contacts?.length ?? 0) > 0) return byFilter;
+      } catch (e: any) {
+        if (e?.quotaExceeded) return { contacts: [], companies: [], total: 0, page: 1, hasMore: false, _quotaExceeded: true };
+        throw e;
+      }
+      try {
+        return await searchProspects({
+          searchText: name,
+          pageSize: 5,
+          tab: 'contacts',
+        });
+      } catch (e: any) {
+        if (e?.quotaExceeded) return { contacts: [], companies: [], total: 0, page: 1, hasMore: false, _quotaExceeded: true };
+        throw e;
+      }
     },
     enabled: !!storedCompany?.name,
     staleTime: 10 * 60 * 1000,
+    retry: false, // don't retry quota errors
   });
+  const dmQuotaExceeded = (dmData as any)?._quotaExceeded === true;
 
   // Enrich with the prospecting search so every entry point (Search, Lists,
   // Recommendations, Signals) gets the same rich page. Strategy: try the
@@ -555,27 +569,37 @@ export default function CompanyDetailScreen() {
     queryKey: enrichQueryKey,
     queryFn: async () => {
       const name = storedCompany!.name;
-      // 1st attempt: structured filter
-      const byFilter = await searchProspects({
-        filters: {
-          companyName: [{
-            name,
-            ...(enrichCompanyLid != null ? { company_lid: enrichCompanyLid } : {}),
-          } as CompanyNameOption],
-        },
-        pageSize: 1,
-        tab: 'companies',
-      });
-      if ((byFilter.companies?.length ?? 0) > 0) return byFilter;
+      try {
+        const byFilter = await searchProspects({
+          filters: {
+            companyName: [{
+              name,
+              ...(enrichCompanyLid != null ? { company_lid: enrichCompanyLid } : {}),
+            } as CompanyNameOption],
+          },
+          pageSize: 1,
+          tab: 'companies',
+        });
+        if ((byFilter.companies?.length ?? 0) > 0) return byFilter;
+      } catch (e: any) {
+        if (e?.quotaExceeded) return { contacts: [], companies: [], total: 0, page: 1, hasMore: false };
+        throw e;
+      }
       // 2nd attempt: free-text search — more forgiving, mirrors dashboard behavior
-      return await searchProspects({
-        searchText: name,
-        pageSize: 1,
-        tab: 'companies',
-      });
+      try {
+        return await searchProspects({
+          searchText: name,
+          pageSize: 1,
+          tab: 'companies',
+        });
+      } catch (e: any) {
+        if (e?.quotaExceeded) return { contacts: [], companies: [], total: 0, page: 1, hasMore: false };
+        throw e;
+      }
     },
     enabled: !!storedCompany?.name,
     staleTime: 30 * 60 * 1000,
+    retry: false, // don't burn retries on quota errors
   });
 
   if (!storedCompany) {
@@ -678,7 +702,13 @@ export default function CompanyDetailScreen() {
               <ActivityIndicator size="small" color={color.brand} />
             </View>
           ) : decisionMakers.length === 0 ? (
-            <Text style={{ color: color.muted2, fontSize: 13, paddingVertical: 12 }}>No contacts found</Text>
+            dmQuotaExceeded ? (
+              <Text style={{ color: color.muted, fontSize: 13, paddingVertical: 12, lineHeight: 18 }}>
+                Daily search limit reached. Decision makers will appear after the quota resets.
+              </Text>
+            ) : (
+              <Text style={{ color: color.muted2, fontSize: 13, paddingVertical: 12 }}>No contacts found</Text>
+            )
           ) : (
             decisionMakers.map((c) => (
               <DecisionMakerCard key={c.contactId} contact={c} />
