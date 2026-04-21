@@ -29,6 +29,48 @@ import { CompanyHero } from '../../src/components/company/CompanyHero';
 import { DecisionMakerRow } from '../../src/components/company/DecisionMakerRow';
 import { CollapsibleSection } from '../../src/components/ui/CollapsibleSection';
 import { color } from '../../src/theme/tokens';
+import { ReceivedSignal } from '../../src/store/signalsStore';
+
+function formatSignalDate(ts?: string): string {
+  if (!ts) return '';
+  try {
+    return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch { return ''; }
+}
+
+function LatestSignalsForEntity({ entityId, getLabel, getDetail }: {
+  entityId: string;
+  getLabel: (type: string) => string;
+  getDetail: (data: Record<string, any>, type: string) => string;
+}) {
+  const storeSignals = useSignalsStore((s) => s.signals);
+  const relevant = storeSignals
+    .filter((s) => String(s.entityId) === String(entityId))
+    .slice(0, 3);
+  if (relevant.length === 0) return null;
+  return (
+    <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingBottom: 8, marginBottom: 8 }}>
+      <Text style={{ fontSize: 11, fontWeight: '700', color: color.muted, textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 8 }}>
+        Recent Signals · {relevant.length}
+      </Text>
+      {relevant.map((s, i) => (
+        <View key={s.id ?? i} style={{ flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 10, borderBottomWidth: i < relevant.length - 1 ? 1 : 0, borderBottomColor: '#F3F3F5' }}>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: color.ink }}>{getLabel(s.signalType)}</Text>
+            </View>
+            {!!getDetail(s.data ?? {}, s.signalType) && (
+              <Text style={{ fontSize: 12, color: color.muted, marginTop: 2 }}>{getDetail(s.data ?? {}, s.signalType)}</Text>
+            )}
+          </View>
+          <Text style={{ fontSize: 11, color: color.muted2, marginLeft: 8 }}>
+            {formatSignalDate(s.data?.signalDate ?? s.timestamp)}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
 
 function StatRow({ label, value }: { label: string; value: string }) {
   return (
@@ -460,10 +502,16 @@ export default function CompanyDetailScreen() {
     );
   }
 
-  // Merge enriched search data into stored data — fills in fields missing from recommendations
+  // Merge enriched search data into stored data — fills in fields missing
+  // from recommendations AND from signal-seeded minimal navigation.
   const e = enrichSearch?.companies?.[0];
   const company: SearchCompany = {
     ...storedCompany,
+    // Core identity fields that are commonly missing when seeded from a signal
+    industry: storedCompany.industry ?? e?.industry,
+    company_size: storedCompany.company_size ?? e?.company_size,
+    location: storedCompany.location ?? e?.location,
+    // Rich fields typically only in the prospecting search response
     social: storedCompany.social ?? e?.social,
     homepage_url: storedCompany.homepage_url ?? e?.homepage_url,
     description: storedCompany.description ?? e?.description,
@@ -517,6 +565,13 @@ export default function CompanyDetailScreen() {
             <FollowCompanyButton company={company} />
           </View>
         </View>
+
+        {/* Recent signals from local store (shown when navigated from Activity) */}
+        <LatestSignalsForEntity
+          entityId={String(company.company_id || company.company_lid || '')}
+          getLabel={signalLabel}
+          getDetail={(data, type) => signalDetail({ data, signalType: type } as LushaSignalEvent)}
+        />
 
         {/* Decision Makers — promoted to top */}
         <View style={{ backgroundColor: '#fff', paddingHorizontal: 16, paddingBottom: 8, marginBottom: 8 }}>
