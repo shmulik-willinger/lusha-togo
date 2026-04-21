@@ -6,11 +6,11 @@ const PAGE_SIZE = 25;
 
 export function useSearch(filters: SearchFilters, tab: 'contacts' | 'companies', enabled: boolean) {
   const sessionId = useSearchStore((s) => s.sessionId);
-  const queryText = useSearchStore((s) => s.queryText);
+  const apiSearchText = useSearchStore((s) => s.apiSearchText);
   return useInfiniteQuery({
-    queryKey: ['search', tab, filters, sessionId, queryText],
+    queryKey: ['search', tab, filters, sessionId, apiSearchText],
     queryFn: ({ pageParam = 1 }) =>
-      searchProspects({ filters, page: pageParam as number, pageSize: PAGE_SIZE, tab, sessionId, searchText: queryText || undefined }),
+      searchProspects({ filters, page: pageParam as number, pageSize: PAGE_SIZE, tab, sessionId, searchText: apiSearchText || undefined }),
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage.hasMore) return undefined;
       return allPages.length + 1;

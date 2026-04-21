@@ -8,7 +8,9 @@ interface AISearchInput {
 }
 
 export function useAISearch() {
-  const { setFilters, setQueryText } = useSearchStore();
+  const setFilters = useSearchStore((s) => s.setFilters);
+  const setQueryText = useSearchStore((s) => s.setQueryText);
+  const setApiSearchText = useSearchStore((s) => s.setApiSearchText);
 
   return useMutation({
     mutationFn: async ({ text, tab }: AISearchInput) => {
@@ -19,7 +21,10 @@ export function useAISearch() {
       return { filters: mapped, requestId: response.request_id };
     },
     onSuccess: ({ filters }, { text }) => {
+      // Dashboard behaviour: the original sentence stays visible in the search
+      // bar, structured filters drive the query. No searchText token-matching.
       setQueryText(text);
+      setApiSearchText('');
       setFilters(filters);
     },
     onError: (err: any, { text, tab }) => {
@@ -27,14 +32,16 @@ export function useAISearch() {
       if (tab === 'companies') {
         const { filters, residual } = clientTextToCompanyFiltersWithResidual(text);
         console.log('[ai-search] fallback — filters:', JSON.stringify(filters), '| residual:', residual);
-        // Use the stripped residual as queryText so the search engine doesn't
-        // token-match on literals like "5000" or "employees" that we already
-        // captured as a structured filter.
-        setQueryText(residual || '');
+        // Display stays the original prompt. API searchText is the residual
+        // (keywords only) so the engine doesn't token-fail on literals like
+        // "5000" / "employees" that we already captured structurally.
+        setQueryText(text);
+        setApiSearchText(residual || '');
         setFilters(filters);
       } else {
         const fallback = clientTextToFilters(text);
         setQueryText(text);
+        setApiSearchText(text);
         setFilters(fallback);
       }
     },
