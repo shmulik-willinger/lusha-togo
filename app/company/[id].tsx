@@ -471,24 +471,64 @@ function FollowCompanyButton({ company }: { company: SearchCompany }) {
 export default function CompanyDetailScreen() {
   const storedCompany = useCompanyStore((s) => s.selectedCompany);
 
+  // Decision Makers query: try structured companyName filter first, then fall
+  // back to free-text search if the structured call returns no contacts. Some
+  // companies (e.g. AbbVie) have data in prospecting but only match via the
+  // dashboard's free-text search, not via the structured filter.
   const { data: dmData, isLoading: dmLoading } = useQuery({
     queryKey: ['company-contacts', storedCompany?.name],
-    queryFn: () => searchProspects({
-      filters: { companyName: [{ name: storedCompany!.name } as CompanyNameOption] },
-      pageSize: 5,
-      tab: 'contacts',
-    }),
+    queryFn: async () => {
+      const name = storedCompany!.name;
+      const byFilter = await searchProspects({
+        filters: { companyName: [{ name } as CompanyNameOption] },
+        pageSize: 5,
+        tab: 'contacts',
+      });
+      if ((byFilter.contacts?.length ?? 0) > 0) return byFilter;
+      return await searchProspects({
+        searchText: name,
+        pageSize: 5,
+        tab: 'contacts',
+      });
+    },
     enabled: !!storedCompany?.name,
     staleTime: 10 * 60 * 1000,
   });
 
+  // Enrich with the prospecting search so every entry point (Search, Lists,
+  // Recommendations, Signals) gets the same rich page. Strategy: try the
+  // structured `companyName` filter first; some company names (e.g. AbbVie)
+  // return zero hits via the structured filter, so we fall back to free-text
+  // `searchText` which is the same path the dashboard uses.
+  const enrichCompanyLid = (() => {
+    if (!storedCompany?.company_lid) return undefined;
+    const n = Number(storedCompany.company_lid);
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+  })();
+  const enrichQueryKey = ['company-enrich', storedCompany?.company_lid ?? '', storedCompany?.name ?? ''];
   const { data: enrichSearch } = useQuery({
-    queryKey: ['company-enrich', storedCompany?.name],
-    queryFn: () => searchProspects({
-      filters: { companyName: [{ name: storedCompany!.name } as CompanyNameOption] },
-      pageSize: 1,
-      tab: 'companies',
-    }),
+    queryKey: enrichQueryKey,
+    queryFn: async () => {
+      const name = storedCompany!.name;
+      // 1st attempt: structured filter
+      const byFilter = await searchProspects({
+        filters: {
+          companyName: [{
+            name,
+            ...(enrichCompanyLid != null ? { company_lid: enrichCompanyLid } : {}),
+          } as CompanyNameOption],
+        },
+        pageSize: 1,
+        tab: 'companies',
+      });
+      if ((byFilter.companies?.length ?? 0) > 0) return byFilter;
+      // 2nd attempt: free-text search — more forgiving, mirrors dashboard behavior
+      return await searchProspects({
+        searchText: name,
+        pageSize: 1,
+        tab: 'companies',
+      });
+    },
     enabled: !!storedCompany?.name,
     staleTime: 30 * 60 * 1000,
   });
