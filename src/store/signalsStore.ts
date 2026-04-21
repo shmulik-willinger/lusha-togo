@@ -59,7 +59,7 @@ interface SignalsState {
   setSubscriptions: (subs: StoredSubscription[]) => Promise<void>;
   addSubscription: (sub: StoredSubscription) => Promise<void>;
   removeSubscription: (id: string) => Promise<void>;
-  isFollowing: (entityId: string) => boolean;
+  isFollowing: (entityId: string, entityName?: string, entityType?: 'contact' | 'company') => boolean;
 
   addSignal: (signal: ReceivedSignal) => Promise<void>;
   markAllRead: () => Promise<void>;
@@ -125,8 +125,22 @@ export const useSignalsStore = create<SignalsState>((set, get) => ({
     set({ subscriptions: updated });
   },
 
-  isFollowing: (entityId: string) => {
-    return get().subscriptions.some((s) => s.entityId === String(entityId));
+  isFollowing: (entityId: string, entityName?: string, entityType?: 'contact' | 'company') => {
+    const subs = get().subscriptions;
+    const id = String(entityId);
+    // Primary match by entityId
+    if (subs.some((s) => s.entityId === id)) return true;
+    // Name fallback — Lusha's ID chaos means signals arrive with a different
+    // entityId than the subscription we listed from /api/subscriptions.
+    // Matching by (type, name) is pragmatic and correct in practice.
+    if (entityName) {
+      const clean = entityName.replace(/\s*—\s*Lusha ToGo\s*$/i, '').trim().toLowerCase();
+      return subs.some((s) => {
+        if (entityType && s.entityType !== entityType) return false;
+        return s.entityName.replace(/\s*—\s*Lusha ToGo\s*$/i, '').trim().toLowerCase() === clean;
+      });
+    }
+    return false;
   },
 
   addSignal: async (signal: ReceivedSignal) => {

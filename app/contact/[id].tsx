@@ -135,7 +135,7 @@ function ContactSignalsSection({ contact }: { contact: SearchContact }) {
   const { apiKey, addSignal, isFollowing, addSubscription, removeSubscription, subscriptions } = useSignalsStore();
   const { session } = useAuthStore();
   const entityId = contact.personId != null ? String(contact.personId) : null;
-  const following = entityId ? isFollowing(entityId) : false;
+  const following = entityId ? isFollowing(entityId, contact.name.full, 'contact') : false;
   const resolvedUserId = resolveUserId(session);
 
   const [showLoading, setShowLoading] = useState(false);
@@ -313,7 +313,7 @@ function FollowButton({ contact }: { contact: SearchContact }) {
   const { apiKey, expoPushToken, isFollowing, addSubscription, removeSubscription, subscriptions } = useSignalsStore();
   const { session } = useAuthStore();
   const entityId = contact.personId != null ? String(contact.personId) : null;
-  const following = entityId ? isFollowing(entityId) : false;
+  const following = entityId ? isFollowing(entityId, contact.name.full, 'contact') : false;
   const [loading, setLoading] = useState(false);
   const resolvedUserId = resolveUserId(session);
 
@@ -338,14 +338,52 @@ function FollowButton({ contact }: { contact: SearchContact }) {
         createdAt: result.createdAt ?? new Date().toISOString(),
       });
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message ?? e?.message ?? 'Could not follow contact.');
+      const msg: string = e?.response?.data?.message ?? e?.message ?? '';
+      // Backend already has this subscription (e.g. after logout cleared the
+      // local mirror, or an old subscription the API doesn't return in GET).
+      // Treat this as success so the button flips to "✓ Following".
+      if (msg.toLowerCase().includes('already exists')) {
+        try {
+          const subs = await listAllSubscriptions(apiKey);
+          const existing = subs.find((s: any) => String(s.entityId) === String(entityId));
+          if (existing) {
+            try { await reactivateSubscription(existing.id, apiKey); } catch {}
+            await addSubscription({
+              id: existing.id,
+              entityId,
+              entityType: 'contact',
+              entityName: contact.name.full,
+              signalTypes: existing.signalTypes ?? [],
+              createdAt: existing.createdAt ?? new Date().toISOString(),
+            });
+            setLoading(false);
+            return;
+          }
+        } catch { /* ignore */ }
+
+        // Fallback: stub local record; pull-to-refresh on Signals syncs the real id.
+        await addSubscription({
+          id: `stub-${entityId}`,
+          entityId,
+          entityType: 'contact',
+          entityName: contact.name.full,
+          signalTypes: [],
+          createdAt: new Date().toISOString(),
+        });
+        setLoading(false);
+        return;
+      }
+      Alert.alert('Error', msg || 'Could not follow contact.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleUnfollow = () => {
-    const sub = subscriptions.find((s) => s.entityId === entityId);
+    const cleanName = contact.name.full.replace(/\s*—\s*Lusha ToGo\s*$/i, '').trim().toLowerCase();
+    const sub = subscriptions.find((s) => s.entityId === entityId)
+      ?? subscriptions.find((s) => s.entityType === 'contact' &&
+           s.entityName.replace(/\s*—\s*Lusha ToGo\s*$/i, '').trim().toLowerCase() === cleanName);
     if (!sub) return;
     Alert.alert('Unfollow', `Stop following ${contact.name.full}?`, [
       { text: 'Cancel', style: 'cancel' },

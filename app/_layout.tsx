@@ -19,7 +19,7 @@ import { useAuthStore } from '../src/store/authStore';
 import { ThemeProvider } from '../src/theme/ThemeProvider';
 import { revealWebViewManager } from '../src/utils/revealWebView';
 import { useSignalsStore, ReceivedSignal } from '../src/store/signalsStore';
-import { registerDeviceWithRelay } from '../src/api/signals';
+import { registerDeviceWithRelay, listSubscriptions } from '../src/api/signals';
 import { resolveUserId } from '../src/utils/session';
 import { getUserInfo } from '../src/api/auth';
 // Force LTR regardless of device language (app is English-only).
@@ -156,7 +156,8 @@ export default function RootLayout() {
   });
 
   const { session, updateUserId } = useAuthStore();
-  const { loadApiKey, loadFromStorage, setExpoPushToken, expoPushToken, addSignal } = useSignalsStore();
+  const { loadApiKey, loadFromStorage, setExpoPushToken, expoPushToken, addSignal, setSubscriptions } = useSignalsStore();
+  const apiKey = useSignalsStore((s) => s.apiKey);
   const notifListenerRef = useRef<any>(null);
   const responseListenerRef = useRef<any>(null);
 
@@ -165,6 +166,26 @@ export default function RootLayout() {
     loadApiKey();
     loadFromStorage();
   }, []);
+
+  // Auto-sync subscriptions from the Lusha Signals API once we have a key.
+  // Fixes the stale-local-state issue where the backend had subscriptions
+  // that the local store didn't know about — e.g. after signing in as a
+  // returning user, or when the first-time install inherits older subs.
+  useEffect(() => {
+    if (!session?.cookie || !apiKey) return;
+    listSubscriptions(apiKey).then((remote) => {
+      if (!remote || remote.length === 0) return;
+      const mapped = remote.map((r: any) => ({
+        id: r.id,
+        entityId: String(r.entityId),
+        entityType: (r.entityType === 'company' ? 'company' : 'contact') as 'contact' | 'company',
+        entityName: String(r.name ?? '').replace(/\s*—\s*Lusha ToGo\s*$/i, '') || String(r.entityId),
+        signalTypes: r.signalTypes ?? [],
+        createdAt: r.createdAt ?? new Date().toISOString(),
+      }));
+      setSubscriptions(mapped);
+    }).catch(() => { /* network / auth errors — ignore, pull-to-refresh still works */ });
+  }, [session?.cookie, apiKey]);
 
   // Ensure userId is persisted in session (resolve from API if missing)
   useEffect(() => {

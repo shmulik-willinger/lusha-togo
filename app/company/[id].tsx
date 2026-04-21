@@ -226,7 +226,7 @@ function CompanySignalsSection({ company }: { company: SearchCompany }) {
   const { apiKey, addSignal, isFollowing, addSubscription, removeSubscription, subscriptions } = useSignalsStore();
   const { session } = useAuthStore();
   const entityId = company.company_id || company.company_lid;
-  const following = entityId ? isFollowing(entityId) : false;
+  const following = entityId ? isFollowing(entityId, company.name, 'company') : false;
   const resolvedUserId = resolveUserId(session);
 
   const [showLoading, setShowLoading] = useState(false);
@@ -389,7 +389,7 @@ function FollowCompanyButton({ company }: { company: SearchCompany }) {
   const { apiKey, isFollowing, addSubscription, removeSubscription, subscriptions } = useSignalsStore();
   const { session } = useAuthStore();
   const entityId = company.company_id || company.company_lid;
-  const following = entityId ? isFollowing(entityId) : false;
+  const following = entityId ? isFollowing(entityId, company.name, 'company') : false;
   const [loading, setLoading] = useState(false);
   const resolvedUserId = resolveUserId(session);
 
@@ -415,14 +415,59 @@ function FollowCompanyButton({ company }: { company: SearchCompany }) {
         logoUrl: company.logo_url,
       });
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message ?? e?.message ?? 'Could not follow company.');
+      const msg: string = e?.response?.data?.message ?? e?.message ?? '';
+      // Backend already has this subscription (e.g. after logout cleared the
+      // local mirror, or an old subscription the API doesn't return in GET).
+      // Treat this as success: register a local stub with a temporary id so
+      // the button flips to "✓ Following" immediately. The real id will be
+      // synced the next time the user pulls-to-refresh the Signals tab.
+      if (msg.toLowerCase().includes('already exists')) {
+        try {
+          // Best-effort: look it up, reactivate, and use the real id.
+          const subs = await listAllSubscriptions(apiKey);
+          const existing = subs.find((s: any) => String(s.entityId) === String(entityId));
+          if (existing) {
+            try { await reactivateSubscription(existing.id, apiKey); } catch {}
+            await addSubscription({
+              id: existing.id,
+              entityId,
+              entityType: 'company',
+              entityName: company.name,
+              signalTypes: existing.signalTypes ?? [],
+              createdAt: existing.createdAt ?? new Date().toISOString(),
+              logoUrl: company.logo_url,
+            });
+            setLoading(false);
+            return;
+          }
+        } catch { /* ignore */ }
+
+        // Fallback: add a local stub so the UI is honest about what's live
+        // on the server. Pull-to-refresh on Signals > Registered replaces it.
+        await addSubscription({
+          id: `stub-${entityId}`,
+          entityId,
+          entityType: 'company',
+          entityName: company.name,
+          signalTypes: [],
+          createdAt: new Date().toISOString(),
+          logoUrl: company.logo_url,
+        });
+        setLoading(false);
+        return;
+      }
+      Alert.alert('Error', msg || 'Could not follow company.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleUnfollow = () => {
-    const sub = subscriptions.find((s) => s.entityId === entityId);
+    // Match by entityId OR by (type+name) — see isFollowing for context
+    const cleanName = company.name.replace(/\s*—\s*Lusha ToGo\s*$/i, '').trim().toLowerCase();
+    const sub = subscriptions.find((s) => s.entityId === entityId)
+      ?? subscriptions.find((s) => s.entityType === 'company' &&
+           s.entityName.replace(/\s*—\s*Lusha ToGo\s*$/i, '').trim().toLowerCase() === cleanName);
     if (!sub) return;
     Alert.alert('Unfollow', `Stop following ${company.name}?`, [
       { text: 'Cancel', style: 'cancel' },
