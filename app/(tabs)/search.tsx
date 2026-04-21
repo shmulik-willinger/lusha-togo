@@ -7,7 +7,7 @@ import {
   FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Building2, Sparkles, SlidersHorizontal, X, AlertTriangle, SearchX } from 'lucide-react-native';
+import { Building2, Sparkles, SlidersHorizontal, X, AlertTriangle, SearchX, Gauge } from 'lucide-react-native';
 import { AISearchBar } from '../../src/components/AISearchBar';
 import { AIThinkingOverlay } from '../../src/components/AIThinkingOverlay';
 import { FilterSheet } from '../../src/components/FilterSheet';
@@ -238,29 +238,68 @@ function NoResultsState() {
   );
 }
 
+function QuotaExceededState({ onRetry }: { onRetry: () => void }) {
+  // Compute "resets tomorrow at midnight UTC" — most plan quotas reset daily
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  const resetsText = tomorrow.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+  return (
+    <View className="flex-1 items-center justify-center px-8">
+      {/* Circular brand-tint badge with the Gauge icon */}
+      <View
+        style={{
+          width: 88, height: 88, borderRadius: 44,
+          backgroundColor: '#F1ECFF',
+          alignItems: 'center', justifyContent: 'center',
+          marginBottom: 20,
+        }}
+      >
+        <Gauge size={40} color="#6F45FF" strokeWidth={1.75} />
+      </View>
+      <Text className="text-neutral-800 font-sans-bold text-center" style={{ fontSize: 22, letterSpacing: -0.3, marginBottom: 8 }}>
+        You're out of searches for today
+      </Text>
+      <Text className="text-neutral-500 text-center" style={{ fontSize: 14, lineHeight: 20, maxWidth: 320, marginBottom: 4 }}>
+        Your plan's daily prospecting limit has been reached.
+      </Text>
+      <Text className="text-neutral-400 text-center" style={{ fontSize: 12, marginBottom: 28 }}>
+        Resets on {resetsText}
+      </Text>
+      <TouchableOpacity
+        onPress={onRetry}
+        className="bg-primary items-center"
+        style={{ paddingVertical: 14, paddingHorizontal: 28, borderRadius: 999, minWidth: 200 }}
+        activeOpacity={0.85}
+      >
+        <Text className="text-white font-sans-semibold" style={{ fontSize: 14 }}>Try Again</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 function ErrorState({ error, onRetry }: { error: unknown; onRetry: () => void }) {
   const err = error as any;
   const isQuota = err?.quotaExceeded === true || err?.response?.data?.searchQuotaExceeded === true;
-  const title = isQuota ? 'Daily search quota reached' : 'Search failed';
-  const msg = isQuota
-    ? 'You\'ve hit your plan\'s daily search limit. It resets tomorrow — or upgrade to keep searching now.'
-    : (err?.response?.data
-        ? JSON.stringify(err.response.data).substring(0, 200)
-        : err?.message ?? 'Unknown error');
+  if (isQuota) return <QuotaExceededState onRetry={onRetry} />;
+  const msg = err?.response?.data
+    ? JSON.stringify(err.response.data).substring(0, 200)
+    : err?.message ?? 'Unknown error';
   return (
-    <ScrollView className="flex-1 px-8 pt-16">
+    <View className="flex-1 items-center justify-center px-8">
       <AlertTriangle size={56} color="#f97316" strokeWidth={1.5} style={{ marginBottom: 16 }} />
       <Text className="text-neutral-800 font-sans-semibold text-xl text-center mb-2">
-        {title}
+        Search failed
       </Text>
-      <Text className="text-neutral-500 text-sm text-center mb-4">{msg}</Text>
+      <Text className="text-neutral-500 text-sm text-center mb-6" style={{ maxWidth: 320 }}>{msg}</Text>
       <TouchableOpacity
         onPress={onRetry}
-        className="bg-primary rounded-xl py-3 items-center"
+        className="bg-primary items-center"
+        style={{ paddingVertical: 14, paddingHorizontal: 28, borderRadius: 999, minWidth: 200 }}
         activeOpacity={0.85}
       >
-        <Text className="text-white font-sans-semibold text-base">Try Again</Text>
+        <Text className="text-white font-sans-semibold" style={{ fontSize: 14 }}>Try Again</Text>
       </TouchableOpacity>
-    </ScrollView>
+    </View>
   );
 }
