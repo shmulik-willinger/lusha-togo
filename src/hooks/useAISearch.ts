@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { textToFilters, mapAIFiltersToSearchFilters, clientTextToFilters, clientTextToCompanyFilters } from '../api/aiSearch';
+import { textToFilters, mapAIFiltersToSearchFilters, clientTextToFilters, clientTextToCompanyFiltersWithResidual } from '../api/aiSearch';
 import { useSearchStore } from '../store/searchStore';
 
 interface AISearchInput {
@@ -24,10 +24,19 @@ export function useAISearch() {
     },
     onError: (err: any, { text, tab }) => {
       console.log('[ai-search] text-to-filters FAILED:', err?.response?.status, JSON.stringify(err?.response?.data ?? err?.message).substring(0, 200));
-      const fallback = tab === 'companies' ? clientTextToCompanyFilters(text) : clientTextToFilters(text);
-      console.log('[ai-search] client fallback filters (tab=' + tab + '):', JSON.stringify(fallback));
-      setQueryText(text);
-      setFilters(fallback);
+      if (tab === 'companies') {
+        const { filters, residual } = clientTextToCompanyFiltersWithResidual(text);
+        console.log('[ai-search] fallback — filters:', JSON.stringify(filters), '| residual:', residual);
+        // Use the stripped residual as queryText so the search engine doesn't
+        // token-match on literals like "5000" or "employees" that we already
+        // captured as a structured filter.
+        setQueryText(residual || '');
+        setFilters(filters);
+      } else {
+        const fallback = clientTextToFilters(text);
+        setQueryText(text);
+        setFilters(fallback);
+      }
     },
   });
 }
