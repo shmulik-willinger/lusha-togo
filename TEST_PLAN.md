@@ -1,9 +1,11 @@
 # Lusha ToGo — Test Plan
 
 **Account**: shmulik.willinger@lusha.com
-**Version**: v1.0.621
-**Platform**: Android Emulator (emulator-5554) + physical device (R5CY60LWNFL)
-**Last updated**: 2026-04-12
+**Version**: v1.0.68x (post Phase 1+2+3 redesign)
+**Platform**: Android physical device (R5CY60LWNFL, SM_S938B)
+**Last updated**: 2026-04-21
+
+**Design system**: Phase 1 (tokens + Lucide icons) + Phase 2 (ContactHero / RevealHeroCard / CompanyHero / DecisionMakerRow / unified ContactCard) + Phase 3 (LoginHeroCover / CreditsHero / SignalsStatusRow / SettingsGroup / AppearanceSheet / SignalsTeaser / ScreenTitle / infinite scroll).
 
 ---
 
@@ -19,8 +21,11 @@
 ## 1. Login (L)
 
 ### מה רואים לפני login
-- מסך עם שדות email + password
-- כפתור "Sign In" בצבע סגול
+- **LoginHeroCover** — חצי עליון: רקע שחור עם gradient סגול+ירוק, לוגו Lusha למעלה, "Sell smarter. From anywhere." title + subtitle
+- **Form sheet** — חצי תחתון: White rounded top (borderRadius 28), הכותרת "SIGN IN"
+- שדות email + password (עם אייקונים Mail + Lock)
+- כפתור "Sign In" סגול (עם ArrowRight)
+- כפתור SSO נוסף
 - שדות מתמלאים אוטומטית מ-SecureStore אם הייתה כניסה קודמת
 
 | ID | פעולה | תוצאה מצופה | תוצאה | הערות |
@@ -39,17 +44,23 @@
 | L-12 | לחיצה על Sign In ללא password | Alert "Missing fields" מוצג | ✅ | |
 | L-13 | Sign In עם פרטים שגויים | נשאר ב-WebView (login page מוצג שוב) | 🔵 | |
 | L-14 | בדיקה שהפרטים נשמרו | בפתיחה הבאה השדות מולאו מ-SecureStore | ✅ | |
+| L-15 | LoginHeroCover — רקע | שחור עם שני gradient overlays (סגול + ירוק) | 🔵 | Phase 3 |
+| L-16 | LoginHeroCover — לוגו | אייקון Lusha למעלה (מרווח 56px מהראש) | 🔵 | Phase 3 fix |
+| L-17 | LoginHeroCover — טקסט | "Sell smarter.\nFrom anywhere." ממוקם במרכז האזור | 🔵 | Phase 3 fix |
+| L-18 | Form sheet — רוחב | מלא (מקצה לקצה) עם רדיוס עליון 28px | 🔵 | |
+| L-19 | Keyboard open | Form sheet נגלל מעלה, הירו לא נחתך | 🔵 | |
 
 ---
 
 ## 2. Home Screen (H)
 
-### מה רואים
+### מה רואים (Phase 2+3 redesign)
 - כותרת "Lusha ToGo" עם אייקון האפליקציה
-- AI Search bar עם placeholder "Describe the contacts you're looking for…"
-- שורת chips: "HR managers at SMBs in the US", "VP of Sales at fintech companies" וכו'
-- קארד "Recommended Leads" עם מספר הלידים + כפתור "View All →"
-- Tab bar תחתון עם 5 לשוניות: Home, Search, Lists, Signals, Account
+- **HomeHero** — gradient סגול מלא, "HELLO, <FIRSTNAME>" eyebrow, "Ready to find your next lead." / "You've got N warm signals today." title, AI prompt card עם Sparkles icon
+- **Hot signals** section (אם יש signals): 3 SignalCard רכיבים עם לוגו החברה (או initials) + אייקון סוג הסיגנל overlay, שם החברה, פירוט, "See all →" link
+- **Today's picks N** section: קארד Recommendations עם Sparkles icon + "N leads ready to explore"
+- **Enrich phone contacts** — dashed-border compact row עם Upload icon
+- **Tab bar** תחתון עם 5 lucide icons: Home, Search, ListChecks, BellRing, CircleUser
 
 | ID | פעולה | תוצאה מצופה | תוצאה | הערות |
 |----|-------|-------------|--------|-------|
@@ -62,6 +73,17 @@
 | H-07 | לחיצה על "View All →" | מסך Recommendations נפתח | ✅ | |
 | H-08 | Pull-to-refresh | נתונים נטענים מחדש | ✅ | |
 | H-09 | לחיצה על כל לשונית ב-tab bar | המסך המתאים נפתח | ✅ | |
+| H-10 | HomeHero — greeting | "HELLO, SHMULIK" (שם פרטי מ-JWT) | 🔵 | Phase 3 |
+| H-11 | HomeHero — Ready state | אין signals: "Ready to find your next lead." | 🔵 | Phase 3 |
+| H-12 | HomeHero — hot state | יש signals: "You've got N warm signals today." | 🔵 | Phase 3 |
+| H-13 | AI prompt card (hero) | רקע rgba(255,255,255,0.12), Sparkles + "Ask Lusha AI" + דוגמה | 🔵 | Phase 3 |
+| H-14 | לחיצה על AI prompt card | ניווט ל-Search tab | 🔵 | Phase 3 |
+| H-15 | Hot signals section | מוצג רק אם יש signals; 3 כרטיסים (dedupe לפי entityId) | 🔵 | Phase 3 fix |
+| H-16 | SignalCard — לוגו | חברה עם logoUrl: לוגו בריבוע; אחרת: initials + אייקון סוג | 🔵 | Phase 3 fix |
+| H-17 | לחיצה על SignalCard | פתיחת Contact/Company עם storedCompany/Contact מאוכלס מראש | 🔵 | Phase 3 fix |
+| H-18 | "See all →" ב-Hot signals | ניווט ל-Signals tab | 🔵 | Phase 3 |
+| H-19 | Today's picks — brand pill | N באות רציני "25" בתוך pill סגול | 🔵 | Phase 3 |
+| H-20 | Upload row | dashed-border, Upload icon בריבוע סגול בהיר, chevron | 🔵 | Phase 3 |
 
 ---
 
@@ -144,16 +166,13 @@
 
 ## 6. Contact Detail Screen (CD)
 
-### מה רואים
-- שם מלא בכותרת
-- עיגול סגול עם ראשי תיבות (אות ראשונה של שם + שם משפחה)
-- תפקיד + חברה
-- מיקום
-- סעיף "Contact Info": טלפונים, מיילים, LinkedIn
-- כפתור "🔓 Reveal Contact Info" אם לא revealed
-- סעיף "Signals" עם כפתורי "Show Signals" + "Register"
-- סעיף "Company"
-- סעיף "Previous Position" אם קיים
+### מה רואים (Phase 2 redesign)
+- **ContactHero**: Avatar 56px עם ראשי תיבות צבעוניות (hash-based palette), שם 20/800, role 12, company בסגול, "LIVE · VERIFIED" pill (אם revealed), **Call button** (ירוק, Phone icon) + **Email button** (סגול בהיר, Mail icon)
+- **"+ Follow" pill** + DNC Badge (אם רלוונטי) + Location עם MapPin icon
+- **RevealHeroCard** (רק אם לא revealed ולא DNC/restricted) — dark gradient עם "◆ PREMIUM DATA" chip, "Unlock <FIRSTNAME>'s direct line." title, סיכום ערוצים (N phones · N emails · LinkedIn), כפתור ירוק "Reveal · 1 credit" עם Zap icon
+- **Contact section** — MOBILE/EMAIL/LinkedIn rows עם Phone/Mail/LinkedIn icons, action pills מעוגלים (Reveal/Call/WhatsApp/Email/Open)
+- **Save to Contacts + Share** buttons (רק לאחר reveal)
+- **Company / Signals / Previous Position** sections
 
 | ID | פעולה | תוצאה מצופה | תוצאה | הערות |
 |----|-------|-------------|--------|-------|
@@ -179,13 +198,12 @@
 
 ## 7. Company Detail Screen (CO)
 
-### מה רואים
-- שם חברה + לוגו (אם קיים) בכותרת
-- נתוני חברה: תעשייה, גודל, מיקום, הכנסות, שנת ייסוד, תיאור
-- קישורים: LinkedIn, Website
-- נתוני מימון: סכום כולל + סבבים
-- Decision Makers: רשימת אנשי קשר בכירים
-- סעיף "Signals" עם כפתורי "Show Signals" + "Register"
+### מה רואים (Phase 2 redesign)
+- **CompanyHero**: Gradient banner (סגול→ירוק, 48px), logo 56×56 overlapping the banner, שם + תעשייה · מיקום · דומיין, **3-up StatChip grid** (Employees / Revenue / 6mo headcount)
+- **תיאור** החברה + כפתור "+ Follow"
+- **Decision Makers section** — מוקדם במעלה, כל שורה: Avatar + שם + role + QuickActionButton (Call ירוק אם revealed, REVEAL pill אם לא)
+- **Company Info** — CollapsibleSection (סגור כברירת מחדל) עם תעשיות/SIC/NAICS/specialties chips
+- **Signals / Funding / Links** sections (אם יש נתונים)
 
 | ID | פעולה | תוצאה מצופה | תוצאה | הערות |
 |----|-------|-------------|--------|-------|
@@ -222,13 +240,12 @@
 
 ## 9. Account Screen (AC)
 
-### מה רואים
-- פרופיל: עיגול עם אות ראשונה, שם מלא, מייל
-- סעיף Plan: שם תוכנית, קרדיטים, progress bar
-- סעיף Account: מייל, User ID
-- סעיף Signals: הגדרת API key
-- כפתור Sign Out
-- גרסת האפליקציה בתחתית
+### מה רואים (Phase 3 redesign)
+- **Profile header**: Avatar 56px עם initials, שם 18/800, email
+- **CreditsHero** — dark gradient card: "MONTHLY CREDITS" eyebrow + "resets <DATE>", big number (remaining) + "of N left", progress bar (ירוק/כתום/אדום לפי %), caption עם daily pace
+- **SignalsStatusRow** — card עם Radar icon (ירוק אם connected/סגול אם לא), "Signals · connected"/"not connected", N entities + masked key
+- **Settings section + SettingsGroup** — 4 rows: Bell/Notifications (On/Off value), Moon/Appearance (System/Light/Dark value), HelpCircle/Help & Support, LogOut/Sign out (danger)
+- **Version footer** "Lusha ToGo v1.0.XXX"
 
 | ID | פעולה | תוצאה מצופה | תוצאה | הערות |
 |----|-------|-------------|--------|-------|
@@ -249,6 +266,16 @@
 | AC-15 | לחיצה על Sign Out | Alert "Sign out" עם אפשרויות Sign Out/Cancel | ✅ | |
 | AC-16 | אישור Sign Out | Session מנוקה, מסך Login מוצג | 🔵 | |
 | AC-17 | מבט על גרסה בתחתית | "Lusha ToGo v1.0.XXX" מוצג | ✅ | |
+| AC-18 | CreditsHero — מספר גדול | Remaining = total - used, מספר 32/800 בלבן | 🔵 | Phase 3 |
+| AC-19 | CreditsHero — progress color | ירוק >20%, כתום 5-20%, אדום <5% | 🔵 | Phase 3 |
+| AC-20 | CreditsHero — resets | "resets <next-1st-of-month>" בפורמט "May 1" | 🔵 | Phase 3 |
+| AC-21 | SignalsStatusRow — connected | Radar ירוק, "Signals · connected", N entities · API key ••••XXXX | 🔵 | Phase 3 |
+| AC-22 | SignalsStatusRow — disconnected | Radar סגול, "Signals · not connected", "Set up your API key…" | 🔵 | Phase 3 |
+| AC-23 | לחיצה על SignalsStatusRow | SignalsSetupModal נפתח | 🔵 | Phase 3 |
+| AC-24 | SignalsSetupModal — safe area | Modal לא מכסה את nav bar של אנדרואיד | 🔵 | Phase 3 fix |
+| AC-25 | לחיצה על Appearance row | AppearanceSheet modal נפתח | 🔵 | Phase 3 |
+| AC-26 | AppearanceSheet — 3 options | System (✓ ברירת מחדל), Light, Dark | 🔵 | Phase 3 |
+| AC-27 | בחירת Light/Dark | preference נשמר ב-AsyncStorage, הערך מעודכן ב-row | 🔵 | Phase 3 |
 
 ---
 
@@ -256,8 +283,8 @@
 
 ### מה רואים
 - לשונית Signals בת"ת בר עם badge סגול אם יש unread
-- כשאין API key: empty state עם 🔑 + הוראה ללכת ל-Account
-- כשיש API key: שתי לשוניות פנימיות — Activity | Registered(N)
+- **כשאין API key**: **SignalsTeaser** (Phase 3) — gradient סגול עם "▶ PREVIEW · NOT ACTIVATED", כותרת "See the last 7 days.", 2 sample signals (Stripe funding + Sarah Chen promoted), CTA ירוק "Activate with API key →", למטה — 4 feature cards (Zap/ArrowRight/Users/Bell)
+- **כשיש API key**: שתי לשוניות פנימיות — Activity | Registered(N)
 
 | ID | פעולה | תוצאה מצופה | תוצאה | הערות |
 |----|-------|-------------|--------|-------|
@@ -266,6 +293,10 @@
 | ST-03 | Badge על אייקון Signals בת"ת בר | badge סגול עם מספר כשיש unread signals | ✅ | |
 | ST-04 | Badge מציג 9+ | כאשר יש יותר מ-9 unread | ✅ | |
 | ST-05 | לחיצה על Signals tab כשיש unread | Badge נעלם, כל ה-signals מסומנים כנקראו | ✅ | |
+| ST-06 | SignalsTeaser — gradient card | רקע סגול brand, "PREVIEW · NOT ACTIVATED" eyebrow | 🔵 | Phase 3 |
+| ST-07 | SignalsTeaser — sample signals | 2 שורות (Stripe funding/Sarah promoted), שורה 2 מעומעמת | 🔵 | Phase 3 |
+| ST-08 | SignalsTeaser — CTA | "Activate with API key →" → ניווט ל-Account tab | 🔵 | Phase 3 |
+| ST-09 | SignalsTeaser — feature grid | 4 cards (2×2): Funding/JobMoves/Hiring/Push | 🔵 | Phase 3 |
 
 ---
 
@@ -297,6 +328,8 @@
 | SA-14 | לחיצה על "Clear all" | Alert "Clear Activity" עם Clear/Cancel | ✅ | |
 | SA-15 | אישור Clear all | Activity מתרוקנת, empty state מוצג | ✅ | |
 | SA-16 | ביטול Clear all | הרשימה לא משתנה | ✅ | |
+| SA-17 | לחיצה על signal של חברה X | פתיחת Company detail של X (לא של חברה אחרת) | 🔵 | Phase 3 fix |
+| SA-18 | לחיצה על signal של איש קשר X | פתיחת Contact detail של X | 🔵 | Phase 3 fix |
 
 ### סוגי סיגנלים ותצוגתם בכרטיס
 
@@ -424,7 +457,29 @@ Lusha API
 
 ---
 
-## 16. Global / Edge Cases (GE)
+## 16. Appearance / Dark Mode (AP)
+
+### מה רואים
+- AppearanceSheet מגיע מ-Account → Appearance row
+- 3 אפשרויות: System / Light / Dark, עם ✓ סגול על האפשרות הנוכחית
+- הבחירה נשמרת ב-AsyncStorage תחת `lusha.appearance`
+
+### מגבלה ידועה
+רק Account קורא מ-useTheme() ב-Phase 3 ראשון. שאר המסכים שומרים pallete קבוע.
+System/Dark ישפיעו על Account בלבד עד שנעשה full dark-mode migration.
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| AP-01 | Account → Appearance row | AppearanceSheet נפתח עם 3 אפשרויות | 🔵 | |
+| AP-02 | Preference ברירת מחדל | "System" עם ✓ | 🔵 | |
+| AP-03 | בחירת Light | Sheet נסגר, Account row מציג "Light" | 🔵 | |
+| AP-04 | בחירת Dark | Sheet נסגר, Account row מציג "Dark", Account ברקע כהה | 🔵 | |
+| AP-05 | Restart אפליקציה | preference נשמר | 🔵 | |
+| AP-06 | System Light + מכשיר Dark | Account דרך pref="system" עובד לפי OS | 🔵 | |
+
+---
+
+## 17. Global / Edge Cases (GE)
 
 | ID | מצב | תוצאה מצופה | תוצאה | הערות |
 |----|-----|-------------|--------|-------|
