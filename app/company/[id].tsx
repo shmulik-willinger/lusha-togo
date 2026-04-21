@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Phone, Mail, MapPin, Users, Calendar, DollarSign, Globe, AtSign, Rocket, ChevronRight } from 'lucide-react-native';
+import { Phone, Mail, Globe, AtSign, Rocket, ChevronRight } from 'lucide-react-native';
 import { Stack, router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useQuery } from '@tanstack/react-query';
@@ -25,6 +25,10 @@ import { useSignalsStore } from '../../src/store/signalsStore';
 import { createSubscription, deleteSubscription, listAllSubscriptions, reactivateSubscription, getCompanySignals, LushaSignalEvent } from '../../src/api/signals';
 import { useAuthStore } from '../../src/store/authStore';
 import { resolveUserId } from '../../src/utils/session';
+import { CompanyHero } from '../../src/components/company/CompanyHero';
+import { DecisionMakerRow } from '../../src/components/company/DecisionMakerRow';
+import { CollapsibleSection } from '../../src/components/ui/CollapsibleSection';
+import { color } from '../../src/theme/tokens';
 
 function StatRow({ label, value }: { label: string; value: string }) {
   return (
@@ -77,7 +81,6 @@ function DecisionMakerCard({ contact }: { contact: SearchContact }) {
     contact.phones?.find((p) => !p.is_do_not_call)?.normalized_number ??
     contact.phones?.find((p) => !p.is_do_not_call)?.number
   );
-  const [email, setEmail] = React.useState(contact.emails?.[0]?.address);
 
   const revealMutation = useMutation({
     mutationFn: () => revealContact(contact),
@@ -88,68 +91,35 @@ function DecisionMakerCard({ contact }: { contact: SearchContact }) {
         const p = item.phones[0];
         setPhone(p.value ?? p.number ?? p.normalized_number);
       }
-      if (item?.emails?.length) {
-        const e = item.emails[0];
-        setEmail(e.value ?? e.address);
-      }
       setRevealed(true);
     },
   });
 
-  const jobLine = [contact.job_title?.title, contact.job_title?.seniority]
-    .filter(Boolean).join(' · ');
+  const handleCall = () => {
+    if (phone) Linking.openURL(`tel:${phone}`);
+  };
+
+  const handlePress = () => {
+    setSelectedContact(contact);
+    router.push(`/contact/${contact.contactId}`);
+  };
 
   return (
-    <TouchableOpacity
-      onPress={() => { setSelectedContact(contact); router.push(`/contact/${contact.contactId}`); }}
-      activeOpacity={0.85}
-      style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#e5e5e5' }}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#f3efff', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
-          <Text style={{ color: '#6f45ff', fontWeight: '700', fontSize: 13 }}>
-            {`${contact.name.first?.[0] ?? ''}${contact.name.last?.[0] ?? ''}`.toUpperCase()}
-          </Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontWeight: '600', color: '#262626', fontSize: 14 }} numberOfLines={1}>
-            {contact.name.full}
-          </Text>
-          {!!jobLine && (
-            <Text style={{ color: '#737373', fontSize: 12, marginTop: 1 }} numberOfLines={1}>
-              {jobLine}
-            </Text>
-          )}
-        </View>
-        {!revealed ? (
-          <TouchableOpacity
-            onPress={(e) => { e.stopPropagation?.(); revealMutation.mutate(); }}
-            disabled={revealMutation.isPending}
-            style={{ backgroundColor: '#6f45ff', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, opacity: revealMutation.isPending ? 0.6 : 1 }}
-            activeOpacity={0.8}
-          >
-            <Text style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}>
-              {revealMutation.isPending ? 'Revealing…' : 'Show details'}
-            </Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={{ alignItems: 'flex-end' }}>
-            {phone && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Phone size={11} color="#525252" strokeWidth={2} />
-                <Text style={{ color: '#262626', fontSize: 12 }}>{phone}</Text>
-              </View>
-            )}
-            {email && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-                <Mail size={11} color="#525252" strokeWidth={2} />
-                <Text style={{ color: '#262626', fontSize: 11 }} numberOfLines={1}>{email}</Text>
-              </View>
-            )}
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
+    <DecisionMakerRow
+      contact={{
+        id: contact.contactId,
+        name: contact.name.full,
+        role: contact.job_title?.title,
+        seniority: contact.job_title?.seniority,
+        revealed,
+        live: false,
+        phoneNumber: phone,
+      }}
+      loading={revealMutation.isPending}
+      onCall={handleCall}
+      onReveal={() => revealMutation.mutate()}
+      onPress={handlePress}
+    />
   );
 }
 
@@ -522,129 +492,89 @@ export default function CompanyDetailScreen() {
       <Stack.Screen options={{ title: company.name }} />
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Hero */}
-        <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, marginBottom: 8 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-            {company.logo_url ? (
-              <Image
-                source={{ uri: company.logo_url }}
-                style={{ width: 60, height: 60, borderRadius: 12, marginRight: 14 }}
-                resizeMode="contain"
-              />
-            ) : (
-              <View style={{ width: 60, height: 60, borderRadius: 12, backgroundColor: '#f3efff', alignItems: 'center', justifyContent: 'center', marginRight: 14 }}>
-                <Text style={{ color: '#6f45ff', fontSize: 22, fontWeight: '700' }}>
-                  {company.name?.[0]?.toUpperCase()}
-                </Text>
-              </View>
-            )}
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: '#262626', fontSize: 20, fontWeight: '700' }}>{company.name}</Text>
-              {company.industry?.primary_industry && (
-                <Text style={{ color: '#737373', fontSize: 14, marginTop: 2 }}>
-                  {company.industry.primary_industry}
-                </Text>
-              )}
-              {company.location?.city && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3, gap: 4 }}>
-                  <MapPin size={12} color="#a3a3a3" strokeWidth={1.75} />
-                  <Text style={{ color: '#a3a3a3', fontSize: 13, flexShrink: 1 }} numberOfLines={1}>
-                    {[company.location.city, company.location.country].filter(Boolean).join(', ')}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          {/* Quick stats row */}
-          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-            {sizeLabel && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f9f9f9', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}>
-                <Users size={12} color="#525252" strokeWidth={1.75} />
-                <Text style={{ color: '#262626', fontSize: 12 }}>{sizeLabel} employees</Text>
-              </View>
-            )}
-            {company.founded && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f9f9f9', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}>
-                <Calendar size={12} color="#525252" strokeWidth={1.75} />
-                <Text style={{ color: '#262626', fontSize: 12 }}>Founded {company.founded}</Text>
-              </View>
-            )}
-            {company.revenue_range?.string && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#f9f9f9', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}>
-                <DollarSign size={12} color="#525252" strokeWidth={1.75} />
-                <Text style={{ color: '#262626', fontSize: 12 }}>{company.revenue_range.string}</Text>
-              </View>
-            )}
-          </View>
-
+        {/* Hero — new CompanyHero */}
+        <View style={{ marginBottom: 8 }}>
+          <CompanyHero
+            name={company.name}
+            industry={company.industry?.primary_industry}
+            location={[company.location?.city, company.location?.country].filter(Boolean).join(', ') || undefined}
+            domain={company.homepage_url ? company.homepage_url.replace(/^https?:\/\//, '').replace(/\/$/, '') : undefined}
+            logoUrl={company.logo_url}
+            stats={{
+              employees: sizeLabel ?? undefined,
+              revenue: company.revenue_range?.string,
+              headcountDelta: undefined,
+            }}
+          />
           {company.description && (
-            <Text style={{ color: '#737373', fontSize: 13, lineHeight: 19, marginTop: 12 }} numberOfLines={4}>
-              {company.description}
-            </Text>
-          )}
-          <FollowCompanyButton company={company} />
-        </View>
-
-        {/* Company Info */}
-        <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, paddingBottom: 8, marginBottom: 8 }}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
-            Company Info
-          </Text>
-          {company.industry?.primary_industry && (
-            <StatRow label="Primary industry" value={company.industry.primary_industry} />
-          )}
-          {company.secondary_industry && (
-            <StatRow label="Secondary industry" value={company.secondary_industry} />
-          )}
-          {sizeLabel && <StatRow label="Employees" value={`${sizeLabel}`} />}
-          {company.revenue_range?.string && (
-            <StatRow label="Revenue" value={company.revenue_range.string} />
-          )}
-          {company.founded && <StatRow label="Founded" value={String(company.founded)} />}
-          {company.linkedin_followers != null && (
-            <StatRow label="LinkedIn followers" value={
-              company.linkedin_followers >= 1_000_000
-                ? `${(company.linkedin_followers / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`
-                : company.linkedin_followers >= 1_000
-                ? `${Math.round(company.linkedin_followers / 1000)}K`
-                : String(company.linkedin_followers)
-            } />
-          )}
-          {company.sic && <StatRow label="SIC" value={company.sic} />}
-          {company.naics && <StatRow label="NAICS" value={company.naics} />}
-          {(company.specialties?.length ?? 0) > 0 && (
-            <View style={{ paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#e5e5e5' }}>
-              <Text style={{ color: '#a3a3a3', fontSize: 13, marginBottom: 8 }}>Specialties</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                {company.specialties!.map((s, i) => (
-                  <View key={i} style={{ backgroundColor: '#e5e5e5', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
-                    <Text style={{ fontSize: 12, color: '#262626' }}>{s}</Text>
-                  </View>
-                ))}
-              </View>
+            <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingBottom: 16 }}>
+              <Text style={{ color: color.muted, fontSize: 13, lineHeight: 19 }} numberOfLines={4}>
+                {company.description}
+              </Text>
             </View>
           )}
-          <View style={{ height: 8 }} />
+          <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingBottom: 16 }}>
+            <FollowCompanyButton company={company} />
+          </View>
         </View>
 
-        {/* Potential Decision Makers */}
-        <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, paddingBottom: 8, marginBottom: 8 }}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
-            Potential Decision Makers
+        {/* Decision Makers — promoted to top */}
+        <View style={{ backgroundColor: '#fff', paddingHorizontal: 16, paddingBottom: 8, marginBottom: 8 }}>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: color.muted, textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 8 }}>
+            Decision Makers {decisionMakers.length > 0 ? `· ${decisionMakers.length}` : ''}
           </Text>
           {dmLoading ? (
             <View style={{ paddingVertical: 16, alignItems: 'center' }}>
-              <ActivityIndicator size="small" color="#6f45ff" />
+              <ActivityIndicator size="small" color={color.brand} />
             </View>
           ) : decisionMakers.length === 0 ? (
-            <Text style={{ color: '#a3a3a3', fontSize: 13, paddingVertical: 12 }}>No contacts found</Text>
+            <Text style={{ color: color.muted2, fontSize: 13, paddingVertical: 12 }}>No contacts found</Text>
           ) : (
             decisionMakers.map((c) => (
               <DecisionMakerCard key={c.contactId} contact={c} />
             ))
           )}
           <View style={{ height: 8 }} />
+        </View>
+
+        {/* Company Info — collapsed by default */}
+        <View style={{ marginBottom: 8 }}>
+          <CollapsibleSection title="Company Info" initiallyCollapsed>
+            {company.industry?.primary_industry && (
+              <StatRow label="Primary industry" value={company.industry.primary_industry} />
+            )}
+            {company.secondary_industry && (
+              <StatRow label="Secondary industry" value={company.secondary_industry} />
+            )}
+            {sizeLabel && <StatRow label="Employees" value={`${sizeLabel}`} />}
+            {company.revenue_range?.string && (
+              <StatRow label="Revenue" value={company.revenue_range.string} />
+            )}
+            {company.founded && <StatRow label="Founded" value={String(company.founded)} />}
+            {company.linkedin_followers != null && (
+              <StatRow label="LinkedIn followers" value={
+                company.linkedin_followers >= 1_000_000
+                  ? `${(company.linkedin_followers / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`
+                  : company.linkedin_followers >= 1_000
+                  ? `${Math.round(company.linkedin_followers / 1000)}K`
+                  : String(company.linkedin_followers)
+              } />
+            )}
+            {company.sic && <StatRow label="SIC" value={company.sic} />}
+            {company.naics && <StatRow label="NAICS" value={company.naics} />}
+            {(company.specialties?.length ?? 0) > 0 && (
+              <View style={{ paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#e5e5e5' }}>
+                <Text style={{ color: color.muted, fontSize: 13, marginBottom: 8 }}>Specialties</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                  {company.specialties!.map((s, i) => (
+                    <View key={i} style={{ backgroundColor: color.line, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
+                      <Text style={{ fontSize: 12, color: color.ink }}>{s}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </CollapsibleSection>
         </View>
 
         {/* Signals */}

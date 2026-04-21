@@ -3,12 +3,14 @@ import { View, Text, StyleSheet } from 'react-native';
 import { color, radius } from '../../theme/tokens';
 
 type Variant = 'live' | 'brand' | 'ghost' | 'dnc' | 'warm';
+type Size = 'xs' | 'sm' | 'md';
 
-type Props = {
-  label: string;
+interface LivePillProps {
+  label?: string;
   variant?: Variant;
   dot?: boolean;
-};
+  size?: Size;
+}
 
 const palette: Record<Variant, { bg: string; fg: string }> = {
   live:  { bg: color.liveTint,   fg: color.liveInk   },
@@ -18,12 +20,22 @@ const palette: Record<Variant, { bg: string; fg: string }> = {
   warm:  { bg: color.warmTint,   fg: color.warmInk   },
 };
 
-export function LivePill({ label, variant = 'live', dot = variant === 'live' }: Props) {
+const sizeMap: Record<Size, { pad: number; py: number; font: number; dot: number; gap: number }> = {
+  xs: { pad: 6,  py: 2, font: 9,  dot: 5, gap: 3 },
+  sm: { pad: 8,  py: 3, font: 10, dot: 6, gap: 4 },
+  md: { pad: 10, py: 4, font: 11, dot: 7, gap: 5 },
+};
+
+export function LivePill({ label = 'LIVE', variant = 'live', dot = variant === 'live', size = 'sm' }: LivePillProps) {
   const p = palette[variant];
+  const s = sizeMap[size];
   return (
-    <View style={[styles.pill, { backgroundColor: p.bg }]}>
-      {dot && <View style={[styles.dot, { backgroundColor: color.live }]} />}
-      <Text style={[styles.label, { color: p.fg }]}>{label}</Text>
+    <View style={[
+      styles.pill,
+      { backgroundColor: p.bg, paddingHorizontal: s.pad, paddingVertical: s.py, gap: s.gap, borderRadius: radius.pill },
+    ]}>
+      {dot && <View style={{ width: s.dot, height: s.dot, borderRadius: s.dot / 2, backgroundColor: color.live }} />}
+      <Text style={[styles.label, { color: p.fg, fontSize: s.font }]}>{label}</Text>
     </View>
   );
 }
@@ -32,19 +44,9 @@ const styles = StyleSheet.create({
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: radius.pill,
     alignSelf: 'flex-start',
   },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
   label: {
-    fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.3,
     textTransform: 'uppercase',

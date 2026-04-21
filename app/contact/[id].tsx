@@ -22,7 +22,10 @@ import { SearchContact, ContactPhone, ContactEmail } from '../../src/api/search'
 import { openLinkedIn, callPhone, sendEmail, openWhatsApp } from '../../src/components/ContactActions';
 import { Skeleton } from '../../src/components/ui/Skeleton';
 import { Badge } from '../../src/components/ui/Badge';
-import { colors } from '../../src/theme/tokens';
+import { ContactHero } from '../../src/components/contact/ContactHero';
+import { RevealHeroCard } from '../../src/components/contact/RevealHeroCard';
+import { MaskedValueRow } from '../../src/components/ui/MaskedValueRow';
+import { color } from '../../src/theme/tokens';
 import { useSignalsStore } from '../../src/store/signalsStore';
 import { createSubscription, deleteSubscription, listAllSubscriptions, reactivateSubscription, getContactSignals, LushaSignalEvent } from '../../src/api/signals';
 import { useAuthStore } from '../../src/store/authStore';
@@ -524,59 +527,74 @@ export default function ContactDetailScreen() {
       <Stack.Screen options={{ title: data.name.full }} />
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        {/* Hero */}
-        <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 18, marginBottom: 10 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#f3efff', alignItems: 'center', justifyContent: 'center', marginRight: 14, flexShrink: 0 }}>
-              <Text style={{ color: '#6f45ff', fontSize: 22, fontWeight: '700' }}>
-                {getInitials(data.name)}
-              </Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <Text style={{ color: '#262626', fontSize: 19, fontWeight: '700', flex: 1 }} numberOfLines={1}>{data.name.full}</Text>
-                {isDNC && <Badge variant="negative">DNC</Badge>}
-                <FollowButton contact={data} />
-              </View>
-              {data.job_title?.title && (
-                <Text style={{ color: '#737373', fontSize: 14, marginTop: 3 }} numberOfLines={1}>{data.job_title.title}</Text>
-              )}
-              {data.company?.name && (
-                <Text style={{ color: '#6f45ff', fontSize: 14, fontWeight: '600', marginTop: 2 }} numberOfLines={1}>
-                  {data.company.name}
+        {/* Hero — new ContactHero */}
+        <View style={{ marginBottom: 10 }}>
+          <ContactHero
+            name={data.name.full}
+            role={data.job_title?.title ?? ''}
+            company={data.company?.name ?? ''}
+            verified={isRevealed && !isDNC}
+            onCall={() => {
+              const p = data.phones?.find(ph => !ph.is_do_not_call);
+              if (p) callPhone(p.normalized_number ?? p.number);
+              else if (!isRevealed) revealMutation.mutate();
+            }}
+            onEmail={() => {
+              const e = data.emails?.[0];
+              if (e) sendEmail(e.address);
+              else if (!isRevealed) revealMutation.mutate();
+            }}
+            callDisabled={isDNC || (isRevealed && !data.phones?.some(p => !p.is_do_not_call))}
+            emailDisabled={isDNC || (isRevealed && !data.emails?.length)}
+          />
+          {/* Follow button + DNC badge row (kept from old hero) */}
+          <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {isDNC && <Badge variant="negative">DNC</Badge>}
+            <FollowButton contact={data} />
+            {data.location?.city && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 'auto', gap: 4 }}>
+                <MapPin size={12} color={color.muted2} strokeWidth={1.75} />
+                <Text style={{ color: color.muted, fontSize: 12, flexShrink: 1 }} numberOfLines={1}>
+                  {[data.location.city, data.location.state, data.location.country].filter(Boolean).join(', ')}
                 </Text>
-              )}
-            </View>
+              </View>
+            )}
           </View>
-
-          {data.location?.city && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 4 }}>
-              <MapPin size={13} color="#a3a3a3" strokeWidth={1.75} />
-              <Text style={{ color: '#a3a3a3', fontSize: 13, flexShrink: 1 }} numberOfLines={1}>
-                {[data.location.city, data.location.state, data.location.country].filter(Boolean).join(', ')}
-              </Text>
-            </View>
-          )}
         </View>
 
+        {/* Reveal hero (when not revealed) */}
+        {!showContactInfo && !isDNC && !revealError && (
+          <RevealHeroCard
+            contactName={data.name.full}
+            valueCount={{
+              phones: data.phones?.length ?? 0,
+              emails: data.emails?.length ?? 0,
+              social: data.social_link ? ['LinkedIn'] : [],
+            }}
+            creditCost={1}
+            loading={revealMutation.isPending}
+            onReveal={() => revealMutation.mutate()}
+          />
+        )}
+
         {/* Contact Info */}
-        <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, marginBottom: 10 }}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
-            Contact Info
+        <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, marginBottom: 10, marginTop: !showContactInfo && !isDNC && !revealError ? 10 : 0 }}>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: color.muted2, textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
+            Contact
           </Text>
 
           {isDNC ? (
             <View style={{ paddingVertical: 16 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Ban size={16} color="#dc2626" strokeWidth={2} />
-                <Text style={{ color: '#dc2626', fontWeight: '600', fontSize: 15 }}>Do Not Contact</Text>
+                <Ban size={16} color={color.danger} strokeWidth={2} />
+                <Text style={{ color: color.danger, fontWeight: '600', fontSize: 15 }}>Do Not Contact</Text>
               </View>
-              <Text style={{ color: '#737373', fontSize: 13, marginTop: 4 }}>
+              <Text style={{ color: color.muted, fontSize: 13, marginTop: 4 }}>
                 This contact has opted out of communications.
               </Text>
             </View>
           ) : !showContactInfo ? (
-            <View style={{ paddingVertical: 14 }}>
+            <View style={{ paddingTop: 10, paddingBottom: 14 }}>
               {revealError ? (
                 <View style={{ backgroundColor: '#fef3c7', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#fde68a', flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <Lock size={16} color="#92400e" strokeWidth={2} />
@@ -585,17 +603,17 @@ export default function ContactDetailScreen() {
                   </Text>
                 </View>
               ) : (
-                <TouchableOpacity
-                  onPress={() => revealMutation.mutate()}
-                  disabled={revealMutation.isPending}
-                  style={{ backgroundColor: '#6f45ff', borderRadius: 12, paddingVertical: 14, alignItems: 'center', opacity: revealMutation.isPending ? 0.7 : 1, flexDirection: 'row', justifyContent: 'center', gap: 6 }}
-                  activeOpacity={0.85}
-                >
-                  {!revealMutation.isPending && <Unlock size={16} color="#fff" strokeWidth={2.25} />}
-                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-                    {revealMutation.isPending ? 'Revealing…' : 'Reveal Contact Info'}
-                  </Text>
-                </TouchableOpacity>
+                <>
+                  {(data.phones?.length ?? 0) > 0 && (
+                    <MaskedValueRow label="MOBILE" masked="+1 ••• ••• ••••" live />
+                  )}
+                  {(data.emails?.length ?? 0) > 0 && (
+                    <MaskedValueRow label="EMAIL · WORK" masked="•••••••••@••••••••••" />
+                  )}
+                  {!data.phones?.length && !data.emails?.length && data.social_link && (
+                    <MaskedValueRow label="SOCIAL PROFILE" masked="linkedin.com/in/•••••" />
+                  )}
+                </>
               )}
             </View>
           ) : (
