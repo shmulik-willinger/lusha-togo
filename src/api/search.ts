@@ -381,6 +381,18 @@ export async function searchProspects(params: SearchParams): Promise<SearchRespo
     return { contacts: [], companies: [], total: 0, page: params.page ?? 1, hasMore: false };
   }
 
+  // The Lusha API returns HTTP 200 with { searchQuotaExceeded: true } when the
+  // account has used up its daily prospecting quota. If we silently returned
+  // empty results here the UI would show "No results found" and the user
+  // would have no idea why. Surface it as a typed error instead.
+  if (data?.searchQuotaExceeded === true) {
+    console.log('[search] search quota exceeded');
+    const err: any = new Error('Search quota exceeded — please try again later or upgrade your plan.');
+    err.response = { status: 429, data: { searchQuotaExceeded: true, message: err.message } };
+    err.quotaExceeded = true;
+    throw err;
+  }
+
   console.log('[search] raw keys:', Object.keys(data ?? {}).join(','), '| contacts keys:', Object.keys(data?.contacts ?? {}).join(','));
   // Web app uses results.maskId (NOT results.requestId) as the unmask cache key
   console.log('[search] top-level maskId:', data?.maskId, '| requestId:', data?.requestId, '| is_in_api_test:', data?.is_in_api_test);

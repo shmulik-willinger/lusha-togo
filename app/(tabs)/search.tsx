@@ -239,14 +239,19 @@ function NoResultsState() {
 }
 
 function ErrorState({ error, onRetry }: { error: unknown; onRetry: () => void }) {
-  const msg = (error as any)?.response?.data
-    ? JSON.stringify((error as any).response.data).substring(0, 200)
-    : (error as any)?.message ?? 'Unknown error';
+  const err = error as any;
+  const isQuota = err?.quotaExceeded === true || err?.response?.data?.searchQuotaExceeded === true;
+  const title = isQuota ? 'Daily search quota reached' : 'Search failed';
+  const msg = isQuota
+    ? 'You\'ve hit your plan\'s daily search limit. It resets tomorrow — or upgrade to keep searching now.'
+    : (err?.response?.data
+        ? JSON.stringify(err.response.data).substring(0, 200)
+        : err?.message ?? 'Unknown error');
   return (
     <ScrollView className="flex-1 px-8 pt-16">
       <AlertTriangle size={56} color="#f97316" strokeWidth={1.5} style={{ marginBottom: 16 }} />
       <Text className="text-neutral-800 font-sans-semibold text-xl text-center mb-2">
-        Search failed
+        {title}
       </Text>
       <Text className="text-neutral-500 text-sm text-center mb-4">{msg}</Text>
       <TouchableOpacity
