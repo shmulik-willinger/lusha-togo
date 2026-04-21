@@ -13,6 +13,7 @@ interface ContactHeroProps {
   following?: boolean;
   onCall?: () => void;
   onEmail?: () => void;
+  onCompanyPress?: () => void;
   callDisabled?: boolean;
   emailDisabled?: boolean;
 }
@@ -25,6 +26,7 @@ export function ContactHero({
   following = false,
   onCall,
   onEmail,
+  onCompanyPress,
   callDisabled,
   emailDisabled,
 }: ContactHeroProps) {
@@ -35,7 +37,15 @@ export function ContactHero({
         <View style={styles.info}>
           <Text style={styles.name} numberOfLines={2}>{name}</Text>
           {!!role && <Text style={styles.role} numberOfLines={2}>{role}</Text>}
-          {!!company && <Text style={styles.company} numberOfLines={1}>{company}</Text>}
+          {!!company && (
+            onCompanyPress ? (
+              <Pressable onPress={onCompanyPress} hitSlop={6}>
+                <Text style={styles.company} numberOfLines={1}>{company}</Text>
+              </Pressable>
+            ) : (
+              <Text style={styles.company} numberOfLines={1}>{company}</Text>
+            )
+          )}
         </View>
       </View>
 

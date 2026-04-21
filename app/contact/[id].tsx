@@ -13,12 +13,13 @@ import * as Contacts from 'expo-contacts';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MapPin, Ban, Lock, Unlock, Phone, Mail, MessageCircle, Building2, Clock, UserPlus, Share2 } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack, router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { getContactById, revealContact } from '../../src/api/contacts';
 import { useContactStore } from '../../src/store/contactStore';
-import { SearchContact, ContactPhone, ContactEmail } from '../../src/api/search';
+import { useCompanyStore } from '../../src/store/companyStore';
+import { SearchContact, SearchCompany, ContactPhone, ContactEmail } from '../../src/api/search';
 import { openLinkedIn, callPhone, sendEmail, openWhatsApp } from '../../src/components/ContactActions';
 import { Skeleton } from '../../src/components/ui/Skeleton';
 import { Badge } from '../../src/components/ui/Badge';
@@ -433,6 +434,7 @@ function FollowButton({ contact }: { contact: SearchContact }) {
 export default function ContactDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const cachedContact = useContactStore((s) => s.selectedContact);
+  const setSelectedCompany = useCompanyStore((s) => s.setSelectedCompany);
   const [contact, setContact] = useState<SearchContact | null>(null);
 
   // Fetch if no cache, OR cache is minimal (e.g. seeded from a signal — no job_title/phones yet).
@@ -585,6 +587,16 @@ export default function ContactDetailScreen() {
             }}
             callDisabled={isDNC || (isRevealed && !data.phones?.some(p => !p.is_do_not_call))}
             emailDisabled={isDNC || (isRevealed && !data.emails?.length)}
+            onCompanyPress={data.company?.id || data.companyId ? () => {
+              const cid = data.company!.id ?? data.companyId;
+              const seed: SearchCompany = {
+                company_lid: String(cid),
+                company_id: String(cid),
+                name: data.company!.name,
+              };
+              setSelectedCompany(seed);
+              router.push(`/company/${cid}`);
+            } : undefined}
           />
           {/* Follow button + DNC badge row (kept from old hero) */}
           <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: 16, paddingBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -742,13 +754,28 @@ export default function ContactDetailScreen() {
           <View style={{ height: 4 }} />
         </View>
 
-        {/* Company */}
+        {/* Company — tap to navigate to Company Detail */}
         {data.company?.name && (
           <View style={{ backgroundColor: '#fff', paddingHorizontal: 20, marginBottom: 10 }}>
             <Text style={{ fontSize: 11, fontWeight: '700', color: '#a3a3a3', textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 4 }}>
               Company
             </Text>
-            <InfoRow icon={<Building2 size={18} color="#525252" strokeWidth={1.75} />} label="Company" value={data.company.name} />
+            <TouchableOpacity
+              onPress={() => {
+                const cid = data.company!.id ?? data.companyId;
+                if (!cid) return;
+                const seed: SearchCompany = {
+                  company_lid: String(cid),
+                  company_id: String(cid),
+                  name: data.company!.name,
+                };
+                setSelectedCompany(seed);
+                router.push(`/company/${cid}`);
+              }}
+              activeOpacity={0.7}
+            >
+              <InfoRow icon={<Building2 size={18} color="#525252" strokeWidth={1.75} />} label="Company" value={data.company.name} />
+            </TouchableOpacity>
             <View style={{ height: 8 }} />
           </View>
         )}

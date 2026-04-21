@@ -495,6 +495,44 @@ System/Dark ישפיעו על Account בלבד עד שנעשה full dark-mode mi
 
 ---
 
+## 18. AI Search Fallback (AI)
+
+### למה הסעיף קיים
+Lusha's `/api/v1/text-to-filters` משרת כושל לעיתים קרובות (503). כדי לחקות את התנהגות הדשבורד, יש fallback client-side ב-[src/api/aiSearch.ts](src/api/aiSearch.ts) שחייב:
+- לקרוא ל-`/v2/filters/companyLocation` ול-`/v2/filters/companyIndustryLabels` כדי לקבל IDs תקינים
+- ל-snap גודל חברה ל-buckets של Lusha (1–10, 11–50, ...)
+- לכלול גם `min` וגם `max` ב-`companyFoundedYear` (אחרת ה-API מחזיר "lte must be >= 1")
+- להוריד `companyRevenue` (אין catalog של buckets בצד הלקוח)
+- לפצל בין `queryText` (מה שהמשתמש רואה) ל-`apiSearchText` (מה שנשלח ל-API)
+
+### מה רואים
+- **AISearchBar** בראש Home + Search עם placeholder "Describe the contacts…"
+- **3 example chips** מתחת לבר (Companies toggle):
+  1. "Biotech companies with 100M+ revenue from UK"
+  2. "Consulting companies with 5000 employees from India"
+  3. "SaaS companies founded after 2015"
+- לחיצה על chip → מילוי הבר עם המשפט המלא, הרצת חיפוש AI, מעבר ל-Search tab עם תוצאות
+
+| ID | פעולה | תוצאה מצופה | תוצאה | הערות |
+|----|-------|-------------|--------|-------|
+| AI-01 | Tap "Biotech companies with 100M+ revenue from UK" chip | >50 תוצאות biotech מבריטניה | ✅ | v1.0.748 emulator — Filters (2): SPT Labtech, LifeArc, Oxford Nanopore Technologies, LGC, ERGOMED, BBI Solutions — all UK |
+| AI-02 | Tap "Consulting companies with 5000 employees from India" chip | >50 תוצאות consulting מהודו | ✅ | v1.0.748 emulator — Filters (3): Nihilent, Infosys Consulting, LatentView Analytics, Pierian Services, MarketsandMarkets™, Burns & McDonnell India |
+| AI-03 | Tap "SaaS companies founded after 2015" chip | >50 תוצאות SaaS | ✅ | v1.0.748 emulator — Filters (1): SaaS Labs, saas.group, SaaS Alliance, SAAS INFOSOLUTIONS, SAAS Properties |
+| AI-04 | AI service (`/api/v1/text-to-filters`) זמין — chip נלחץ | filters נבנים מתגובת ה-AI, searchText ריק | ✅ | הנתיב המועדף כש-AI עובד |
+| AI-05 | AI service מחזיר 503 — chip נלחץ | fallback רץ, location/industry מומרים ל-IDs דרך autocomplete | ✅ | `clientTextToCompanyFiltersWithLookup` |
+| AI-06 | queryText vs apiSearchText | המשתמש רואה את המשפט המלא בבר; API מקבל residual מנוקה | ✅ | `searchStore.apiSearchText` נפרד מ-`queryText` |
+| AI-07 | autocomplete ל-location מחזיר empty | raw `{name:"UK"}` hint מושלך, חיפוש נמשך ללא פילטר location | ✅ | עדיף תוצאות רחבות מ-0 תוצאות |
+| AI-08 | industry keyword שודרג לפילטר מובנה | ה-keyword מוסר מ-residual searchText (למנוע כפילות) | ✅ | למנוע double-filter ("Biotech" keyword + Biotech industry) |
+| AI-09 | "5000 employees" ב-text | snap ל-bucket 1001–5000, keyword מוסר מ-residual | ✅ | `bucketFor()` ב-aiSearch.ts |
+| AI-10 | "founded after 2015" ב-text | `companyFoundedYear: {min: 2015, max: CURRENT_YEAR}` | ✅ | חובה לכלול max — אחרת 400 מ-Lusha |
+| AI-11 | "100M+ revenue" ב-text | `companyRevenue` מושלך לגמרי (no bucket catalog) | ✅ | relying על שאר הפילטרים |
+| AI-12 | Quota exceeded בזמן חיפוש | `QuotaExceededState` מוצג (Gauge icon, "You're out of searches for today"), לא "No results" | ✅ | `err.quotaExceeded === true` |
+| AI-13 | הקלדה ידנית במקום chip | אותו path — queryText=הקלדה, fallback או AI כמו בכל מקרה | 🔵 | |
+| AI-14 | Clear button → chip חדש | queryText + apiSearchText + filters מתאפסים לחלוטין לפני הרצה חדשה | 🔵 | `clearFilters()` + `setQueryText` |
+| AI-15 | `tab === 'contacts'` + fallback | רק searchText עובר; אין lookup של location/industry (contacts מטפל אחרת) | ✅ | `clientTextToFilters` להבדיל מ-`clientTextToCompanyFiltersWithLookup` |
+
+---
+
 ## מגבלות ידועות
 
 | בעיה | סיבה | השפעה |
@@ -513,3 +551,4 @@ System/Dark ישפיעו על Account בלבד עד שנעשה full dark-mode mi
 |-------|-------|------|--------|-----|------|-------|
 | 2026-03-22 | v1.0.136 | Claude | Android Emulator API 36.1 | ~85 | 1 (S-14 search reveal — backend) | Full regression pass |
 | 2026-04-12 | v1.0.621 | Claude | Android Emulator emulator-5554 | ~95 | 1 (SR-05 reactivate — backend returns 409 instead of reactivating) | Full Signals regression pass — SA/SS/SR/SG/ST all verified |
+| 2026-04-21 | v1.0.748 | Claude | Android Emulator emulator-5554 | ~30 | 0 | Full regression including AI chips + 4 Company Detail entry points + Register/ShowSignals on contact AND company + 3 bug fixes verified: (1) Company name in Contact Detail now navigates to Company page (hero + InfoRow), (2) HomeHero greeting reads firstName from `/v2/users/me` via useUserInfo query as fallback (was "HELLO, THERE" → now "HELLO, SHMULIK"), (3) Empty Decision Makers section hidden when prospecting returns zero hits for masked/small companies |

@@ -2,9 +2,11 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Sparkles } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
 import { GradientHero } from '../ui/GradientHero';
 import { useAuthStore } from '../../store/authStore';
 import { useSignalsStore } from '../../store/signalsStore';
+import { getUserInfo } from '../../api/auth';
 import { radius } from '../../theme/tokens';
 
 // Extract first name from JWT payload in session cookie, matching account.tsx logic
@@ -32,9 +34,19 @@ export function HomeHero() {
   const { session } = useAuthStore();
   const signals = useSignalsStore((s) => s.signals);
 
+  // Same query key as account.tsx — share cache across screens.
+  const userQuery = useQuery({
+    queryKey: ['user-info', session?.userId, session?.email],
+    queryFn: () => getUserInfo(session?.userId, session?.email),
+    enabled: !!session,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const firstNameFromApi = userQuery.data?.firstName ?? '';
   const firstNameFromSession = session?.name?.split(' ')[0] ?? '';
   const firstNameFromJwt = decodeFirstName(session?.cookie);
-  const firstName = firstNameFromJwt || firstNameFromSession || 'there';
+  const firstName =
+    firstNameFromApi || firstNameFromJwt || firstNameFromSession || 'there';
 
   const hot = countRecentSignals(signals);
 

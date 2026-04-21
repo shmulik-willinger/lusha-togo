@@ -692,30 +692,31 @@ export default function CompanyDetailScreen() {
           getDetail={(data, type) => signalDetail({ data, signalType: type } as LushaSignalEvent)}
         />
 
-        {/* Decision Makers — promoted to top */}
-        <View style={{ backgroundColor: '#fff', paddingHorizontal: 16, paddingBottom: 8, marginBottom: 8 }}>
-          <Text style={{ fontSize: 11, fontWeight: '700', color: color.muted, textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 8 }}>
-            Decision Makers {decisionMakers.length > 0 ? `· ${decisionMakers.length}` : ''}
-          </Text>
-          {dmLoading ? (
-            <View style={{ paddingVertical: 16, alignItems: 'center' }}>
-              <ActivityIndicator size="small" color={color.brand} />
-            </View>
-          ) : decisionMakers.length === 0 ? (
-            dmQuotaExceeded ? (
+        {/* Decision Makers — only render the section when we have something
+            to show (loading, a quota message, or results). When prospecting
+            returns zero hits for a small/masked company, hide the section
+            entirely so the page doesn't look half-broken. */}
+        {(dmLoading || decisionMakers.length > 0 || dmQuotaExceeded) && (
+          <View style={{ backgroundColor: '#fff', paddingHorizontal: 16, paddingBottom: 8, marginBottom: 8 }}>
+            <Text style={{ fontSize: 11, fontWeight: '700', color: color.muted, textTransform: 'uppercase', letterSpacing: 0.8, paddingTop: 16, paddingBottom: 8 }}>
+              Decision Makers {decisionMakers.length > 0 ? `· ${decisionMakers.length}` : ''}
+            </Text>
+            {dmLoading ? (
+              <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+                <ActivityIndicator size="small" color={color.brand} />
+              </View>
+            ) : dmQuotaExceeded ? (
               <Text style={{ color: color.muted, fontSize: 13, paddingVertical: 12, lineHeight: 18 }}>
                 Daily search limit reached. Decision makers will appear after the quota resets.
               </Text>
             ) : (
-              <Text style={{ color: color.muted2, fontSize: 13, paddingVertical: 12 }}>No contacts found</Text>
-            )
-          ) : (
-            decisionMakers.map((c) => (
-              <DecisionMakerCard key={c.contactId} contact={c} />
-            ))
-          )}
-          <View style={{ height: 8 }} />
-        </View>
+              decisionMakers.map((c) => (
+                <DecisionMakerCard key={c.contactId} contact={c} />
+              ))
+            )}
+            <View style={{ height: 8 }} />
+          </View>
+        )}
 
         {/* Company Info — collapsed by default */}
         <View style={{ marginBottom: 8 }}>
