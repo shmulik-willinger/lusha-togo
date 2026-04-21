@@ -15,7 +15,9 @@ import { getContactListById } from '../../src/api/lists';
 import { ContactCard } from '../../src/components/ContactCard';
 import { CompanyCard } from '../../src/components/CompanyCard';
 import { ContactCardSkeleton } from '../../src/components/ui/Skeleton';
+import { ScreenTitle } from '../../src/components/ui/ScreenTitle';
 import { SearchContact, SearchCompany } from '../../src/api/search';
+import { color } from '../../src/theme/tokens';
 
 export default function ListDetailScreen() {
   const { id, type: typeParam, name: nameParam } = useLocalSearchParams<{ id: string; type?: string; name?: string }>();
@@ -79,11 +81,19 @@ export default function ListDetailScreen() {
   }, [data, filtered.length, isCompanyList]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7', direction: 'ltr' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: color.canvas, direction: 'ltr' }}>
       <Stack.Screen options={{ title: data?.name || (nameParam ? decodeURIComponent(nameParam) : 'List') }} />
 
+      {/* Large title + meta */}
+      {data && (
+        <ScreenTitle
+          title={data.name || (nameParam ? decodeURIComponent(nameParam) : 'List')}
+          meta={countLabel ?? undefined}
+        />
+      )}
+
       {/* Search within list */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
         <View style={{ direction: 'ltr', backgroundColor: '#fff', borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: '#e5e7eb' }}>
           <SearchIcon size={16} color="#a3a3a3" strokeWidth={2} style={{ marginRight: 8 }} />
           <TextInput
@@ -104,13 +114,6 @@ export default function ListDetailScreen() {
           )}
         </View>
       </View>
-
-      {/* Count */}
-      {data && (
-        <Text style={{ color: '#a3a3a3', fontSize: 12, paddingHorizontal: 16, marginBottom: 4 }}>
-          {countLabel}
-        </Text>
-      )}
 
       {isLoading && page === 0 ? (
         <View className="flex-1">
@@ -153,16 +156,12 @@ export default function ListDetailScreen() {
               tintColor="#6f45ff"
             />
           }
+          onEndReached={() => {
+            if (hasMore && !isRefetching) setPage((p) => p + 1);
+          }}
+          onEndReachedThreshold={0.4}
           ListFooterComponent={
-            hasMore ? (
-              <TouchableOpacity
-                onPress={() => setPage((p) => p + 1)}
-                style={{ backgroundColor: '#6f45ff', borderRadius: 12, margin: 16, paddingVertical: 12, alignItems: 'center' }}
-                activeOpacity={0.85}
-              >
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>Load More</Text>
-              </TouchableOpacity>
-            ) : null
+            hasMore ? <View style={{ paddingVertical: 20 }}><ContactCardSkeleton /></View> : null
           }
         />
       )}

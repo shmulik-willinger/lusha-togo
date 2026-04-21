@@ -14,6 +14,7 @@ import {
   Image,
 } from 'react-native';
 import { ShieldCheck, Lock } from 'lucide-react-native';
+import { LoginHeroCover } from '../../src/components/login/LoginHeroCover';
 import { router } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import type { WebViewNavigation } from 'react-native-webview';
@@ -410,26 +411,28 @@ export default function LoginScreen() {
   return (
     <>
       <KeyboardAvoidingView
-        className="flex-1 bg-neutral-100"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1, backgroundColor: '#0B0B10' }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerClassName="flex-grow items-center justify-center px-6 py-12"
+          contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          {/* Logo */}
-          <View className="items-center mb-10">
-            <View className="mb-4">
-              <LushaLogo />
-            </View>
-            <Text className="text-3xl font-sans-bold text-neutral-800">Lusha ToGo</Text>
-            <Text className="text-neutral-500 text-base mt-1">Sign in to your account</Text>
-          </View>
+          {/* Dark gradient hero */}
+          <LoginHeroCover height={320} />
 
-          {/* Form */}
+          {/* Form sheet (pulled over hero) */}
           <View
-            className="w-full bg-white rounded-2xl p-6 shadow-sm"
-            style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 12, elevation: 4 }}
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderTopLeftRadius: 28,
+              borderTopRightRadius: 28,
+              marginTop: -22,
+              paddingHorizontal: 24,
+              paddingTop: 24,
+              paddingBottom: 32,
+            }}
           >
             <Text className="text-sm font-sans-semibold text-neutral-700 mb-1.5">Email</Text>
             <TextInput

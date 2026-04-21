@@ -13,6 +13,7 @@ import { Bell, Key, TrendingUp, TrendingDown, Users, Newspaper, Building2, Troph
 import { router } from 'expo-router';
 import { useSignalsStore, ReceivedSignal, StoredSubscription } from '../../src/store/signalsStore';
 import { listSubscriptions, deleteSubscription } from '../../src/api/signals';
+import { SignalsTeaser } from '../../src/components/signals/SignalsTeaser';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -332,7 +333,7 @@ export default function SignalsScreen() {
   if (!apiKey) {
     return (
       <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: '#f5f5f7' }}>
-        <NoApiKey />
+        <SignalsTeaser onActivate={() => router.push('/(tabs)/account' as never)} />
       </SafeAreaView>
     );
   }

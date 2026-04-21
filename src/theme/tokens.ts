@@ -2,7 +2,7 @@
 // Single source of truth for color, radius, shadow, spacing, type.
 // Keep these in sync with tailwind.config.js.
 
-export const color = {
+const lightColor = {
   // Brand
   brand:       '#6F45FF',
   brandInk:    '#3B1E9A',
@@ -34,9 +34,45 @@ export const color = {
   canvas:      '#F5F5F7',
   surface:     '#FFFFFF',
 
-  // Extras (kept for compatibility)
+  // Extras
   linkedin:    '#0A66C2',
-} as const;
+};
+
+const darkColor: typeof lightColor = {
+  brand:       '#8C6BFF',
+  brandInk:    '#C7B3FF',
+  brandTint:   '#2A1F4F',
+  brandTint2:  '#3A2E65',
+
+  live:        '#2CE98D',
+  liveTint:    '#0E2E1F',
+  liveInk:     '#A8F5CE',
+
+  warm:        '#FFA663',
+  warmTint:    '#3A2817',
+  warmInk:     '#FFC794',
+
+  danger:      '#FF6680',
+  dangerTint:  '#3B1922',
+  dangerInk:   '#FFB3BF',
+
+  ink:         '#F5F5F7',
+  ink2:        '#E7E7EC',
+  muted:       '#A3A3AD',
+  muted2:      '#6E6E78',
+  line:        '#26262E',
+  line2:       '#1C1C22',
+  canvas:      '#0B0B10',
+  surface:     '#14141A',
+
+  linkedin:    '#0A66C2',
+};
+
+export const schemeColors = { light: lightColor, dark: darkColor };
+export type ColorScheme = keyof typeof schemeColors;
+
+// Default export — light palette. Wrap with useTheme() for scheme-aware access.
+export const color = lightColor;
 
 export const radius = {
   xs: 6,
@@ -98,6 +134,5 @@ export const hit = {
 export type ColorToken  = keyof typeof color;
 export type RadiusToken = keyof typeof radius;
 
-// Backwards-compat alias: old code imported `colors` (plural) + `colors.linkedin` etc.
-// Keep this export so incremental migration doesn't break the build.
+// Backwards-compat alias
 export const colors = color;

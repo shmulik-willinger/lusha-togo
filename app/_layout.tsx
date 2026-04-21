@@ -16,6 +16,7 @@ import {
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { useAuthStore } from '../src/store/authStore';
+import { ThemeProvider } from '../src/theme/ThemeProvider';
 import { revealWebViewManager } from '../src/utils/revealWebView';
 import { useSignalsStore, ReceivedSignal } from '../src/store/signalsStore';
 import { registerDeviceWithRelay } from '../src/api/signals';
@@ -222,6 +223,7 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
+    <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <StatusBar style="dark" />
       <BackgroundRevealWebView />
@@ -251,5 +253,6 @@ export default function RootLayout() {
         />
       </Stack>
     </QueryClientProvider>
+    </ThemeProvider>
   );
 }
