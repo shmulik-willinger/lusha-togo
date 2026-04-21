@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Bell, Key, TrendingUp, TrendingDown, Users, Newspaper, Building2, Trophy, type LucideIcon } from 'lucide-react-native';
+import { Bell, Key, TrendingUp, TrendingDown, Users, Newspaper, Building2, Trophy, Eye, type LucideIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useSignalsStore, ReceivedSignal, StoredSubscription } from '../../src/store/signalsStore';
 import { listSubscriptions, deleteSubscription } from '../../src/api/signals';
@@ -422,7 +422,7 @@ export default function SignalsScreen() {
         ) : (
           subscriptions.length === 0 ? (
             <View style={{ alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32 }}>
-              <Text style={{ fontSize: 40, marginBottom: 12 }}>👁️</Text>
+              <Eye size={48} color="#a3a3a3" strokeWidth={1.5} style={{ marginBottom: 12 }} />
               <Text style={{ fontSize: 16, fontWeight: '700', color: '#262626', textAlign: 'center', marginBottom: 8 }}>
                 Not registered to anything yet
               </Text>

@@ -12,7 +12,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { Bell, Moon, HelpCircle, LogOut } from 'lucide-react-native';
+import { Moon, HelpCircle, LogOut } from 'lucide-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { getUserInfo } from '../../src/api/auth';
 import { logout } from '../../src/api/auth';
@@ -193,12 +193,6 @@ export default function AccountScreen() {
   const appearanceLabel = pref === 'system' ? 'System' : pref === 'dark' ? 'Dark' : 'Light';
 
   const settingsRows: SettingsRow[] = [
-    {
-      icon: Bell,
-      label: 'Notifications',
-      value: apiKey ? 'On' : 'Off',
-      onPress: () => setSignalsModalOpen(true),
-    },
     {
       icon: Moon,
       label: 'Appearance',

@@ -24,11 +24,16 @@ export function RevealHeroCard({
   onReveal,
 }: RevealHeroCardProps) {
   const { phones, emails, social = [] } = valueCount;
-  const summary = [
-    phones && `${phones} phone${phones > 1 ? 's' : ''}`,
-    emails && `${emails} email${emails > 1 ? 's' : ''}`,
+  const parts = [
+    phones > 0 && `${phones} phone${phones > 1 ? 's' : ''}`,
+    emails > 0 && `${emails} email${emails > 1 ? 's' : ''}`,
     ...social,
-  ].filter(Boolean).join(' · ') || 'Contact data';
+  ].filter(Boolean) as string[];
+  const summary = parts.length > 0
+    ? parts.join(' · ')
+    : social.length > 0
+      ? 'Social profiles only'
+      : 'Contact data';
 
   const firstName = contactName.split(' ')[0] || 'this contact';
 

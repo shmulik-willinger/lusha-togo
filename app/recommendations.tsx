@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, TextInput, RefreshControl, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search as SearchIcon } from 'lucide-react-native';
+import { Search as SearchIcon, SearchX } from 'lucide-react-native';
 import { Stack } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { ContactCard } from '../src/components/ContactCard';
@@ -175,7 +175,7 @@ export default function RecommendationsScreen() {
 function NoResults({ search, type }: { search: string; type: 'contacts' | 'companies' }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ fontSize: 36, marginBottom: 8 }}>🤷</Text>
+      <SearchX size={40} color="#a3a3a3" strokeWidth={1.5} style={{ marginBottom: 12 }} />
       <Text style={{ color: '#262626', fontWeight: '600', fontSize: 16 }}>
         {search ? 'No matches' : `No ${type} recommendations`}
       </Text>

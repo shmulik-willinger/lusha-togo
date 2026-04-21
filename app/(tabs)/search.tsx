@@ -7,7 +7,7 @@ import {
   FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Building2, Sparkles, SlidersHorizontal, X, AlertTriangle } from 'lucide-react-native';
+import { Building2, Sparkles, SlidersHorizontal, X, AlertTriangle, SearchX } from 'lucide-react-native';
 import { AISearchBar } from '../../src/components/AISearchBar';
 import { AIThinkingOverlay } from '../../src/components/AIThinkingOverlay';
 import { FilterSheet } from '../../src/components/FilterSheet';
@@ -227,7 +227,7 @@ function AddCompanyFiltersState({ onOpenFilters }: { onOpenFilters: () => void }
 function NoResultsState() {
   return (
     <View className="flex-1 items-center justify-center px-8">
-      <Text className="text-5xl mb-4">🤷</Text>
+      <SearchX size={56} color="#a3a3a3" strokeWidth={1.5} style={{ marginBottom: 16 }} />
       <Text className="text-neutral-800 font-sans-semibold text-xl text-center mb-2">
         No results found
       </Text>

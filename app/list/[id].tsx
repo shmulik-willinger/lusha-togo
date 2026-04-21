@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search as SearchIcon } from 'lucide-react-native';
+import { Search as SearchIcon, SearchX } from 'lucide-react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { useQuery } from '@tanstack/react-query';
@@ -172,7 +172,7 @@ export default function ListDetailScreen() {
 function NoResults({ search, isCompanyList }: { search: string; isCompanyList?: boolean }) {
   return (
     <View className="flex-1 items-center justify-center px-8">
-      <Text className="text-4xl mb-3">🤷</Text>
+      <SearchX size={48} color="#a3a3a3" strokeWidth={1.5} style={{ marginBottom: 16 }} />
       <Text className="text-neutral-800 font-sans-semibold text-lg text-center mb-1">
         {search ? 'No matches' : 'Empty list'}
       </Text>

@@ -397,11 +397,12 @@ export default function ContactDetailScreen() {
   const cachedContact = useContactStore((s) => s.selectedContact);
   const [contact, setContact] = useState<SearchContact | null>(null);
 
+  // Fetch if no cache, OR cache is minimal (e.g. seeded from a signal — no job_title/phones yet).
+  const cacheIsMinimal = !!cachedContact && !cachedContact.job_title && !cachedContact.phones;
   const query = useQuery({
     queryKey: ['contact', id],
     queryFn: () => getContactById(id),
-    // If we have cached data from the list, don't block on the API call
-    enabled: !!id && !cachedContact,
+    enabled: !!id && (!cachedContact || cacheIsMinimal),
   });
 
   useEffect(() => {
