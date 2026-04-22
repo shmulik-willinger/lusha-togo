@@ -506,6 +506,8 @@ export default function ContactDetailScreen() {
   }, [query.data]);
 
   const [revealError, setRevealError] = useState(false);
+  const [revealRestrictedOpen, setRevealRestrictedOpen] = useState(false);
+  const [revealErrorMsg, setRevealErrorMsg] = useState<string | null>(null);
   const [permissionOpen, setPermissionOpen] = useState(false);
   const [savedOpen, setSavedOpen] = useState(false);
   const [saveErrorOpen, setSaveErrorOpen] = useState(false);
@@ -548,8 +550,18 @@ export default function ContactDetailScreen() {
       setContact({ ...data, isShown: true, phones: updatedPhones, emails: updatedEmails });
     },
     onError: (err: any) => {
-      console.log('[contact-detail reveal-error]', err?.response?.status, JSON.stringify(err?.response?.data).substring(0, 200));
+      const status = err?.response?.status;
+      const body = err?.response?.data;
+      console.log('[contact-detail reveal-error]', status, JSON.stringify(body).substring(0, 200));
+      // Keep the inline yellow banner on the page for context.
       setRevealError(true);
+      // Plus surface the same dialog shown from the list, so the UX matches
+      // whether the user tapped REVEAL on the card or from the detail page.
+      if (status === 403) {
+        setRevealRestrictedOpen(true);
+      } else {
+        setRevealErrorMsg(body?.message || err?.message || 'Could not reveal this contact. Please try again.');
+      }
     },
   });
 
@@ -860,6 +872,23 @@ export default function ContactDetailScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
+      <AppDialog
+        visible={revealRestrictedOpen}
+        tone="warning"
+        icon={Lock}
+        title="Contact Info is Protected"
+        message={data ? `Your account doesn't have access to ${data.name.full}'s contact info. Upgrade your plan to unlock access.` : ''}
+        primary={{ label: 'Got it' }}
+        onClose={() => setRevealRestrictedOpen(false)}
+      />
+      <AppDialog
+        visible={!!revealErrorMsg}
+        tone="danger"
+        title="Reveal failed"
+        message={revealErrorMsg ?? ''}
+        primary={{ label: 'OK' }}
+        onClose={() => setRevealErrorMsg(null)}
+      />
       <AppDialog
         visible={permissionOpen}
         tone="warning"
