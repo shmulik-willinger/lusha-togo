@@ -218,7 +218,7 @@ function ContactSignalsSection({ contact }: { contact: SearchContact }) {
           const subs = await listAllSubscriptions(apiKey);
           const existing = subs.find((s: any) => String(s.entityId) === String(entityId));
           if (existing) {
-            await reactivateSubscription(existing.id, apiKey);
+            try { await reactivateSubscription(existing.id, apiKey); } catch {}
             await addSubscription({
               id: existing.id, entityId, entityType: 'contact', entityName: contact.name.full,
               signalTypes: existing.signalTypes ?? [], createdAt: existing.createdAt ?? new Date().toISOString(),
@@ -226,7 +226,18 @@ function ContactSignalsSection({ contact }: { contact: SearchContact }) {
             setDialog({ kind: 'registered' });
             return;
           }
-        } catch {}
+        } catch { /* ignore */ }
+        // Fallback stub — matches FollowButton logic.
+        await addSubscription({
+          id: `stub-${entityId}`,
+          entityId,
+          entityType: 'contact',
+          entityName: contact.name.full,
+          signalTypes: [],
+          createdAt: new Date().toISOString(),
+        });
+        setDialog({ kind: 'registered' });
+        return;
       }
       setDialog({ kind: 'error', message: msg || 'Could not register.' });
     } finally {

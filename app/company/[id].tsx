@@ -321,12 +321,15 @@ function CompanySignalsSection({ company }: { company: SearchCompany }) {
       setDialog({ kind: 'registered' });
     } catch (e: any) {
       const msg: string = e?.response?.data?.message ?? e?.message ?? '';
+      // The backend already has this subscription — either an old one GET
+      // doesn't return, or local state drifted (logout cleared the mirror,
+      // etc.). Treat as success.
       if (msg.toLowerCase().includes('already exists')) {
         try {
           const subs = await listAllSubscriptions(apiKey);
           const existing = subs.find((s: any) => String(s.entityId) === String(entityId));
           if (existing) {
-            await reactivateSubscription(existing.id, apiKey);
+            try { await reactivateSubscription(existing.id, apiKey); } catch {}
             await addSubscription({
               id: existing.id, entityId, entityType: 'company', entityName: company.name,
               signalTypes: existing.signalTypes ?? [], createdAt: existing.createdAt ?? new Date().toISOString(),
@@ -335,7 +338,20 @@ function CompanySignalsSection({ company }: { company: SearchCompany }) {
             setDialog({ kind: 'registered' });
             return;
           }
-        } catch {}
+        } catch { /* ignore */ }
+        // Fallback: add a local stub so the button flips to "Following" right
+        // away. Pull-to-refresh on Signals > Registered syncs the real id.
+        await addSubscription({
+          id: `stub-${entityId}`,
+          entityId,
+          entityType: 'company',
+          entityName: company.name,
+          signalTypes: [],
+          createdAt: new Date().toISOString(),
+          logoUrl: company.logo_url,
+        });
+        setDialog({ kind: 'registered' });
+        return;
       }
       setDialog({ kind: 'error', message: msg || 'Could not register.' });
     } finally {
