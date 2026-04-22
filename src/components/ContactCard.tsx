@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { SearchContact } from '../api/search';
@@ -9,6 +9,8 @@ import { useContactStore } from '../store/contactStore';
 import { Avatar } from './ui/Avatar';
 import { LivePill } from './ui/LivePill';
 import { QuickActionButton } from './ui/QuickActionButton';
+import { AppDialog } from './ui/AppDialog';
+import { Lock } from 'lucide-react-native';
 import { color, radius } from '../theme/tokens';
 
 interface ContactCardProps {
@@ -25,6 +27,7 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
     const cached = getRevealedContact(initialContact.contactId);
     return cached ?? initialContact;
   });
+  const [restrictedOpen, setRestrictedOpen] = useState(false);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -81,6 +84,19 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
         queryClient.invalidateQueries({ queryKey: ['contact-list', contact.listId] });
       }
     },
+    onError: (err: any) => {
+      const status = err?.response?.status;
+      const body = err?.response?.data;
+      console.log('[ContactCard reveal-error]', status, JSON.stringify(body).substring(0, 200));
+      // 403 from /unmask = account doesn't have access to this contact's data.
+      // Show the custom RestrictedDialog (matches the app's design language).
+      if (status === 403) {
+        setRestrictedOpen(true);
+      } else {
+        const msg = body?.message || err?.message || 'Could not reveal this contact. Please try again.';
+        Alert.alert('Reveal failed', msg);
+      }
+    },
   });
 
   const isRevealed = !!contact.isShown;
@@ -101,42 +117,53 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
   };
 
   return (
-    <Pressable onPress={handlePress} style={styles.row}>
-      <Avatar name={contact.name.full} size={40} />
-      <View style={styles.body}>
-        <View style={styles.nameRow}>
-          <Text style={styles.name} numberOfLines={1}>{contact.name.full}</Text>
-          {isDNC && <DncPill />}
-        </View>
-        {!!subtitle && (
-          <Text style={styles.sub} numberOfLines={1}>{subtitle}</Text>
-        )}
-        {!!location && (
-          <Text style={styles.loc} numberOfLines={1}>{location}</Text>
-        )}
-      </View>
-
-      {isDNC || isBlocked ? null : isRevealed ? (
-        <View style={styles.actionCol}>
-          <QuickActionButton kind="call" onPress={handleCall} size={30} />
-        </View>
-      ) : (
-        <View style={styles.actionCol}>
-          {revealMutation.isPending ? (
-            <View style={styles.revealPill}>
-              <ActivityIndicator size="small" color={color.brand} />
-            </View>
-          ) : (
-            <Pressable
-              onPress={(e) => { e.stopPropagation?.(); revealMutation.mutate(); }}
-              style={styles.revealPill}
-            >
-              <Text style={styles.revealText}>REVEAL</Text>
-            </Pressable>
+    <>
+      <Pressable onPress={handlePress} style={styles.row}>
+        <Avatar name={contact.name.full} size={40} />
+        <View style={styles.body}>
+          <View style={styles.nameRow}>
+            <Text style={styles.name} numberOfLines={1}>{contact.name.full}</Text>
+            {isDNC && <DncPill />}
+          </View>
+          {!!subtitle && (
+            <Text style={styles.sub} numberOfLines={1}>{subtitle}</Text>
+          )}
+          {!!location && (
+            <Text style={styles.loc} numberOfLines={1}>{location}</Text>
           )}
         </View>
-      )}
-    </Pressable>
+
+        {isDNC || isBlocked ? null : isRevealed ? (
+          <View style={styles.actionCol}>
+            <QuickActionButton kind="call" onPress={handleCall} size={30} />
+          </View>
+        ) : (
+          <View style={styles.actionCol}>
+            {revealMutation.isPending ? (
+              <View style={styles.revealPill}>
+                <ActivityIndicator size="small" color={color.brand} />
+              </View>
+            ) : (
+              <Pressable
+                onPress={(e) => { e.stopPropagation?.(); revealMutation.mutate(); }}
+                style={styles.revealPill}
+              >
+                <Text style={styles.revealText}>REVEAL</Text>
+              </Pressable>
+            )}
+          </View>
+        )}
+      </Pressable>
+      <AppDialog
+        visible={restrictedOpen}
+        tone="warning"
+        icon={Lock}
+        title="Contact Info is Protected"
+        message={`Your account doesn't have access to ${contact.name.full}'s contact info. Upgrade your plan to unlock access.`}
+        primary={{ label: 'Got it' }}
+        onClose={() => setRestrictedOpen(false)}
+      />
+    </>
   );
 }
 

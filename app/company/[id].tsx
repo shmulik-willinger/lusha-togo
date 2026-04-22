@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Phone, Mail, Globe, AtSign, Rocket, ChevronRight } from 'lucide-react-native';
+import { Phone, Mail, Globe, AtSign, Rocket, ChevronRight, Lock, BellRing, BellOff, Star, CheckCircle2 } from 'lucide-react-native';
 import { Stack, router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useQuery } from '@tanstack/react-query';
@@ -28,6 +28,7 @@ import { resolveUserId } from '../../src/utils/session';
 import { CompanyHero } from '../../src/components/company/CompanyHero';
 import { DecisionMakerRow } from '../../src/components/company/DecisionMakerRow';
 import { CollapsibleSection } from '../../src/components/ui/CollapsibleSection';
+import { AppDialog } from '../../src/components/ui/AppDialog';
 import { color } from '../../src/theme/tokens';
 import { ReceivedSignal } from '../../src/store/signalsStore';
 
@@ -119,6 +120,7 @@ async function openLinkedInCompany(linkedinUrl: string) {
 function DecisionMakerCard({ contact }: { contact: SearchContact }) {
   const setSelectedContact = useContactStore((s) => s.setSelectedContact);
   const [revealed, setRevealed] = React.useState(contact.isShown ?? false);
+  const [restrictedOpen, setRestrictedOpen] = React.useState(false);
   const [phone, setPhone] = React.useState(
     contact.phones?.find((p) => !p.is_do_not_call)?.normalized_number ??
     contact.phones?.find((p) => !p.is_do_not_call)?.number
@@ -135,6 +137,17 @@ function DecisionMakerCard({ contact }: { contact: SearchContact }) {
       }
       setRevealed(true);
     },
+    onError: (err: any) => {
+      const status = err?.response?.status;
+      const body = err?.response?.data;
+      console.log('[DM reveal-error]', status, JSON.stringify(body).substring(0, 200));
+      if (status === 403) {
+        setRestrictedOpen(true);
+      } else {
+        const msg = body?.message || err?.message || 'Could not reveal this contact. Please try again.';
+        Alert.alert('Reveal failed', msg);
+      }
+    },
   });
 
   const handleCall = () => {
@@ -147,21 +160,32 @@ function DecisionMakerCard({ contact }: { contact: SearchContact }) {
   };
 
   return (
-    <DecisionMakerRow
-      contact={{
-        id: contact.contactId,
-        name: contact.name.full,
-        role: contact.job_title?.title,
-        seniority: contact.job_title?.seniority,
-        revealed,
-        live: false,
-        phoneNumber: phone,
-      }}
-      loading={revealMutation.isPending}
-      onCall={handleCall}
-      onReveal={() => revealMutation.mutate()}
-      onPress={handlePress}
-    />
+    <>
+      <DecisionMakerRow
+        contact={{
+          id: contact.contactId,
+          name: contact.name.full,
+          role: contact.job_title?.title,
+          seniority: contact.job_title?.seniority,
+          revealed,
+          live: false,
+          phoneNumber: phone,
+        }}
+        loading={revealMutation.isPending}
+        onCall={handleCall}
+        onReveal={() => revealMutation.mutate()}
+        onPress={handlePress}
+      />
+      <AppDialog
+        visible={restrictedOpen}
+        tone="warning"
+        icon={Lock}
+        title="Contact Info is Protected"
+        message={`Your account doesn't have access to ${contact.name.full}'s contact info. Upgrade your plan to unlock access.`}
+        primary={{ label: 'Got it' }}
+        onClose={() => setRestrictedOpen(false)}
+      />
+    </>
   );
 }
 
@@ -234,6 +258,13 @@ function CompanySignalsSection({ company }: { company: SearchCompany }) {
   const [signals, setSignals] = useState<LushaSignalEvent[]>([]);
   const [showError, setShowError] = useState<string | null>(null);
   const [shown, setShown] = useState(false);
+  // Dialog state
+  type DialogState =
+    | { kind: 'registered' }
+    | { kind: 'error'; message: string }
+    | { kind: 'confirmUnregister'; onConfirm: () => void }
+    | null;
+  const [dialog, setDialog] = useState<DialogState>(null);
 
   if (!apiKey || !entityId) return null;
 
@@ -269,22 +300,19 @@ function CompanySignalsSection({ company }: { company: SearchCompany }) {
     if (following) {
       const sub = subscriptions.find((s) => s.entityId === entityId);
       if (!sub) return;
-      Alert.alert('Unregister', `Stop receiving signal notifications for ${company.name}?`, [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Unregister', style: 'destructive',
-          onPress: async () => {
-            setRegisterLoading(true);
-            try { await deleteSubscription(sub.id, apiKey); } catch {}
-            await removeSubscription(sub.id);
-            setRegisterLoading(false);
-          },
+      setDialog({
+        kind: 'confirmUnregister',
+        onConfirm: async () => {
+          setRegisterLoading(true);
+          try { await deleteSubscription(sub.id, apiKey); } catch {}
+          await removeSubscription(sub.id);
+          setRegisterLoading(false);
         },
-      ]);
+      });
       return;
     }
     if (!resolvedUserId) {
-      Alert.alert('Error', 'Could not resolve your user ID. Please log out and log in again.');
+      setDialog({ kind: 'error', message: 'Could not resolve your user ID. Please log out and log in again.' });
       return;
     }
     setRegisterLoading(true);
@@ -297,7 +325,7 @@ function CompanySignalsSection({ company }: { company: SearchCompany }) {
         signalTypes: result.signalTypes, createdAt: result.createdAt ?? new Date().toISOString(),
         logoUrl: company.logo_url,
       });
-      Alert.alert('Registered!', `You'll receive push notifications when there are signals for ${company.name}.`);
+      setDialog({ kind: 'registered' });
     } catch (e: any) {
       const msg: string = e?.response?.data?.message ?? e?.message ?? '';
       if (msg.toLowerCase().includes('already exists')) {
@@ -311,12 +339,12 @@ function CompanySignalsSection({ company }: { company: SearchCompany }) {
               signalTypes: existing.signalTypes ?? [], createdAt: existing.createdAt ?? new Date().toISOString(),
               logoUrl: company.logo_url,
             });
-            Alert.alert('Registered!', `You'll receive push notifications when there are signals for ${company.name}.`);
+            setDialog({ kind: 'registered' });
             return;
           }
         } catch {}
       }
-      Alert.alert('Error', msg || 'Could not register.');
+      setDialog({ kind: 'error', message: msg || 'Could not register.' });
     } finally {
       setRegisterLoading(false);
     }
@@ -381,6 +409,35 @@ function CompanySignalsSection({ company }: { company: SearchCompany }) {
           <Text style={{ fontSize: 12, color: '#737373' }}>Registered — All Signals</Text>
         </View>
       )}
+
+      <AppDialog
+        visible={dialog?.kind === 'registered'}
+        tone="success"
+        icon={BellRing}
+        title="Registered!"
+        message={`You'll receive push notifications when there are signals for ${company.name}.`}
+        primary={{ label: 'Done' }}
+        onClose={() => setDialog(null)}
+      />
+      <AppDialog
+        visible={dialog?.kind === 'error'}
+        tone="danger"
+        title="Something went wrong"
+        message={dialog?.kind === 'error' ? dialog.message : ''}
+        primary={{ label: 'OK' }}
+        onClose={() => setDialog(null)}
+      />
+      <AppDialog
+        visible={dialog?.kind === 'confirmUnregister'}
+        tone="warning"
+        icon={BellOff}
+        title="Unregister signals?"
+        message={`Stop receiving signal notifications for ${company.name}?`}
+        primary={{ label: 'Unregister', onPress: () => dialog?.kind === 'confirmUnregister' && dialog.onConfirm() }}
+        secondary={{ label: 'Cancel' }}
+        destructive
+        onClose={() => setDialog(null)}
+      />
     </View>
   );
 }
@@ -391,6 +448,8 @@ function FollowCompanyButton({ company }: { company: SearchCompany }) {
   const entityId = company.company_id || company.company_lid;
   const following = entityId ? isFollowing(entityId, company.name, 'company') : false;
   const [loading, setLoading] = useState(false);
+  const [confirmUnfollow, setConfirmUnfollow] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const resolvedUserId = resolveUserId(session);
 
   if (!entityId || !apiKey || !resolvedUserId) return null;
@@ -456,7 +515,7 @@ function FollowCompanyButton({ company }: { company: SearchCompany }) {
         setLoading(false);
         return;
       }
-      Alert.alert('Error', msg || 'Could not follow company.');
+      setErrorMsg(msg || 'Could not follow company.');
     } finally {
       setLoading(false);
     }
@@ -469,47 +528,69 @@ function FollowCompanyButton({ company }: { company: SearchCompany }) {
       ?? subscriptions.find((s) => s.entityType === 'company' &&
            s.entityName.replace(/\s*—\s*Lusha ToGo\s*$/i, '').trim().toLowerCase() === cleanName);
     if (!sub) return;
-    Alert.alert('Unfollow', `Stop following ${company.name}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Unfollow',
-        style: 'destructive',
-        onPress: async () => {
-          setLoading(true);
-          try { await deleteSubscription(sub.id, apiKey); } catch (e: any) {
-            console.log('[follow-company] delete error:', e?.message);
-          }
-          await removeSubscription(sub.id);
-          setLoading(false);
-        },
-      },
-    ]);
+    setConfirmUnfollow(true);
+  };
+
+  const performUnfollow = async () => {
+    const cleanName = company.name.replace(/\s*—\s*Lusha ToGo\s*$/i, '').trim().toLowerCase();
+    const sub = subscriptions.find((s) => s.entityId === entityId)
+      ?? subscriptions.find((s) => s.entityType === 'company' &&
+           s.entityName.replace(/\s*—\s*Lusha ToGo\s*$/i, '').trim().toLowerCase() === cleanName);
+    if (!sub) return;
+    setLoading(true);
+    try { await deleteSubscription(sub.id, apiKey); } catch (e: any) {
+      console.log('[follow-company] delete error:', e?.message);
+    }
+    await removeSubscription(sub.id);
+    setLoading(false);
   };
 
   return (
-    <TouchableOpacity
-      onPress={following ? handleUnfollow : handleFollow}
-      disabled={loading}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: following ? '#f3efff' : '#6f45ff',
-        paddingHorizontal: 14,
-        paddingVertical: 7,
-        borderRadius: 16,
-        opacity: loading ? 0.6 : 1,
-        alignSelf: 'flex-start',
-        marginTop: 8,
-      }}
-      activeOpacity={0.8}
-    >
-      {loading
-        ? <ActivityIndicator size="small" color={following ? '#6f45ff' : '#fff'} />
-        : <Text style={{ fontSize: 13, color: following ? '#6f45ff' : '#fff', fontWeight: '600' }}>
-            {following ? '✓ Following' : '+ Follow'}
-          </Text>
-      }
-    </TouchableOpacity>
+    <>
+      <TouchableOpacity
+        onPress={following ? handleUnfollow : handleFollow}
+        disabled={loading}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: following ? '#f3efff' : '#6f45ff',
+          paddingHorizontal: 14,
+          paddingVertical: 7,
+          borderRadius: 16,
+          opacity: loading ? 0.6 : 1,
+          alignSelf: 'flex-start',
+          marginTop: 8,
+        }}
+        activeOpacity={0.8}
+      >
+        {loading
+          ? <ActivityIndicator size="small" color={following ? '#6f45ff' : '#fff'} />
+          : <Text style={{ fontSize: 13, color: following ? '#6f45ff' : '#fff', fontWeight: '600' }}>
+              {following ? '✓ Following' : '+ Follow'}
+            </Text>
+        }
+      </TouchableOpacity>
+
+      <AppDialog
+        visible={confirmUnfollow}
+        tone="warning"
+        icon={Star}
+        title="Unfollow?"
+        message={`Stop following ${company.name}? You won't receive signal notifications anymore.`}
+        primary={{ label: 'Unfollow', onPress: performUnfollow }}
+        secondary={{ label: 'Cancel' }}
+        destructive
+        onClose={() => setConfirmUnfollow(false)}
+      />
+      <AppDialog
+        visible={!!errorMsg}
+        tone="danger"
+        title="Something went wrong"
+        message={errorMsg ?? ''}
+        primary={{ label: 'OK' }}
+        onClose={() => setErrorMsg(null)}
+      />
+    </>
   );
 }
 

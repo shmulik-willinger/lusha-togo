@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import * as Contacts from 'expo-contacts';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MapPin, Ban, Lock, Unlock, Phone, Mail, MessageCircle, Building2, Clock, UserPlus, Share2 } from 'lucide-react-native';
+import { MapPin, Ban, Lock, Unlock, Phone, Mail, MessageCircle, Building2, Clock, UserPlus, Share2, BellRing, BellOff, Star } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -26,6 +26,7 @@ import { Badge } from '../../src/components/ui/Badge';
 import { ContactHero } from '../../src/components/contact/ContactHero';
 import { RevealHeroCard } from '../../src/components/contact/RevealHeroCard';
 import { MaskedValueRow } from '../../src/components/ui/MaskedValueRow';
+import { AppDialog } from '../../src/components/ui/AppDialog';
 import { color } from '../../src/theme/tokens';
 import { useSignalsStore } from '../../src/store/signalsStore';
 import { createSubscription, deleteSubscription, listAllSubscriptions, reactivateSubscription, getContactSignals, LushaSignalEvent } from '../../src/api/signals';
@@ -144,6 +145,12 @@ function ContactSignalsSection({ contact }: { contact: SearchContact }) {
   const [signals, setSignals] = useState<LushaSignalEvent[]>([]);
   const [showError, setShowError] = useState<string | null>(null);
   const [shown, setShown] = useState(false);
+  type DialogState =
+    | { kind: 'registered' }
+    | { kind: 'error'; message: string }
+    | { kind: 'confirmUnregister'; onConfirm: () => void }
+    | null;
+  const [dialog, setDialog] = useState<DialogState>(null);
 
   if (!apiKey || !entityId) return null;
 
@@ -179,23 +186,19 @@ function ContactSignalsSection({ contact }: { contact: SearchContact }) {
     if (following) {
       const sub = subscriptions.find((s) => s.entityId === entityId);
       if (!sub) return;
-      Alert.alert('Unregister', `Stop receiving signal notifications for ${contact.name.full}?`, [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Unregister',
-          style: 'destructive',
-          onPress: async () => {
-            setRegisterLoading(true);
-            try { await deleteSubscription(sub.id, apiKey); } catch {}
-            await removeSubscription(sub.id);
-            setRegisterLoading(false);
-          },
+      setDialog({
+        kind: 'confirmUnregister',
+        onConfirm: async () => {
+          setRegisterLoading(true);
+          try { await deleteSubscription(sub.id, apiKey); } catch {}
+          await removeSubscription(sub.id);
+          setRegisterLoading(false);
         },
-      ]);
+      });
       return;
     }
     if (!resolvedUserId) {
-      Alert.alert('Error', 'Could not resolve your user ID. Please log out and log in again.');
+      setDialog({ kind: 'error', message: 'Could not resolve your user ID. Please log out and log in again.' });
       return;
     }
     setRegisterLoading(true);
@@ -207,7 +210,7 @@ function ContactSignalsSection({ contact }: { contact: SearchContact }) {
         id: result.id, entityId, entityType: 'contact', entityName: contact.name.full,
         signalTypes: result.signalTypes, createdAt: result.createdAt ?? new Date().toISOString(),
       });
-      Alert.alert('Registered!', `You'll receive push notifications when ${contact.name.full} has new signals.`);
+      setDialog({ kind: 'registered' });
     } catch (e: any) {
       const msg: string = e?.response?.data?.message ?? e?.message ?? '';
       if (msg.toLowerCase().includes('already exists')) {
@@ -220,12 +223,12 @@ function ContactSignalsSection({ contact }: { contact: SearchContact }) {
               id: existing.id, entityId, entityType: 'contact', entityName: contact.name.full,
               signalTypes: existing.signalTypes ?? [], createdAt: existing.createdAt ?? new Date().toISOString(),
             });
-            Alert.alert('Registered!', `You'll receive push notifications when ${contact.name.full} has new signals.`);
+            setDialog({ kind: 'registered' });
             return;
           }
         } catch {}
       }
-      Alert.alert('Error', msg || 'Could not register.');
+      setDialog({ kind: 'error', message: msg || 'Could not register.' });
     } finally {
       setRegisterLoading(false);
     }
@@ -306,6 +309,35 @@ function ContactSignalsSection({ contact }: { contact: SearchContact }) {
           <Text style={{ fontSize: 12, color: '#737373' }}>Registered — All Signals</Text>
         </View>
       )}
+
+      <AppDialog
+        visible={dialog?.kind === 'registered'}
+        tone="success"
+        icon={BellRing}
+        title="Registered!"
+        message={`You'll receive push notifications when ${contact.name.full} has new signals.`}
+        primary={{ label: 'Done' }}
+        onClose={() => setDialog(null)}
+      />
+      <AppDialog
+        visible={dialog?.kind === 'error'}
+        tone="danger"
+        title="Something went wrong"
+        message={dialog?.kind === 'error' ? dialog.message : ''}
+        primary={{ label: 'OK' }}
+        onClose={() => setDialog(null)}
+      />
+      <AppDialog
+        visible={dialog?.kind === 'confirmUnregister'}
+        tone="warning"
+        icon={BellOff}
+        title="Unregister signals?"
+        message={`Stop receiving signal notifications for ${contact.name.full}?`}
+        primary={{ label: 'Unregister', onPress: () => dialog?.kind === 'confirmUnregister' && dialog.onConfirm() }}
+        secondary={{ label: 'Cancel' }}
+        destructive
+        onClose={() => setDialog(null)}
+      />
     </View>
   );
 }
@@ -316,6 +348,8 @@ function FollowButton({ contact }: { contact: SearchContact }) {
   const entityId = contact.personId != null ? String(contact.personId) : null;
   const following = entityId ? isFollowing(entityId, contact.name.full, 'contact') : false;
   const [loading, setLoading] = useState(false);
+  const [confirmUnfollow, setConfirmUnfollow] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const resolvedUserId = resolveUserId(session);
 
   if (!entityId || !apiKey || !resolvedUserId) return null;
@@ -374,7 +408,7 @@ function FollowButton({ contact }: { contact: SearchContact }) {
         setLoading(false);
         return;
       }
-      Alert.alert('Error', msg || 'Could not follow contact.');
+      setErrorMsg(msg || 'Could not follow contact.');
     } finally {
       setLoading(false);
     }
@@ -386,48 +420,70 @@ function FollowButton({ contact }: { contact: SearchContact }) {
       ?? subscriptions.find((s) => s.entityType === 'contact' &&
            s.entityName.replace(/\s*—\s*Lusha ToGo\s*$/i, '').trim().toLowerCase() === cleanName);
     if (!sub) return;
-    Alert.alert('Unfollow', `Stop following ${contact.name.full}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Unfollow',
-        style: 'destructive',
-        onPress: async () => {
-          setLoading(true);
-          try {
-            await deleteSubscription(sub.id, apiKey);
-          } catch (e: any) {
-            console.log('[follow] delete error:', e?.message);
-          }
-          await removeSubscription(sub.id);
-          setLoading(false);
-        },
-      },
-    ]);
+    setConfirmUnfollow(true);
+  };
+
+  const performUnfollow = async () => {
+    const cleanName = contact.name.full.replace(/\s*—\s*Lusha ToGo\s*$/i, '').trim().toLowerCase();
+    const sub = subscriptions.find((s) => s.entityId === entityId)
+      ?? subscriptions.find((s) => s.entityType === 'contact' &&
+           s.entityName.replace(/\s*—\s*Lusha ToGo\s*$/i, '').trim().toLowerCase() === cleanName);
+    if (!sub) return;
+    setLoading(true);
+    try {
+      await deleteSubscription(sub.id, apiKey);
+    } catch (e: any) {
+      console.log('[follow] delete error:', e?.message);
+    }
+    await removeSubscription(sub.id);
+    setLoading(false);
   };
 
   return (
-    <TouchableOpacity
-      onPress={following ? handleUnfollow : handleFollow}
-      disabled={loading}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-        backgroundColor: following ? '#f3efff' : '#6f45ff',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 16,
-        opacity: loading ? 0.6 : 1,
-      }}
-      activeOpacity={0.8}
-    >
-      {loading
-        ? <ActivityIndicator size="small" color={following ? '#6f45ff' : '#fff'} />
-        : <Text style={{ fontSize: 13, color: following ? '#6f45ff' : '#fff', fontWeight: '600' }}>
-            {following ? '✓ Following' : '+ Follow'}
-          </Text>
-      }
-    </TouchableOpacity>
+    <>
+      <TouchableOpacity
+        onPress={following ? handleUnfollow : handleFollow}
+        disabled={loading}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 4,
+          backgroundColor: following ? '#f3efff' : '#6f45ff',
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          borderRadius: 16,
+          opacity: loading ? 0.6 : 1,
+        }}
+        activeOpacity={0.8}
+      >
+        {loading
+          ? <ActivityIndicator size="small" color={following ? '#6f45ff' : '#fff'} />
+          : <Text style={{ fontSize: 13, color: following ? '#6f45ff' : '#fff', fontWeight: '600' }}>
+              {following ? '✓ Following' : '+ Follow'}
+            </Text>
+        }
+      </TouchableOpacity>
+
+      <AppDialog
+        visible={confirmUnfollow}
+        tone="warning"
+        icon={Star}
+        title="Unfollow?"
+        message={`Stop following ${contact.name.full}? You won't receive signal notifications anymore.`}
+        primary={{ label: 'Unfollow', onPress: performUnfollow }}
+        secondary={{ label: 'Cancel' }}
+        destructive
+        onClose={() => setConfirmUnfollow(false)}
+      />
+      <AppDialog
+        visible={!!errorMsg}
+        tone="danger"
+        title="Something went wrong"
+        message={errorMsg ?? ''}
+        primary={{ label: 'OK' }}
+        onClose={() => setErrorMsg(null)}
+      />
+    </>
   );
 }
 
@@ -450,6 +506,9 @@ export default function ContactDetailScreen() {
   }, [query.data]);
 
   const [revealError, setRevealError] = useState(false);
+  const [permissionOpen, setPermissionOpen] = useState(false);
+  const [savedOpen, setSavedOpen] = useState(false);
+  const [saveErrorOpen, setSaveErrorOpen] = useState(false);
 
   const revealMutation = useMutation({
     mutationFn: () => revealContact(data!),
@@ -519,7 +578,7 @@ export default function ContactDetailScreen() {
   const saveToPhoneContacts = async () => {
     const { status } = await Contacts.requestPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission required', 'Please allow access to contacts in your phone settings.');
+      setPermissionOpen(true);
       return;
     }
 
@@ -545,9 +604,9 @@ export default function ContactDetailScreen() {
 
     try {
       await Contacts.addContactAsync(contact);
-      Alert.alert('Saved!', `${data.name.full} was saved to your contacts.`);
+      setSavedOpen(true);
     } catch (e) {
-      Alert.alert('Error', 'Could not save contact. Please try again.');
+      setSaveErrorOpen(true);
     }
   };
 
@@ -800,6 +859,33 @@ export default function ContactDetailScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      <AppDialog
+        visible={permissionOpen}
+        tone="warning"
+        icon={Lock}
+        title="Permission required"
+        message="Please allow access to contacts in your phone settings so we can save this contact."
+        primary={{ label: 'Got it' }}
+        onClose={() => setPermissionOpen(false)}
+      />
+      <AppDialog
+        visible={savedOpen}
+        tone="success"
+        icon={UserPlus}
+        title="Saved to contacts"
+        message={data ? `${data.name.full} was saved to your phone's contacts.` : ''}
+        primary={{ label: 'Done' }}
+        onClose={() => setSavedOpen(false)}
+      />
+      <AppDialog
+        visible={saveErrorOpen}
+        tone="danger"
+        title="Couldn't save contact"
+        message="Something went wrong while saving this contact. Please try again."
+        primary={{ label: 'OK' }}
+        onClose={() => setSaveErrorOpen(false)}
+      />
     </SafeAreaView>
   );
 }
