@@ -28,7 +28,6 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
     return cached ?? initialContact;
   });
   const [restrictedOpen, setRestrictedOpen] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -86,17 +85,11 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
       }
     },
     onError: (err: any) => {
-      const status = err?.response?.status;
-      const body = err?.response?.data;
-      console.log('[ContactCard reveal-error]', status, JSON.stringify(body).substring(0, 200));
-      // 403 from /unmask = account doesn't have access to this contact's data.
-      // Show the custom RestrictedDialog (matches the app's design language).
-      if (status === 403) {
-        setRestrictedOpen(true);
-      } else {
-        const msg = body?.message || err?.message || 'Could not reveal this contact. Please try again.';
-        setErrorMsg(msg);
-      }
+      console.log('[ContactCard reveal-error]', err?.response?.status, JSON.stringify(err?.response?.data).substring(0, 200));
+      // Show the same gentle "Contact Info is Protected" message the detail
+      // page shows in its inline banner. The user has no way to diagnose
+      // 403 vs 500 from here — the actionable answer is always "upgrade".
+      setRestrictedOpen(true);
     },
   });
 
@@ -160,17 +153,9 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
         tone="warning"
         icon={Lock}
         title="Contact Info is Protected"
-        message={`Your account doesn't have access to ${contact.name.full}'s contact info. Upgrade your plan to unlock access.`}
+        message="Upgrade your plan to unlock access to this contact's info."
         primary={{ label: 'Got it' }}
         onClose={() => setRestrictedOpen(false)}
-      />
-      <AppDialog
-        visible={!!errorMsg}
-        tone="danger"
-        title="Reveal failed"
-        message={errorMsg ?? ''}
-        primary={{ label: 'OK' }}
-        onClose={() => setErrorMsg(null)}
       />
     </>
   );

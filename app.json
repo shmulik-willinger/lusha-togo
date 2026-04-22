@@ -2,7 +2,7 @@
   "expo": {
     "name": "Lusha ToGo",
     "slug": "lusha-togo",
-    "version": "1.0.775",
+    "version": "1.0.780",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "lushamoto",
@@ -38,7 +38,7 @@
           ]
         }
       ],
-      "versionCode": 775,
+      "versionCode": 780,
       "permissions": [
         "android.permission.READ_CONTACTS",
         "android.permission.WRITE_CONTACTS"

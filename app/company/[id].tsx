@@ -121,7 +121,6 @@ function DecisionMakerCard({ contact }: { contact: SearchContact }) {
   const setSelectedContact = useContactStore((s) => s.setSelectedContact);
   const [revealed, setRevealed] = React.useState(contact.isShown ?? false);
   const [restrictedOpen, setRestrictedOpen] = React.useState(false);
-  const [revealErrorMsg, setRevealErrorMsg] = React.useState<string | null>(null);
   const [phone, setPhone] = React.useState(
     contact.phones?.find((p) => !p.is_do_not_call)?.normalized_number ??
     contact.phones?.find((p) => !p.is_do_not_call)?.number
@@ -139,15 +138,8 @@ function DecisionMakerCard({ contact }: { contact: SearchContact }) {
       setRevealed(true);
     },
     onError: (err: any) => {
-      const status = err?.response?.status;
-      const body = err?.response?.data;
-      console.log('[DM reveal-error]', status, JSON.stringify(body).substring(0, 200));
-      if (status === 403) {
-        setRestrictedOpen(true);
-      } else {
-        const msg = body?.message || err?.message || 'Could not reveal this contact. Please try again.';
-        setRevealErrorMsg(msg);
-      }
+      console.log('[DM reveal-error]', err?.response?.status, JSON.stringify(err?.response?.data).substring(0, 200));
+      setRestrictedOpen(true);
     },
   });
 
@@ -182,17 +174,9 @@ function DecisionMakerCard({ contact }: { contact: SearchContact }) {
         tone="warning"
         icon={Lock}
         title="Contact Info is Protected"
-        message={`Your account doesn't have access to ${contact.name.full}'s contact info. Upgrade your plan to unlock access.`}
+        message="Upgrade your plan to unlock access to this contact's info."
         primary={{ label: 'Got it' }}
         onClose={() => setRestrictedOpen(false)}
-      />
-      <AppDialog
-        visible={!!revealErrorMsg}
-        tone="danger"
-        title="Reveal failed"
-        message={revealErrorMsg ?? ''}
-        primary={{ label: 'OK' }}
-        onClose={() => setRevealErrorMsg(null)}
       />
     </>
   );
