@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { SearchContact } from '../api/search';
@@ -28,6 +28,7 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
     return cached ?? initialContact;
   });
   const [restrictedOpen, setRestrictedOpen] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -94,7 +95,7 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
         setRestrictedOpen(true);
       } else {
         const msg = body?.message || err?.message || 'Could not reveal this contact. Please try again.';
-        Alert.alert('Reveal failed', msg);
+        setErrorMsg(msg);
       }
     },
   });
@@ -162,6 +163,14 @@ export function ContactCard({ contact: initialContact, onReveal }: ContactCardPr
         message={`Your account doesn't have access to ${contact.name.full}'s contact info. Upgrade your plan to unlock access.`}
         primary={{ label: 'Got it' }}
         onClose={() => setRestrictedOpen(false)}
+      />
+      <AppDialog
+        visible={!!errorMsg}
+        tone="danger"
+        title="Reveal failed"
+        message={errorMsg ?? ''}
+        primary={{ label: 'OK' }}
+        onClose={() => setErrorMsg(null)}
       />
     </>
   );

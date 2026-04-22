@@ -121,6 +121,7 @@ function DecisionMakerCard({ contact }: { contact: SearchContact }) {
   const setSelectedContact = useContactStore((s) => s.setSelectedContact);
   const [revealed, setRevealed] = React.useState(contact.isShown ?? false);
   const [restrictedOpen, setRestrictedOpen] = React.useState(false);
+  const [revealErrorMsg, setRevealErrorMsg] = React.useState<string | null>(null);
   const [phone, setPhone] = React.useState(
     contact.phones?.find((p) => !p.is_do_not_call)?.normalized_number ??
     contact.phones?.find((p) => !p.is_do_not_call)?.number
@@ -145,7 +146,7 @@ function DecisionMakerCard({ contact }: { contact: SearchContact }) {
         setRestrictedOpen(true);
       } else {
         const msg = body?.message || err?.message || 'Could not reveal this contact. Please try again.';
-        Alert.alert('Reveal failed', msg);
+        setRevealErrorMsg(msg);
       }
     },
   });
@@ -184,6 +185,14 @@ function DecisionMakerCard({ contact }: { contact: SearchContact }) {
         message={`Your account doesn't have access to ${contact.name.full}'s contact info. Upgrade your plan to unlock access.`}
         primary={{ label: 'Got it' }}
         onClose={() => setRestrictedOpen(false)}
+      />
+      <AppDialog
+        visible={!!revealErrorMsg}
+        tone="danger"
+        title="Reveal failed"
+        message={revealErrorMsg ?? ''}
+        primary={{ label: 'OK' }}
+        onClose={() => setRevealErrorMsg(null)}
       />
     </>
   );
