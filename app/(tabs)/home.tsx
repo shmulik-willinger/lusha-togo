@@ -100,8 +100,26 @@ function navigateToSignalEntity(
 export default function HomeScreen() {
   const { data: recsData, isLoading, refetch, error } = useRecommendations();
   const signals = useSignalsStore((s) => s.signals);
+  const subscriptions = useSignalsStore((s) => s.subscriptions);
   const setSelectedCompany = useCompanyStore((s) => s.setSelectedCompany);
   const setSelectedContact = useContactStore((s) => s.setSelectedContact);
+
+  // Webhooks from Lusha don't include the company logo in the payload, so
+  // push-delivered signals arrive without one. Back-fill from the local
+  // Subscription record (logoUrl is saved there when the user Registers from
+  // the company page, because Register passes through company.logo_url).
+  const resolveLogoUrl = (s: ReceivedSignal): string | undefined => {
+    if (s.logoUrl) return s.logoUrl;
+    const match =
+      subscriptions.find((sub) => sub.entityId === s.entityId) ??
+      subscriptions.find(
+        (sub) =>
+          sub.entityType === s.entityType &&
+          sub.entityName.replace(/\s*—\s*Lusha ToGo\s*$/i, '').trim().toLowerCase() ===
+            s.entityName.trim().toLowerCase(),
+      );
+    return match?.logoUrl;
+  };
 
   // De-dupe by entityId — show at most one card per entity
   const recentSignals = (() => {
@@ -138,7 +156,7 @@ export default function HomeScreen() {
                   kind={signalKindFromType(s.signalType)}
                   title={s.entityName}
                   subtitle={signalSubtitle(s)}
-                  logoUrl={s.logoUrl}
+                  logoUrl={resolveLogoUrl(s)}
                   entityName={s.entityName}
                   entityType={s.entityType}
                   onPress={() => navigateToSignalEntity(s, setSelectedCompany, setSelectedContact)}
