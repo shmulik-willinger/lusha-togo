@@ -2,7 +2,7 @@
   "expo": {
     "name": "Lusha ToGo",
     "slug": "lusha-togo",
-    "version": "1.0.782",
+    "version": "1.0.789",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "lushamoto",
@@ -22,6 +22,7 @@
         "backgroundColor": "#6f45ff"
       },
       "package": "com.lusha.togo",
+      "googleServicesFile": "./android/app/google-services.json",
       "intentFilters": [
         {
           "action": "VIEW",
@@ -38,7 +39,7 @@
           ]
         }
       ],
-      "versionCode": 782,
+      "versionCode": 789,
       "permissions": [
         "android.permission.READ_CONTACTS",
         "android.permission.WRITE_CONTACTS"

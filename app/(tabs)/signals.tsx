@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Bell, Key, TrendingUp, TrendingDown, Users, Newspaper, Building2, Trophy, Eye, type LucideIcon } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useSignalsStore, ReceivedSignal, StoredSubscription } from '../../src/store/signalsStore';
 import { listSubscriptions, deleteSubscription } from '../../src/api/signals';
 import { SignalsTeaser } from '../../src/components/signals/SignalsTeaser';
@@ -354,6 +354,16 @@ export default function SignalsScreen() {
     setActiveTab('activity');
     if (unreadCount > 0) markAllRead();
   };
+
+  // Auto-mark-read whenever the Signals tab gains focus AND Activity is the
+  // selected sub-tab. Without this, the unread badges stay lit the first time
+  // the user opens Signals because Activity is selected by default and the
+  // tap handler never fires.
+  useFocusEffect(
+    useCallback(() => {
+      if (activeTab === 'activity' && unreadCount > 0) markAllRead();
+    }, [activeTab, unreadCount, markAllRead]),
+  );
 
   if (!apiKey) {
     return (
