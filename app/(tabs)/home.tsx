@@ -60,11 +60,16 @@ function signalSubtitle(s: ReceivedSignal): string {
   if (s.signalType === 'promotion' && d.currentTitle) return `Now ${d.currentTitle}`;
   // Numeric hints — append to the humanised label so subtitle reads:
   // "Headcount ↑ (1m) · +1.7%"
-  if (d.percentChange != null) {
-    const sign = Number(d.percentChange) > 0 ? '+' : '';
-    return `${label} · ${sign}${d.percentChange}%`;
+  const pct = d.percentChange ?? d.changeRatePercent;
+  if (pct != null) {
+    const sign = Number(pct) > 0 ? '+' : '';
+    return `${label} · ${sign}${pct}%`;
   }
-  if (d.newJobsCount != null) return `${label} · ${d.newJobsCount} new jobs`;
+  const jobs = d.newJobsCount ?? d.newJobsPostedLastWeek;
+  if (jobs != null) return `${label} · ${jobs} new jobs`;
+  // Free-text summary for news-type signals (Corporate strategy, Risk news, …)
+  const headline = d.headline || d.title || d.summary || d.description;
+  if (headline) return `${label} · ${headline}`;
   return label;
 }
 

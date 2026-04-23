@@ -83,6 +83,13 @@ function signalDate(signal: ReceivedSignal): string {
   } catch { return ''; }
 }
 
+// Free-text fallback used for news-type signals and as a last resort when
+// the specific signal has no numeric hint. Lusha and our synthetic webhooks
+// expose the human summary under different names depending on the source.
+function freeTextSummary(d: Record<string, any>): string {
+  return d.headline || d.title || d.summary || d.description || d.text || '';
+}
+
 function signalBody(signal: ReceivedSignal): string {
   const d = signal.data ?? {};
   switch (signal.signalType) {
@@ -97,22 +104,56 @@ function signalBody(signal: ReceivedSignal): string {
       return [d.currentTitle, d.currentSeniorityLabel ? `(${d.currentSeniorityLabel})` : null]
         .filter(Boolean).join(' ');
     case 'websiteTrafficIncrease':
-    case 'websiteTrafficDecrease':
-      return d.changeRatePercent != null ? `${Number(d.changeRatePercent) > 0 ? '+' : ''}${d.changeRatePercent}% vs historical avg` : '';
+    case 'websiteTrafficDecrease': {
+      const pct = d.percentChange ?? d.changeRatePercent;
+      return pct != null ? `${Number(pct) > 0 ? '+' : ''}${pct}% vs historical avg` : freeTextSummary(d);
+    }
     case 'itSpendIncrease':
-    case 'itSpendDecrease':
-      return d.changeRatePercent != null ? `${Number(d.changeRatePercent) > 0 ? '+' : ''}${d.changeRatePercent}% spend change` : '';
+    case 'itSpendDecrease': {
+      const pct = d.percentChange ?? d.changeRatePercent;
+      return pct != null ? `${Number(pct) > 0 ? '+' : ''}${pct}% spend change` : freeTextSummary(d);
+    }
     case 'surgeInHiring':
-      return d.newJobsPostedLastWeek != null ? `${d.newJobsPostedLastWeek} new jobs posted` : '';
     case 'surgeInHiringByDepartment':
-      return [d.department, d.newJobsPostedLastWeek ? `${d.newJobsPostedLastWeek} new jobs` : null].filter(Boolean).join(' · ');
-    case 'surgeInHiringByLocation':
-      return [d.location, d.newJobsPostedLastWeek ? `${d.newJobsPostedLastWeek} new jobs` : null].filter(Boolean).join(' · ');
+    case 'surgeInHiringByLocation': {
+      const jobs = d.newJobsCount ?? d.newJobsPostedLastWeek;
+      const parts = [];
+      if (jobs != null) parts.push(`${jobs} new jobs`);
+      if (d.department || d.departmentLabel) parts.push(d.department || d.departmentLabel);
+      if (d.location || d.locationLabel) parts.push(d.location || d.locationLabel);
+      return parts.length > 0 ? parts.join(' · ') : freeTextSummary(d);
+    }
+    case 'headcountIncrease1m':
+    case 'headcountIncrease3m':
+    case 'headcountIncrease6m':
+    case 'headcountIncrease12m':
+    case 'headcountDecrease1m':
+    case 'headcountDecrease3m':
+    case 'headcountDecrease6m':
+    case 'headcountDecrease12m': {
+      const pct = d.percentChange ?? d.changeRatePercent;
+      const cur = d.currentHeadcount ?? d.newEmployeesCount;
+      const sign = signal.signalType.includes('Increase') ? '+' : '';
+      if (pct != null && cur != null) return `${sign}${pct}% · now ${Number(cur).toLocaleString()} employees`;
+      if (pct != null) return `${sign}${pct}%`;
+      if (d.baselineEmployeesCount != null && cur != null)
+        return `${Number(d.baselineEmployeesCount).toLocaleString()} → ${Number(cur).toLocaleString()} employees`;
+      return freeTextSummary(d);
+    }
+    // News types — there's no numeric hint, just a text summary from Lusha.
+    case 'riskNews':
+    case 'commercialActivityNews':
+    case 'corporateStrategyNews':
+    case 'financialEventsNews':
+    case 'peopleNews':
+    case 'marketIntelligenceNews':
+    case 'productActivityNews':
+      return freeTextSummary(d);
     default:
       if (d.changeRatePercent != null) return `${Number(d.changeRatePercent) > 0 ? '+' : ''}${d.changeRatePercent}%`;
       if (d.newEmployeesCount != null && d.baselineEmployeesCount != null)
         return `${d.baselineEmployeesCount} → ${d.newEmployeesCount} employees`;
-      return '';
+      return freeTextSummary(d);
   }
 }
 
