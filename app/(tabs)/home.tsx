@@ -19,12 +19,53 @@ function signalKindFromType(t: string): 'funding' | 'jobChange' | 'news' {
   return 'funding';
 }
 
+// Human-readable label per signal type. Mirrors the Cloudflare Worker and
+// the signalLabel helpers in contact/[id].tsx + company/[id].tsx.
+function humanSignalLabel(t: string): string {
+  const map: Record<string, string> = {
+    companyChange: 'Changed jobs',
+    promotion: 'Promoted',
+    surgeInHiring: 'Surge in hiring',
+    surgeInHiringByDepartment: 'Surge in hiring',
+    surgeInHiringByLocation: 'Surge in hiring',
+    headcountIncrease1m: 'Headcount ↑ (1m)',
+    headcountIncrease3m: 'Headcount ↑ (3m)',
+    headcountIncrease6m: 'Headcount ↑ (6m)',
+    headcountIncrease12m: 'Headcount ↑ (12m)',
+    headcountDecrease1m: 'Headcount ↓ (1m)',
+    headcountDecrease3m: 'Headcount ↓ (3m)',
+    headcountDecrease6m: 'Headcount ↓ (6m)',
+    headcountDecrease12m: 'Headcount ↓ (12m)',
+    websiteTrafficIncrease: 'Website traffic ↑',
+    websiteTrafficDecrease: 'Website traffic ↓',
+    itSpendIncrease: 'IT spend ↑',
+    itSpendDecrease: 'IT spend ↓',
+    riskNews: 'Risk news',
+    commercialActivityNews: 'Commercial activity',
+    corporateStrategyNews: 'Corporate strategy',
+    financialEventsNews: 'Financial events',
+    peopleNews: 'People news',
+    marketIntelligenceNews: 'Market intelligence',
+    productActivityNews: 'Product activity',
+    funding: 'Funding round',
+    techAdoption: 'Tech adoption',
+  };
+  return map[t] ?? t;
+}
+
 function signalSubtitle(s: ReceivedSignal): string {
   const d = s.data ?? {};
+  const label = humanSignalLabel(s.signalType);
   if (s.signalType === 'companyChange' && d.currentCompanyName) return `Now at ${d.currentCompanyName}`;
   if (s.signalType === 'promotion' && d.currentTitle) return `Now ${d.currentTitle}`;
-  if (d.changeRatePercent != null) return `${Number(d.changeRatePercent) > 0 ? '+' : ''}${d.changeRatePercent}%`;
-  return s.signalType;
+  // Numeric hints — append to the humanised label so subtitle reads:
+  // "Headcount ↑ (1m) · +1.7%"
+  if (d.percentChange != null) {
+    const sign = Number(d.percentChange) > 0 ? '+' : '';
+    return `${label} · ${sign}${d.percentChange}%`;
+  }
+  if (d.newJobsCount != null) return `${label} · ${d.newJobsCount} new jobs`;
+  return label;
 }
 
 function navigateToSignalEntity(
@@ -99,6 +140,7 @@ export default function HomeScreen() {
                   subtitle={signalSubtitle(s)}
                   logoUrl={s.logoUrl}
                   entityName={s.entityName}
+                  entityType={s.entityType}
                   onPress={() => navigateToSignalEntity(s, setSelectedCompany, setSelectedContact)}
                 />
               ))}

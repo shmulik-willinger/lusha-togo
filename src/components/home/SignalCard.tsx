@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, Image, StyleSheet } from 'react-native';
-import { TrendingUp, ArrowRight, Newspaper, type LucideIcon } from 'lucide-react-native';
+import { TrendingUp, ArrowRight, Newspaper, Building2, type LucideIcon } from 'lucide-react-native';
 import { LivePill } from '../ui/LivePill';
 import { color, radius } from '../../theme/tokens';
 
@@ -19,10 +19,11 @@ interface SignalCardProps {
   live?: boolean;
   logoUrl?: string;
   entityName?: string;
+  entityType?: 'contact' | 'company';
   onPress?: () => void;
 }
 
-function initialsOf(name: string): string {
+function contactInitials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return '?';
   if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
@@ -30,30 +31,56 @@ function initialsOf(name: string): string {
 }
 
 export function SignalCard({
-  kind, title, subtitle, live = false, logoUrl, entityName, onPress,
+  kind, title, subtitle, live = false, logoUrl, entityName, entityType = 'company', onPress,
 }: SignalCardProps) {
   const { Icon, bg, fg } = ICON[kind];
-  return (
-    <Pressable onPress={onPress} style={styles.card}>
-      {logoUrl ? (
+
+  // Avatar priority:
+  //   1. logo image if we have one
+  //   2. for companies without logo → brand-tint square with a Building2 icon
+  //      (clearly distinguishes "this is a company" from contact initials)
+  //   3. for contacts without logo → 2-letter initials (first + last)
+  const renderAvatar = () => {
+    if (logoUrl) {
+      return (
         <View style={styles.logoWrap}>
           <Image source={{ uri: logoUrl }} style={styles.logoImg} resizeMode="contain" />
           <View style={[styles.kindBadge, { backgroundColor: bg }]}>
             <Icon size={10} color={fg} strokeWidth={2.4} />
           </View>
         </View>
-      ) : entityName ? (
-        <View style={styles.initialsWrap}>
-          <Text style={styles.initialsText}>{initialsOf(entityName)}</Text>
+      );
+    }
+    if (entityType === 'company') {
+      return (
+        <View style={styles.companyWrap}>
+          <Building2 size={20} color={color.brand} strokeWidth={2} />
           <View style={[styles.kindBadge, { backgroundColor: bg }]}>
             <Icon size={10} color={fg} strokeWidth={2.4} />
           </View>
         </View>
-      ) : (
-        <View style={[styles.icon, { backgroundColor: bg }]}>
-          <Icon size={18} color={fg} strokeWidth={2.2} />
+      );
+    }
+    if (entityName) {
+      return (
+        <View style={styles.initialsWrap}>
+          <Text style={styles.initialsText}>{contactInitials(entityName)}</Text>
+          <View style={[styles.kindBadge, { backgroundColor: bg }]}>
+            <Icon size={10} color={fg} strokeWidth={2.4} />
+          </View>
         </View>
-      )}
+      );
+    }
+    return (
+      <View style={[styles.icon, { backgroundColor: bg }]}>
+        <Icon size={18} color={fg} strokeWidth={2.2} />
+      </View>
+    );
+  };
+
+  return (
+    <Pressable onPress={onPress} style={styles.card}>
+      {renderAvatar()}
       <View style={styles.body}>
         <Text style={styles.title} numberOfLines={1}>{title}</Text>
         <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text>
@@ -96,6 +123,11 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   initialsText: { color: color.brand, fontWeight: '800', fontSize: 14, letterSpacing: 0.3 },
+  companyWrap: {
+    width: 44, height: 44, borderRadius: radius.md,
+    backgroundColor: color.brandTint,
+    alignItems: 'center', justifyContent: 'center',
+  },
   kindBadge: {
     position: 'absolute',
     right: -4, bottom: -4,

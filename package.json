@@ -1,6 +1,6 @@
 {
   "name": "lusha-togo",
-  "version": "1.0.789",
+  "version": "1.0.792",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
