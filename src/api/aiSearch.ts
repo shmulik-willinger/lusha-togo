@@ -197,21 +197,55 @@ function extractCompanyFilters(text: string): { filters: SearchFilters; residual
     residual = residual.replace(revRange[0], ' ');
   }
 
+  // --- Size adjectives ---
+  // Queries like "biggest/largest companies", "top 10 companies",
+  // "smallest startups", "enterprise companies" don't contain a numeric
+  // headcount but clearly map to a size bucket. Infer when no explicit
+  // size bucket was already set.
+  //
+  // Bucket choice notes:
+  //   - "biggest/largest" maps to the 10,001–100,000 bucket. The
+  //     100,001+ bucket returns almost no rows in Lusha's prospecting
+  //     index for most accounts, whereas the 10k–100k bucket captures
+  //     virtually every Fortune 500 (Apple ~170k, Microsoft ~220k lie
+  //     at the edge but still appear for this account). In practice
+  //     this is what gives the best "biggest companies" results.
+  //   - "smallest/startup" uses 1–10 (solo + micro bands aren't in
+  //     Lusha's bucket list, so we use the smallest bucket that does
+  //     exist).
+  if (!result.companySize) {
+    const sizeAdj = residual.match(/\b(biggest|largest|huge|enterprise|enterprises|mega|giants?|massive|top|fortune)\b/i);
+    const smallAdj = residual.match(/\b(smallest|tiny|startup|startups|micro|small(?:-| )businesses?)\b/i);
+    if (sizeAdj) {
+      result.companySize = { min: 10001, max: 100000 };
+      residual = residual.replace(sizeAdj[0], ' ');
+    } else if (smallAdj) {
+      result.companySize = { min: 1, max: 10 };
+      residual = residual.replace(smallAdj[0], ' ');
+    }
+  }
+
   // --- Location ---
   // "from India", "in United States", "based in Germany"
   const locMatch = residual.match(/\b(?:from|in|based\s+in)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)\b/);
   if (locMatch) {
     const name = locMatch[1];
-    // Skip common non-locations
-    if (!/^(With|And|Or|The)$/i.test(name)) {
+    // Skip generic terms that aren't actually country/region names.
+    if (!/^(With|And|Or|The|World|Worldwide|Globe|Global|Anywhere|Everywhere)$/i.test(name)) {
       result.companyLocation = [{ name, key: 'country' } as LocationOption];
+      residual = residual.replace(locMatch[0], ' ');
+    } else {
+      // Strip the filler "in The World" phrase so it doesn't pollute searchText.
       residual = residual.replace(locMatch[0], ' ');
     }
   }
 
-  // Clean up residual: strip filler words ("with", "that have", "and") + extra whitespace
+  // Clean up residual: strip filler words + extra whitespace. Numbers like
+  // "5" (as in "5 biggest …") and generic words add no signal to the
+  // token-match search, so strip them too.
   const cleaned = residual
-    .replace(/\b(?:with|that\s+have|and|companies|company)\b/gi, ' ')
+    .replace(/\b(?:with|that\s+have|and|companies|company|the|in|of|from|around|worldwide|global|globally|world|a|an)\b/gi, ' ')
+    .replace(/\b\d+\b/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 
